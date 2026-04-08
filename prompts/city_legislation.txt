@@ -1,0 +1,22 @@
+# DOMAIN-SPECIFIC RULES (CITY LEGISLATION):
+
+## 1. Legislator Cohort Analysis (CRITICAL)
+- **True First Term Isolation (MIN() Ban)**: Legislators often move between states (e.g., from TX to LA). When analyzing a cohort based on their "first term" (e.g., 'started in LA'), you MUST find their absolute global first term. **NEVER use `MIN()` with `WHERE state = ...` to find the first term.** This isolates the 'first term in that state', not their 'global first term'. **ALWAYS use `ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC)` first**, and then filter for `state` or `gender` in a subsequent step.
+- **Cohort Matrix Structure**: To calculate N-year retention safely:
+  1) Define the exact target cohort members first.
+  2) `CROSS JOIN` these specific members with a recursive CTE of elapsed years to create a base grid.
+  3) `LEFT JOIN` the `legislators_terms` table into this grid to check activity.
+  NEVER start your `FROM` clause with `ElapsedYears` and `LEFT JOIN` the cohort members, as it breaks the denominator and zero-filling logic for empty cohorts.
+- **LEFT JOIN Filtering Ban**: When using `LEFT JOIN` for zero-filling (to show years/months with 0 counts), **NEVER put `IS NOT NULL` conditions on the right table in the `WHERE` clause.** This converts the query into an `INNER JOIN` and destroys the zero-filling. Just use `COUNT(right_table.id)`, which safely returns 0 when there are no matches.
+- **Year-End Activity Check**: To check if a legislator was active at the end of a given year, strictly use: `term_start <= '[YEAR]-12-31' AND term_end >= '[YEAR]-12-31'`.
+- **1-based Time Period Indexing (CRITICAL)**: When a prompt asks for a sequence of periods (e.g., "first 20 years", "next 12 months"), ALWAYS generate the period labels using 1-based indexing (e.g., `1, 2, 3 ... 20`), NEVER 0-based indexing (`0, 1 ... 19`). Adjust your date offset math accordingly (e.g., `target_year = start_year + period - 1`). Spider2 strict evaluation expects 1-based period numbers.
+
+## 2. City & Alien Data Logistics
+- **City Timeline (Zero-filling)**: When tracking metrics (like cities added) over specific months and years, explicitly generate the full Cartesian product grid of the required Years and Months first, then `LEFT JOIN` the `cities` data to avoid skipping sparse months.
+- **Data Types**: In the `cities` table, the `capital` flag is stored as a string (`'1'` for yes, `'0'` for no).
+- **Alien Data Mapping**: In the `alien_data` table, use conditional aggregation (`SUM(CASE WHEN...)`) to count alignments: `aggressive = 0` means "friendly", and `aggressive = 1` means "hostile".
+
+## 3. Job Postings & Skills (If applicable in this schema)
+- **Text Filtering**: When asked to find records that "have" or "specifically have" a text (e.g., job titles, skills), you MUST use `LIKE '%phrase%'` instead of strict `=`.
+- **Ties in Rankings**: When finding "Top N" items based on counts, prefer using `DENSE_RANK()` over `LIMIT N` to handle ties correctly. However, use DENSE_RANK() ONLY when explicitly generating a "ranking" column. If just filtering for the "Top N" skills, use `ORDER BY ... LIMIT N`.
+- **Skill Filtering (Fan-out Ban)**: A job can have multiple skills. When calculating the average salary for jobs that require specific skills, NEVER `JOIN` `job_postings_fact` directly with `skills_job_dim` in the main query. Use `WHERE job_id IN (SELECT ...)` to prevent duplicating the core rows.

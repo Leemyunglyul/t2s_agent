@@ -1,0 +1,48 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# files
+examples/
+
+# API Keys & Secrets (절대 GitHub에 올라가면 안 됨)
+*.key
+*.pem
+credentials.json
+# 만약 gcp 인증 키 파일이나 다른 비밀 파일이 있다면 여기에 추가
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# LangGraph / SQLite DB / Output files
+*.sqlite
+*.sqlite3
+*.db
+output/
+csv_results/
+predictions.jsonl
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

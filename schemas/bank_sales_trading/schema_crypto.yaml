@@ -1,0 +1,37 @@
+domain: crypto
+description: >
+  Semantic model for cryptocurrency transactions and pricing.
+  [SQL RULE]: ORDER OF OPERATIONS FOR RANKING. 
+  If a task asks to "exclude certain data (e.g., the first year) THEN rank the remaining data", 
+  you MUST filter out the excluded data in a CTE *BEFORE* you apply the `RANK()` or `DENSE_RANK()` window function. 
+  Do not rank first and filter later, as this will result in missing ranks (gaps) for the remaining records.
+
+tables:
+  - name: bitcoin_transactions
+    description: "Member cryptocurrency transaction records."
+    columns:
+      - name: member_id
+        logical_name: "멤버ID"
+      - name: ticker
+        logical_name: "코인심볼"
+      - name: txn_type
+        logical_name: "거래유형"
+      - name: quantity
+        logical_name: "수량"
+      - name: txn_date
+        logical_name: "거래일자"
+        type: TEXT
+        description: >
+          Date Format: Dates are stored as 'DD-MM-YYYY' string. 
+          Standard SQLite date functions like `strftime` will NOT work directly. 
+          You MUST use `SUBSTR(txn_date, 7, 4)` to extract the year.
+
+  - name: bitcoin_prices
+    description: "Daily market closing prices for cryptocurrencies."
+    columns:
+      - name: ticker
+        logical_name: "코인심볼"
+      - name: market_date
+        logical_name: "기준일자"
+      - name: price
+        logical_name: "종가"

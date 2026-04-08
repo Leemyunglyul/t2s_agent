@@ -1,0 +1,50 @@
+domain: ecommerce
+description: >
+  Semantic model for e-commerce shopping cart events and page hierarchy.
+  [GLOBAL CRITICAL RULE]: PROPORTION VS PERCENTAGE. If a task asks for a "proportion" or "ratio", 
+  NEVER multiply the result by 100. The result MUST ALWAYS be a decimal value between 0.0 and 1.0.
+
+tables:
+  - name: shopping_cart_events
+    description: "Logs of user interactions with the shopping cart."
+    columns:
+      - name: visit_id
+        logical_name: "방문ID"
+      - name: event_type
+        logical_name: "이벤트타입코드"
+        description: >
+          [CRITICAL SQL RULE]: FUNNEL ANALYSIS. 
+          event_type 1 = View, 2 = Add to Cart, 3 = Purchase.
+          Note that 'Purchase' (3) often occurs on a different page (like a checkout page) than 'View' or 'Add to Cart'.
+          To calculate if a product added to a cart was ACTUALLY PURCHASED or ABANDONED (left in cart), you MUST evaluate it at the `visit_id` level, NOT the `page_id` level.
+          - Times Purchased: Count the `event_type = 2` where the same `visit_id` ALSO has an `event_type = 3` somewhere in their session.
+          - Times Left in Cart (Abandoned): Count the `event_type = 2` where the same `visit_id` DOES NOT have an `event_type = 3` in their session.
+          DO NOT filter out page_ids (like checkout pages) BEFORE identifying which `visit_id`s made a purchase.
+      - name: page_id
+        logical_name: "페이지ID"
+
+  - name: shopping_cart_page_hierarchy
+    description: "Hierarchy and categorization of shopping pages."
+    columns:
+      - name: page_id
+        logical_name: "페이지ID"
+        primary_key: true
+        description: >
+          [CRITICAL] Product Identifier: In this database, each `page_id` represents an individual "product". 
+          If a task asks for an analysis "for each product", you MUST `GROUP BY page_id`, NOT by `product_category`.
+      - name: product_category
+      - name: product_category
+        logical_name: "카테고리"
+
+metrics:
+  - name: abandonment_count
+    logical_name: "이탈횟수"
+    table: shopping_cart_events
+    description: "Calculates cart abandonment by subtracting successful checkouts (event_type=3) from add-to-cart events (event_type=2)."
+    formula: "COUNT(CASE WHEN event_type = 2 THEN 1 END) - COUNT(CASE WHEN event_type = 3 THEN 1 END)"
+
+relationships:
+  - from: shopping_cart_events
+    to: shopping_cart_page_hierarchy
+    join_condition: "shopping_cart_events.page_id = shopping_cart_page_hierarchy.page_id"
+    type: many_to_one

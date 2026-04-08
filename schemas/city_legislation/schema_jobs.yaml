@@ -1,0 +1,68 @@
+domain: job_market
+description: Semantic model for analyzing job postings, skill requirements, and salary information.
+
+tables:
+  - name: job_postings_fact
+    description: "Fact table containing job posting details."
+    columns:
+      - name: job_id
+        logical_name: "공고ID"
+        primary_key: true
+      - name: job_title_short
+        logical_name: "직무명_단축"
+        sample_values:
+          ["Data Analyst", "Senior Data Analyst", "Software Engineer"]
+        description: >
+          When a task asks for a specific job title (e.g., "specifically have the Data Analyst"), 
+          you MUST NEVER use the `LIKE` operator (e.g., `LIKE '%Data Analyst%'`) or include senior roles. 
+          You MUST use exact string matching: `job_title_short = 'Data Analyst'`.
+      - name: job_work_from_home
+        logical_name: "원격근무여부"
+        description: "1: Remote work, 0: On-site"
+      - name: salary_year_avg
+        logical_name: "연봉_평균"
+        description: >
+          Avoid Fan-out Trap when averaging: When calculating `AVG(salary_year_avg)` based on certain skills, 
+          NEVER directly `JOIN` the many-to-many table (`skills_job_dim`) in the final aggregation query, as it will duplicate job rows and distort the average.
+          You MUST use a subquery with `WHERE job_id IN (...)` to filter the jobs before aggregating.
+
+  - name: skills_dim
+    description: "Dimension table for skills"
+    columns:
+      - name: skill_id
+        logical_name: "스킬ID"
+      - name: skills
+        logical_name: "스킬명"
+        sample_values: ["python", "sql", "tableau"]
+
+  - name: skills_job_dim
+    description: "Many-to-many (M:N) mapping table between job postings and skills."
+    columns:
+      - name: job_id
+        logical_name: "공고ID"
+      - name: skill_id
+        logical_name: "스킬ID"
+
+metrics:
+  - name: top_skills_ranking
+    logical_name: "스킬_빈도_순위"
+    table: skills_job_dim
+    formula: "DENSE_RANK() OVER (ORDER BY COUNT(job_id) DESC)"
+    description: >
+      When calculating the Top N most frequent items (e.g., top 3 skills), 
+      you MUST NEVER use the `LIMIT N` clause alone, as it drops tying records. 
+      You MUST use `DENSE_RANK() OVER (ORDER BY COUNT(...) DESC)` to prevent omitting items that are tied for the same rank.
+
+relationships:
+  - from: job_postings_fact
+    to: skills_job_dim
+    join_condition: "job_postings_fact.job_id = skills_job_dim.job_id"
+    type: one_to_many
+  - from: skills_job_dim
+    to: skills_dim
+    join_condition: "skills_job_dim.skill_id = skills_dim.skill_id"
+    type: many_to_one
+  - from: job_postings_fact
+    to: job_company
+    join_condition: "job_postings_fact.company_id = job_company.company_id"
+    type: many_to_one
