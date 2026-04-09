@@ -56,7 +56,7 @@ def run_single_task(question: str, workspace_path: str, instance_id: str, db_id:
         "db_id": db_id,
         "step_count": 0,
         "retry_count": 0,
-        "max_steps": 20,             
+        "max_steps": 10,             
         "execution_history": [],      
         "is_final_answer": False,
         "has_error": False,

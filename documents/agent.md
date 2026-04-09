@@ -33,3 +33,44 @@
 ▼                             ▼
 [ END ] <───────────────── "end" (최종 정답 통과 또는 Max Step 도달)
 ```
+
+### Workflow
+
+```txt
+[ START ]
+    │
+    ▼
+1. Query_Analysis ─────┐
+    │                  │ (사용자 의도, 키워드, 실행 계획 분석)
+    ▼                  │
+2. Schema_Linking <────┘
+    │ (DB 스키마 조회 및 필요 테이블/컬럼 매핑)
+    ▼
+3. Data_Profiling
+    │ (데이터 샘플링을 통한 실제 값 형식 확인)
+    ▼
+4. SQL_Writer
+    │ (최초 SQL 작성 및 [EXPLORE SQL] 또는 [FINAL SQL] 태그 생성)
+    ▼
+┌▶ 5. Execution ──────────────────────────────┐
+│   │ (SQL 실행, sqlglot 구문 검사, 결과 Preview) │
+│   │                                         │
+│   ▼                                         │
+│ [ route_after_execution ]                   │
+│   │                                         │
+│   ├─ "retry" (에러 발생 시) ───────────────────┼──▶ 7. SQL_Modifier
+│   │                                         │     │ (에러/반려 피드백 기반 쿼리 수정)
+│   └─ "critic" (성공 및 FINAL SQL인 경우) ───────┤     │
+│                                             │     ▼
+│ 6. Critic (비평가)                          │  (Execution으로 다시 루프)
+│   │ (결과 논리 검증 및 벤치마크 룰 체크)      │
+│   ▼                                         │
+│ [ route_after_critic ]                      │
+│   │                                         │
+│   ├─ "retry" (Critic 반려 시) ────────────────┘
+│   │
+│   └─ "end" (Critic 통과 시) ────────────────┐
+│                                             │
+└─────────────────────────────────────────────┼─────▶ [ END ]
+                                              │ (또는 Max Step 10회 도달 시 강제 종료)
+```

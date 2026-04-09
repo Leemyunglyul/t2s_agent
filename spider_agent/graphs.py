@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 
 def route_after_execution(state: AgentState):
     if state.get("has_error"):
-        if state.get("retry_count", 0) >= state.get("max_steps", 20):
+        if state.get("retry_count", 0) >= state.get("max_steps", 10):
             return "end"
         return "retry"
     else:
@@ -27,7 +27,7 @@ def route_after_execution(state: AgentState):
 
 def route_after_critic(state: AgentState):
     if state.get("has_error"):
-        if state.get("retry_count", 0) >= state.get("max_steps", 20):
+        if state.get("retry_count", 0) >= state.get("max_steps", 10):
             return "end"
         return "retry"
     return "end"

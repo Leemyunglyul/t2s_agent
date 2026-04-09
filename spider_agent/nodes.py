@@ -6,6 +6,7 @@ import os
 import glob
 import threading
 import csv
+import math
 from typing import Dict, Any, Tuple
 
 import sqlglot
@@ -311,9 +312,7 @@ def load_domain_rules(work_dir: str) -> str:
             logger.warning(f"도메인 파일 읽기 실패 ({txt_file}): {e}")
             
     return "\n\n".join(rules)
-# =====================================================================
-# 💡 [개선] Writer 노드: 도메인 룰 로직 제거
-# =====================================================================
+
 def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     logger.info("==> [Node] SQL Writer 실행 중... (최초 작성)")
     
@@ -367,9 +366,6 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
         "has_error": False
     }
 
-# =====================================================================
-# 💡 [개선] Modifier 노드: 도메인 룰 로직 제거
-# =====================================================================
 def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     retry_count = state.get("retry_count", 0)
     logger.info(f"==> [Node] SQL Modifier 실행 중... (Step: {retry_count+1}/{state.get('max_steps')})")
@@ -465,17 +461,31 @@ def execution_node(state: AgentState) -> Dict[str, Any]:
                 "retry_count": state.get("max_steps", 40)
             }
 
-    past_sqls = [h["sql"].strip().upper() for h in history]
-    if generated_sql.strip().upper() in past_sqls:
-        logger.warning("🚨 [헛바퀴 방지] 이미 실행했던 SQL입니다. 실행을 차단하고 다른 방법을 유도합니다.")
-        error_msg = "ANTI-REPETITION ERROR: You have ALREADY executed this exact query in a previous step. Read your PAST EXECUTION HISTORY to find the result, and DO NOT run this query again. Move on to the next logical step."
-        history.append({"sql": generated_sql, "result": error_msg})
-        return {
-            "execution_history": history,
-            "has_error": True,
-            "retry_count": state.get("retry_count", 0) + 1,
-            "observation": error_msg
-        }
+    current_sql_upper = generated_sql.strip().upper()
+    
+    # 히스토리에서 정확히 일치하는 이전 쿼리 기록들을 찾습니다.
+    matching_history = [h for h in history if h.get("sql", "").strip().upper() == current_sql_upper]
+    
+    if matching_history:
+        # 가장 최근에 실행했던 동일 쿼리의 결과를 확인합니다.
+        last_result = matching_history[-1].get("result", "")
+        
+        # 현재 시스템에서 성공적인 탐색 쿼리는 결과가 "Headers: ..." 로 시작합니다.
+        if last_result.startswith("Headers:"):
+            logger.info("💡 [헛바퀴 통과] 이전에 성공했던 탐색(EXPLORE) 쿼리를 최종 제출했습니다. 정상 진행합니다.")
+            pass # 아무 조치 없이 아래의 DB 실행 로직으로 그대로 흘려보냄
+            
+        else:
+            # 이전 결과가 에러("ERROR:")였거나 Critic 반려("CRITIC FEEDBACK:")였다면 강제 차단!
+            logger.warning("🚨 [헛바퀴 방지] 이전에 실패/반려된 SQL을 똑같이 제출했습니다. 실행을 차단합니다.")
+            error_msg = "ANTI-REPETITION ERROR: You have ALREADY executed this exact query, and it FAILED or was REJECTED by the Critic. Do NOT submit it again without changes. Fix the logic."
+            history.append({"sql": generated_sql, "result": error_msg})
+            return {
+                "execution_history": history,
+                "has_error": True,
+                "retry_count": state.get("retry_count", 0) + 1,
+                "observation": error_msg
+            }
     
     if generated_sql == "ERROR" or not generated_sql:
         format_warning = (
@@ -522,6 +532,8 @@ def execution_node(state: AgentState) -> Dict[str, Any]:
 
     try:
         conn = sqlite3.connect(db_path)
+        conn.create_function("SQRT", 1, math.sqrt)
+        conn.create_function("POWER", 2, math.pow)
         cursor = conn.cursor()
         
         is_timeout = False
