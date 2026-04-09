@@ -13,6 +13,7 @@ venv.bak/
 credentials.json
 # 만약 gcp 인증 키 파일이나 다른 비밀 파일이 있다면 여기에 추가
 
+#db
 examples/
 
 # Byte-compiled / optimized / DLL files

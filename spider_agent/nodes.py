@@ -87,8 +87,15 @@ def query_analysis_node(state: AgentState) -> Dict[str, Any]:
         logger.error("State에 'question'이 없습니다.")
         return {"has_error": True, "observation": "Missing question in state."}
 
+    work_dir = state.get("working_dir", "")
+    domain_rules = load_domain_rules(work_dir)
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
+    
+    # Planner용 시스템 프롬프트에 도메인 룰 추가
+    dynamic_planner_system = QUERY_ANALYSIS_SYSTEM + domain_prompt + "\nIMPORTANT: When creating the plan, remember to use DENSE_RANK for ties, ROW_NUMBER for global first terms, and avoid INNER JOINs for metrics."
+    
     messages = [
-        {"role": "system", "content": QUERY_ANALYSIS_SYSTEM},
+        {"role": "system", "content": dynamic_planner_system},
         {"role": "user", "content": f"User Question: \"{question}\""}
     ]
     
@@ -120,7 +127,6 @@ def query_analysis_node(state: AgentState) -> Dict[str, Any]:
         "step_count": state.get("step_count", 0) + 1
     }
 
-# 💡 [개선] keywords 리스트를 받아 테이블을 동적으로 필터링하도록 변경
 def auto_extract_schema(work_dir: str, keywords: list = []) -> str:
     sqlite_files = glob.glob(os.path.join(work_dir, "*.sqlite"))
     if not sqlite_files:
@@ -136,7 +142,6 @@ def auto_extract_schema(work_dir: str, keywords: list = []) -> str:
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [row[0] for row in cursor.fetchall() if row[0] != "sqlite_sequence"]
         
-        # 💡 [개선] 키워드가 있다면 연관된 테이블명만 가볍게 필터링하여 환각 방지
         if keywords:
             filtered_tables = [t for t in tables if any(k.lower() in t.lower() for k in keywords)]
             tables = filtered_tables if filtered_tables else tables 
@@ -195,7 +200,6 @@ def schema_linking_node(state: AgentState) -> Dict[str, Any]:
     if not schema_str or "error" in schema_str or "not found" in schema_str:
         logger.warning(f"🚨 [Schema Linking] DB({db_id}) 스키마 파일 누락. Python 자동 추출 스크립트 가동!")
         
-        # 💡 [개선] auto_extract_schema 호출 시 키워드 리스트를 넘겨줌
         extracted_schema = auto_extract_schema(work_dir, keywords_list)
         
         if "SCHEMA NOT PROVIDED" in extracted_schema:
@@ -290,8 +294,25 @@ def data_profiling_node(state: AgentState) -> Dict[str, Any]:
         "step_count": state.get("step_count", 0) + 1
     }
 
+def load_domain_rules(work_dir: str) -> str:
+    """작업 디렉토리 내의 도메인 특화 룰(.txt)을 스캔하여 텍스트로 반환합니다."""
+    if not work_dir:
+        return ""
+    
+    txt_files = glob.glob(os.path.join(work_dir, "*.txt"))
+    rules = []
+    for txt_file in txt_files:
+        try:
+            with open(txt_file, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if content:
+                    rules.append(f"--- [Domain Info: {os.path.basename(txt_file)}] ---\n{content}")
+        except Exception as e:
+            logger.warning(f"도메인 파일 읽기 실패 ({txt_file}): {e}")
+            
+    return "\n\n".join(rules)
 # =====================================================================
-# 💡 [신규] 최초 쿼리 작성을 전담하는 Writer 노드
+# 💡 [개선] Writer 노드: 도메인 룰 로직 제거
 # =====================================================================
 def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     logger.info("==> [Node] SQL Writer 실행 중... (최초 작성)")
@@ -300,18 +321,7 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     schema = state.get("retrieved_schema", "")
     profiled = state.get("profiled_data", "No profiling data.")
     plan = state.get("analyzed_query", {}).get("step_by_step_plan", "")
-    
-    db_id = state.get("db_id", "") 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(current_dir)
-    prompts_dir = os.path.join(project_root, "prompts")
-    
-    domain_rules = ""
-    if db_id:
-        domain_file_path = os.path.join(prompts_dir, f"{db_id}.txt")
-        if os.path.exists(domain_file_path):
-            with open(domain_file_path, "r", encoding="utf-8") as f:
-                domain_rules = f.read().strip()
+    work_dir = state.get("working_dir", "") # working_dir 가져오기
 
     persona_prompt = (
         "You are an Expert SQL Architect and Data Analyst (WRITER).\n"
@@ -319,7 +329,11 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
         "based on the provided schema, data profiling, and the execution plan.\n"
     )
     
-    dynamic_system_prompt = persona_prompt + "\n" + SQL_GENERATION_SYSTEM.format(domain_specific_rules=domain_rules)
+    # 도메인 룰 파일 로드 및 프롬프트 합성
+    domain_rules = load_domain_rules(work_dir)
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
+    
+    dynamic_system_prompt = persona_prompt + domain_prompt + "\n" + SQL_GENERATION_SYSTEM
     
     user_content = (
         f"User Question: {question}\n\n"
@@ -338,7 +352,7 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     status, response = call_llm({
         "messages": messages,
         "max_tokens": 8192,
-        "temperature": 0.0 # Writer의 온도를 자유롭게 설정 가능
+        "temperature": 0.0
     })
 
     try:
@@ -354,7 +368,7 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     }
 
 # =====================================================================
-# 💡 [신규] 에러 발생 시 디버깅을 전담하는 Modifier 노드
+# 💡 [개선] Modifier 노드: 도메인 룰 로직 제거
 # =====================================================================
 def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     retry_count = state.get("retry_count", 0)
@@ -365,18 +379,7 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     history = state.get("execution_history", [])
     profiled = state.get("profiled_data", "No profiling data.")
     plan = state.get("analyzed_query", {}).get("step_by_step_plan", "")
-    
-    db_id = state.get("db_id", "") 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(current_dir)
-    prompts_dir = os.path.join(project_root, "prompts")
-    
-    domain_rules = ""
-    if db_id:
-        domain_file_path = os.path.join(prompts_dir, f"{db_id}.txt")
-        if os.path.exists(domain_file_path):
-            with open(domain_file_path, "r", encoding="utf-8") as f:
-                domain_rules = f.read().strip()
+    work_dir = state.get("working_dir", "") # working_dir 가져오기
 
     persona_prompt = (
         "You are a Senior SQL Debugger and Modifier (MODIFIER).\n"
@@ -386,7 +389,11 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
         "Identify the exact syntax error, timeout cause, or logical flaw, and provide the corrected SQL.\n"
     )
     
-    dynamic_system_prompt = persona_prompt + "\n" + SQL_GENERATION_SYSTEM.format(domain_specific_rules=domain_rules)
+    # 도메인 룰 파일 로드 및 프롬프트 합성
+    domain_rules = load_domain_rules(work_dir)
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
+    
+    dynamic_system_prompt = persona_prompt + domain_prompt + "\n" + SQL_GENERATION_SYSTEM
 
     recent_history = history 
     history_text = "\n".join([f"Step {i+1} - Executed: {h['sql']}\nResult: {h['result']}" for i, h in enumerate(recent_history)])
@@ -422,7 +429,7 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     status, response = call_llm({
         "messages": messages,
         "max_tokens": 8192,
-        "temperature": 0.0 # Modifier는 분석을 위해 온도 0 추천
+        "temperature": 0.0
     })
 
     try:
@@ -486,7 +493,6 @@ def execution_node(state: AgentState) -> Dict[str, Any]:
     db_path = sqlite_files[0]
     statements = [stmt.strip() for stmt in generated_sql.split(';') if stmt.strip()]
 
-    # 💡 [사전 구문 검증] - sqlglot 적용
     try:
         for stmt in statements:
             parsed_ast = sqlglot.parse_one(stmt, read="sqlite")

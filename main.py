@@ -154,13 +154,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run LangGraph SQL Agent")
 
     parser.add_argument("run_name", type=str, nargs="?", default="latest_run", help="Name of the experiment run")
-    parser.add_argument("input", type=str, nargs="?", default="./examples/test.jsonl", help="Input JSONL file")
+    # 1. 문제는 testset 폴더에서 가져옵니다.
+    parser.add_argument("input", type=str, nargs="?", default="./testset/city_legislation.jsonl", help="Input JSONL file")
     args = parser.parse_args()
     
     logger = setup_global_logging(args.run_name)
 
     INPUT_FILE = args.input
-    DB_BASE_DIRECTORY = "./examples"
+    
+    DB_BASE_DIRECTORY = "./examples" 
+    
     OUTPUT_FILE = f"./output/{args.run_name}/predictions.jsonl"
     
+    # 실행
     run_batch_evaluation(INPUT_FILE, DB_BASE_DIRECTORY, OUTPUT_FILE, args.run_name)
