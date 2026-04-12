@@ -512,7 +512,6 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
         "has_error": False
     }
 
-
 def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     retry_count = state.get("retry_count", 0)
     logger.info(f"==> [Node] SQL Modifier 실행 중... (Step: {retry_count+1}/{state.get('max_steps')})")
@@ -839,8 +838,14 @@ def critic_node(state: AgentState) -> Dict[str, Any]:
     preview = state.get("final_result_preview", "")
     history = state.get("execution_history", [])
     
+    work_dir = state.get("working_dir", "")
+    
+    # [추가] Critic에게도 도메인 룰을 읽어서 쥐어줍니다.
+    domain_rules = load_domain_rules(work_dir)
+    domain_prompt = f"\n# [STRICT BENCHMARK RULES]\nYou MUST check if the Generated SQL strictly follows these rules:\n{domain_rules}\n" if domain_rules else ""
+    
     # 2. LLM 비평가에게 보낼 데이터 조립 (질문 + 작성된 SQL + 결과 미리보기)
-    user_content = f"Question: {question}\n\nGenerated SQL:\n{sql}\n\nResult Preview:\n{preview}"
+    user_content = f"Question: {question}\n\nGenerated SQL:\n{sql}\n\nResult Preview:\n{preview}\n{domain_prompt}"
     
     # 3. 고지능 모델(Pro)을 사용하여 쿼리 논리 검증 수행 (JSON 응답 강제)
     status, response = call_llm({
