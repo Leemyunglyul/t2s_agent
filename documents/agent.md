@@ -1,5 +1,7 @@
 ### Workflow
 
+#### 0327
+
 ```txt
 [ START ]
           │
@@ -34,7 +36,7 @@
 [ END ] <───────────────── "end" (최종 정답 통과 또는 Max Step 도달)
 ```
 
-### Workflow
+#### 0406: Writer/Modifier 분리
 
 ```txt
 [ START ]
@@ -58,19 +60,63 @@
 │   ▼                                         │
 │ [ route_after_execution ]                   │
 │   │                                         │
-│   ├─ "retry" (에러 발생 시) ───────────────────┼──▶ 7. SQL_Modifier
+│   ├─ "retry" (에러 발생 시)  ───────────────┼──▶ 7. SQL_Modifier
 │   │                                         │     │ (에러/반려 피드백 기반 쿼리 수정)
-│   └─ "critic" (성공 및 FINAL SQL인 경우) ───────┤     │
+│   └─ "critic" (성공 및 FINAL SQL인 경우) ────┤     │
 │                                             │     ▼
 │ 6. Critic (비평가)                          │  (Execution으로 다시 루프)
 │   │ (결과 논리 검증 및 벤치마크 룰 체크)      │
 │   ▼                                         │
 │ [ route_after_critic ]                      │
 │   │                                         │
-│   ├─ "retry" (Critic 반려 시) ────────────────┘
+│   ├─ "retry" (Critic 반려 시) ──────────────┘
 │   │
 │   └─ "end" (Critic 통과 시) ────────────────┐
 │                                             │
 └─────────────────────────────────────────────┼─────▶ [ END ]
                                               │ (또는 Max Step 10회 도달 시 강제 종료)
+```
+
+#### 0410: Logic 개선
+
+```txt
+[ START ]
+    │
+    ▼
+1. Keyword_Extraction
+    │ (사용자 질문 의도 파악 및 DB 스키마 검색용 키워드 추출)
+    ▼
+2. Schema_Linking
+    │ (키워드 기반 필요 테이블/컬럼 매핑 및 스키마 필터링)
+    ▼
+3. Data_Profiling
+    │ (샘플 쿼리 실행을 통해 실제 데이터 값 및 형식 사전 확인)
+    ▼
+4. Query_Planning
+    │ (확인된 스키마/데이터를 바탕으로 구체적인 SQL 실행 계획 수립)
+    ▼
+5. SQL_Writer
+    │ (계획을 바탕으로 최초 SQL 작성: [EXPLORE SQL] 또는 [FINAL SQL])
+    ▼
+┌▶ 6. Execution ──────────────────────────────┐
+│   │ (SQL 실제 실행, sqlglot 구문 검사, 결과 Preview 확인)│
+│   │                                         │
+│   ▼                                         │
+│ [ route_after_execution ]                   │
+│   │                                         │
+│   ├─ "retry" (에러 발생 또는 EXPLORE 시) ────┼──▶ 8. SQL_Modifier
+│   │                                         │     │ (에러/결과 피드백 기반 쿼리 수정)
+│   └─ "critic" (성공 및 FINAL SQL인 경우) ────┤     │
+│                                             │     ▼
+│ 7. Critic (비평가)                           │  (Execution으로 다시 루프)
+│   │ (결과 논리 검증 및 벤치마크 룰 엄격 체크) │
+│   ▼                                         │
+│ [ route_after_critic ]                      │
+│   │                                         │
+│   ├─ "retry" (Critic 로직 반려 시) ──────────┘
+│   │
+│   └─ "end" (Critic 통과 시) ────────────────┐
+│                                             │
+└─────────────────────────────────────────────┼─────▶ [ END ]
+                                              │ (또는 Max Step 12회 도달 시 강제 종료)
 ```

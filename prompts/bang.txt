@@ -1,0 +1,86 @@
+***--- AGGREGATION & OUTPUT RULES (CRITICAL) ---***
+1. "ACROSS ALL CUSTOMERS" GRID: If the prompt asks to calculate an average "across all customers" for specific months, you MUST NOT just average the active customers. You MUST create a `CROSS JOIN` grid of `DISTINCT customer_id` and the target months, `LEFT JOIN` the transactions, and `COALESCE` nulls to 0. This ensures inactive customers are included as 0 in the denominator.
+2. STRICT SINGLE-COLUMN OUTPUT: If the prompt asks for "the difference between these two averages", you MUST output EXACTLY ONE COLUMN (the final difference). DO NOT output the highest avg and lowest avg as separate columns. Extra columns will result in 0 points.
+3. FOLLOW EXPLICIT MATH: If the prompt says "adding deposit amounts and subtracting withdrawal amounts", write exactly `SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal' THEN -txn_amount ELSE 0 END)`. Do not invent business logic for other transaction types.
+
+**Template 1: Zero-Filled Cumulative Monthly Balance (COPY AND PASTE THIS EXACTLY)**
+WITH RECURSIVE Calendar AS (
+    SELECT DATE((SELECT MIN(txn_date) FROM customer_transactions), 'start of month') as month
+    UNION ALL
+    SELECT DATE(month, '+1 month') FROM Calendar WHERE month < DATE((SELECT MAX(txn_date) FROM customer_transactions), 'start of month')
+),
+CustomerGrid AS (
+    SELECT DISTINCT customer_id, month FROM customer_nodes CROSS JOIN Calendar
+),
+MonthlyNet AS (
+    SELECT customer_id, DATE(txn_date, 'start of month') as month,
+           SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount ELSE -txn_amount END) as net_amount
+    FROM customer_transactions GROUP BY customer_id, month
+),
+CumulativeBalances AS (
+    SELECT g.customer_id, g.month,
+           SUM(COALESCE(m.net_amount, 0)) OVER (PARTITION BY g.customer_id ORDER BY g.month) as month_end_balance
+    FROM CustomerGrid g
+    LEFT JOIN MonthlyNet m ON g.customer_id = m.customer_id AND g.month = m.month
+)
+-- 🚨 NOW you can safely filter the target year: 
+-- SELECT * FROM CumulativeBalances WHERE strftime('%Y', month) = '2020'
+
+**Template 2: The SQLite Rolling Average Trap (Crucial for Rule 13)**
+If asked for an "N-day rolling average ONLY AFTER having N days of data", SQLite will incorrectly calculate early averages for days 1 to N-1. You MUST strictly check the row count:
+CASE WHEN COUNT(balance) OVER (PARTITION BY customer_id ORDER BY date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW) = 30 
+     THEN AVG(balance) OVER (PARTITION BY customer_id ORDER BY date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW) 
+     ELSE NULL END
+
+**Template 3: Bulletproof Volume/String Parsing**
+When parsing volume columns that contain 'K', 'M', '-', or raw numbers:
+CASE 
+    WHEN col LIKE '%K%' THEN CAST(REPLACE(col, 'K', '') AS REAL) * 1000 
+    WHEN col LIKE '%M%' THEN CAST(REPLACE(col, 'M', '') AS REAL) * 1000000 
+    WHEN col = '-' THEN 0.0 
+    ELSE CAST(col AS REAL) 
+END
+
+# [DOMAIN-SPECIFIC SQL RULES]
+
+**Cross-Domain Join Prevention (CRITICAL)**: This database contains multiple independent datasets merged together (e.g., Bank, Sales, Trading, Crypto). NEVER join tables across different business domains just because they have similar column names (e.g., linking crypto `member_id` with bank `customer_id`). If you need "region" for crypto transactions, look for a specific crypto dimension table (like `members`), DO NOT use `customer_regions` or `customer_nodes` from the banking domain. Always verify table relationships before joining.
+
+***--- Data Prep & Dates ---***
+1. **Strict Table/Column Adherence (CRITICAL)**: Use EXACTLY the tables mentioned in the prompt (e.g., "bitcoin_prices"). Do not hallucinate or substitute tables.
+2. **Date Normalization & Format Trap (CRITICAL)**: 
+- NEVER use raw date/timestamp columns directly in `JOIN` conditions ONLY IF they have different formats. 
+⚠️ `bitcoin_transactions.txn_date` and `bitcoin_prices.market_date` are `DD-MM-YYYY` (MUST convert using `SUBSTR` before joining). 
+⚠️ **CRITICAL TIMEOUT WARNING**: `customer_transactions.txn_date`, `veg_txn_df.txn_date`, and `veg_whsle_df.whsle_date` are ALREADY perfectly formatted as `YYYY-MM-DD`. **YOU MUST NEVER USE `DATE()` OR `STRFTIME()` ON THEM IN JOIN CONDITIONS.** Join them directly as raw strings (e.g., `ON t.txn_date = w.whsle_date`) to utilize indexes. Using `DATE()` on these massive tables during a join WILL crash the database.
+3. **The `BETWEEN` Inclusivity Trap**: SQL `BETWEEN` is INCLUSIVE. "4 weeks leading up to June 15" means `BETWEEN DATE('...-06-15', '-28 days') AND DATE('...-06-15', '-1 day')`.
+4. **Never Early Filter**: NEVER filter out prior years inside your foundational transaction CTEs. Cumulative past balances will be lost. Filter the target year ONLY at the very bottom `SELECT`.
+5. **"Most Recent Month" Trap (CRITICAL)**: If a prompt asks for a metric based on a customer's "most recent month", "latest month", or "last transaction", you MUST identify this month using `MAX(date)` from the RAW transaction table for each specific customer (e.g., `SELECT customer_id, DATE(MAX(txn_date), 'start of month') ... FROM customer_transactions GROUP BY customer_id`). DO NOT use the global `MAX(month)` from a zero-filled calendar. Zero-filling pads the tail with inactive months, which will artificially force the customer's "most recent" growth rate or net change to 0% and ruin the final percentage.
+
+***--- Balances & Transactions ---***
+1. **Banking Balance Terminology (CRITICAL)**: In financial/banking datasets, terms like "month-end balance" or "closing balance" ALWAYS require a **cumulative running total** (e.g., `SUM(net_change) OVER (PARTITION BY customer_id ORDER BY month)`). Do NOT be fooled if the prompt explicitly says "calculate the balance by adding deposits and subtracting withdrawals during that month" — this phrasing only describes the monthly delta, which MUST still be accumulated to previous balances to find the true account balance.
+2. **TRANSACTION TYPES (CRITICAL)**: Treat `txn_type = 'purchase'` EXACTLY the same as `withdrawal` (it REDUCES the balance). Your calculation MUST be: `SUM(CASE WHEN txn_type = 'deposit' THEN amount ELSE -amount END)`. NEVER treat purchases as 0. If you ignore purchases, the balance will be completely wrong.
+3. **Floor & Negative Replacement**: 
+- Running Balance: ONLY apply `MAX(0, balance)` using a Recursive CTE if explicitly asked to "treat negative running balances as zero".
+- Final Output: If asked to "replace negative balances with zero" for a total sum, apply it BEFORE summing: `SUM(CASE WHEN user_balance < 0 THEN 0 ELSE user_balance END)`.
+
+***--- Time Series & Window Functions ---***
+1. **Continuous Zero-filled Calendar (CRITICAL)**: For Rolling Averages, Month-over-Month `LAG()`, or Grouping by month, you MUST generate a continuous calendar using a Recursive CTE first.
+2. **Recursive CTE Calendar Boundary (CRITICAL)**: When generating a calendar using `WITH RECURSIVE`, ALWAYS use strictly less than (`<`) for the boundary condition (e.g., `current_month < '2020-12-01'`), NOT less than or equal (`<=`). Using `<=` will generate an unintended extra period (e.g., January of the next year) and ruin subsequent aggregations and rankings.
+3. **Strict Order for Window Functions**: SQL evaluates `WHERE` BEFORE window functions. Compute `LAG()` over the ENTIRE dataset inside a CTE, and apply the `WHERE` filter ONLY in the final `SELECT` query.
+4. **Lag Ignore Zeros (Correlated Subquery)**: To fetch the "most recent non-zero value" for a previous day, use a correlated subquery: `(SELECT value FROM calendar c2 WHERE c2.date < c1.date AND c2.value > 0 ORDER BY c2.date DESC LIMIT 1)`. 
+
+***--- Joins & Aggregations ---***
+1. **Prevent Join Explosions (Theta Join CRITICAL)**: SQLite WILL crash if you join massive tables using `BETWEEN` on raw rows. You MUST physically aggregate the transactions FIRST (`CREATE TABLE temp_agg AS SELECT ... GROUP BY ...`), and ONLY join this aggregated table to the target.
+2. **Dimensional Average Trap (Fan-out)**: DO NOT calculate `AVG()` AFTER joining with a transaction table. Calculate the average inside a CTE independently first, and then join it.
+3. **Unpivot via UNION ALL**: When analyzing multiple attribute columns (region, platform, age_band) in the same output format, use: `SELECT 'region' AS attr, region AS val ... UNION ALL SELECT 'platform' ...`
+
+***--- Math & Output Evaluation Strictness ---***
+1. **Percentage Change & Division Math (CRITICAL)**: 
+- ALWAYS cast to `REAL` or multiply by `100.0` before division to prevent integer truncation.
+- ALWAYS handle division by zero using `NULLIF`: `(current - previous) * 100.0 / NULLIF(previous, 0)`
+2. **Strict Edge-Case Math Adherence**: If the prompt provides a SPECIFIC mathematical fallback (e.g., "if the previous month is zero, growth rate is current * 100"), you MUST implement EXACTLY that logic using `CASE WHEN previous = 0 THEN current * 100.0 ELSE ... END`. Do not blindly use standard formulas.
+3. **Retail Loss Math**: `Wholesale Qty = Sold Qty / (1.0 - loss_rate / 100.0)`. Total Loss = `(Wholesale Qty - Sold Qty) * Wholesale Price`.
+4. **Spider2 Strict Output Matching (CRITICAL)**: Spider2 grades by exact column matching. 
+- You MUST output EXACTLY the requested columns and NOTHING ELSE. No debugging columns (`customer_id`, `dates`).
+- If a question asks for a single "difference" or "percentage", output EXACTLY ONE column and ONE row.
+- If asked to round, use `ROUND(value, 2)` on every single numeric output column.
+- Standard SQLite DOES NOT support `SQRT()`. If asked for standard deviation, compare using STRICT SQUARES: `col > avg_val AND ((col - avg_val) * (col - avg_val)) > var_val`.

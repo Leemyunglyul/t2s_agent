@@ -52,6 +52,8 @@
 
 서로다른 데이터셋임을 인지하지 못하고 강제로 통합하려고 함.
 
+**기간먼저 이후 필터링**
+
 ### local285
 
 {"instance_id": "local285", "db": "bank_sales_trading", "question": "For veg whsle data, can you analyze our financial performance over the years 2020 to 2023? I need insights into the average wholesale price, maximum wholesale price, minimum wholesale price, wholesale price difference, total wholesale price, total selling price, average loss rate, total loss, and profit for each category within each year. Round all calculated values to two decimal places.", "external_knowledge": null}

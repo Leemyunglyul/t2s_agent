@@ -10,7 +10,7 @@ def llm_based_schema_linking(question: str, intent: str, keywords: str, db_id: s
     # 1. 최상단의 schemas 폴더 경로
     schema_dir = os.path.join(".", "schemas", db_id) 
     
-    # 🌟 수정 2: 해당 도메인 폴더 안에서 .yaml 파일들을 검색합니다.
+    # 해당 도메인 폴더 안에서 .yaml 파일들을 검색합니다.
     yaml_files = glob.glob(os.path.join(schema_dir, "*.yaml"))
     
     if not yaml_files:
@@ -34,13 +34,12 @@ def llm_based_schema_linking(question: str, intent: str, keywords: str, db_id: s
     )
 
     status, response = call_llm({
-        #"model": "gemini-2.5-flash",
+        "model": "gemini-2.5-flash-lite",
         "messages": [
             {"role": "system", "content": SCHEMA_LINKING_SYSTEM},
             {"role": "user", "content": user_content}
         ],
         "temperature": 0.0,
-        #"max_tokens": 4000
     })
 
     return response.strip() if status else combined_schemas
