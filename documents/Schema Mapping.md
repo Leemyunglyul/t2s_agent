@@ -92,6 +92,64 @@ Among job postings that specifically have the Data Analyst, require a non-null a
 
 목표 (최종 계산): 식별된 상위 3개 기술 중 최소 하나를 요구하는 공고들의 전체 평균 연봉을 계산.
 
+###### Gold SQL
+
+```sql
+WITH FilteredJobPostings AS (
+    SELECT
+        job_id,
+        salary_year_avg
+    FROM
+        job_postings_fact
+    WHERE
+        job_title_short = 'Data Analyst'
+        AND salary_year_avg IS NOT NULL
+        AND job_work_from_home = 1
+),
+SkillCounts AS (
+    SELECT
+        sjd.skill_id,
+        sd.skills AS skill_name,
+        COUNT(DISTINCT fjp.job_id) AS job_count
+    FROM
+        FilteredJobPostings AS fjp
+    JOIN
+        skills_job_dim AS sjd ON fjp.job_id = sjd.job_id
+    JOIN
+        skills_dim AS sd ON sjd.skill_id = sd.skill_id
+    GROUP BY
+        sjd.skill_id,
+        sd.skills
+),
+Top3Skills AS (
+    SELECT
+        skill_id
+    FROM
+        (
+            SELECT
+                skill_id,
+                DENSE_RANK() OVER (ORDER BY job_count DESC) AS rnk
+            FROM
+                SkillCounts
+        ) AS ranked_skills
+    WHERE
+        rnk <= 3
+)
+SELECT
+    AVG(fjp.salary_year_avg)
+FROM
+    FilteredJobPostings AS fjp
+WHERE
+    fjp.job_id IN (
+        SELECT DISTINCT
+            sjd.job_id
+        FROM
+            skills_job_dim AS sjd
+        JOIN
+            Top3Skills AS t3s ON sjd.skill_id = t3s.skill_id
+    );
+```
+
 ##### Instance Id: local169
 
 What is the annual retention rate of legislators who began their first term between January 1, 1917 and December 31, 1999, measured as the proportion of this cohort still in office on December 31st for each of the first 20 years following their initial term start? The results should show all 20 periods in sequence regardless of whether any legislators were retained in a particular year.
@@ -107,6 +165,69 @@ What is the annual retention rate of legislators who began their first term betw
 출력 형식: 1년 차부터 20년 차까지의 데이터를 순서대로 나열.
 
 특이사항: 특정 연도에 재직 중인 의원이 없더라도(비율이 0이더라도) 20개의 기간을 모두 빠짐없이 표시해야 함.
+
+```sql
+WITH LegislatorFirstTerm AS (
+  SELECT
+    id_bioguide,
+    MIN(term_start) AS first_term_start
+  FROM legislators_terms
+  GROUP BY
+    id_bioguide
+), InitialCohort AS (
+  SELECT
+    id_bioguide,
+    first_term_start
+  FROM LegislatorFirstTerm
+  WHERE
+    first_term_start BETWEEN '1917-01-01' AND '1999-12-31'
+), Periods AS (
+  SELECT 1 AS period_number UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL
+  SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL
+  SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15 UNION ALL
+  SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20
+), CohortPeriodChecks AS (
+  SELECT
+    T1.id_bioguide,
+    T2.period_number,
+    CAST(
+      (
+        CAST(STRFTIME('%Y', T1.first_term_start) AS INTEGER) + T2.period_number - 1
+      ) AS TEXT
+    ) || '-12-31' AS check_date
+  FROM InitialCohort AS T1
+  CROSS JOIN Periods AS T2
+), RetainedLegislators AS (
+  SELECT DISTINCT
+    T1.id_bioguide,
+    T1.period_number
+  FROM CohortPeriodChecks AS T1
+  JOIN legislators_terms AS T2
+    ON T1.id_bioguide = T2.id_bioguide
+  WHERE
+    T1.check_date BETWEEN T2.term_start AND T2.term_end
+), YearlyRetentionCounts AS (
+  SELECT
+    period_number,
+    COUNT(id_bioguide) AS number_retained
+  FROM RetainedLegislators
+  GROUP BY
+    period_number
+)
+SELECT
+  T1.period_number AS year_after_start,
+  COALESCE(T2.number_retained, 0) AS number_retained,
+  CAST(COALESCE(T2.number_retained, 0) AS REAL) / (
+    SELECT
+      COUNT(*)
+    FROM InitialCohort
+  ) AS retention_rate
+FROM Periods AS T1
+LEFT JOIN YearlyRetentionCounts AS T2
+  ON T1.period_number = T2.period_number
+ORDER BY
+  year_after_start;
+```
 
 ##### Instance Id: local170
 
@@ -884,6 +1005,96 @@ ROUND(SUM((t."unit_selling_px_rmb/kg" - w."whsle_px_rmb-kg") * t."qty_sold(kg)")
 
 ```sql
 Profit = (Total Selling Price) - (Total Wholesale Cost) - (Total Loss Amount)
+```
+
+#### local075
+
+{"instance_id": "local075", "db": "bank_sales_trading", "question": "Can you provide a breakdown of how many times each product was viewed, how many times they were added to the shopping cart, and how many times they were left in the cart without being purchased? Also, give me the count of actual purchases for each product. Ensure that products with a page id in (1, 2, 12, 13) are filtered out.", "external_knowledge": null}
+
+> "각 상품이 조회된 횟수, 장바구니에 담긴 횟수, 그리고 구매되지 않고 장바구니에 방치된(abandoned) 횟수에 대한 분석 내역을 제공해 주시겠습니까? 또한 각 상품의 실제 구매 횟수도 알려주세요. page_id가 (1, 2, 12, 13)에 속하는 상품은 결과에서 제외해야 합니다."
+
+#### local157
+
+> ""bitcoin_prices" 테이블을 사용하여 2021년 8월 1일부터 8월 10일까지 각 티커(ticker)의 일별 거래량 변동률(퍼센트)을 계산해 주세요. 단, "K" 또는 "M"으로 끝나는 거래량은 수천 또는 수백만 단위의 숫자로 정확하게 변환하고, "-" 기호의 거래량은 0으로 취급하며, 이전 날짜의 거래량을 결정할 때는 0이 아닌 거래량만 사용해야 합니다. 결과는 티커와 날짜 순으로 정렬하세요."
+
+```sql
+WITH FormattedData AS ( SELECT ticker, SUBSTR(market_date, 7, 4) || '-' || SUBSTR(market_date, 4, 2) || '-' || SUBSTR(market_date, 1, 2) AS formatted_date, CASE WHEN volume = '-' THEN 0 WHEN volume LIKE '%K' THEN CAST(REPLACE(volume, 'K', '') AS REAL) * 1000 WHEN volume LIKE '%M' THEN CAST(REPLACE(volume, 'M', '') AS REAL) * 1000000 ELSE CAST(volume AS REAL) END AS numeric_volume FROM bitcoin_prices ), LaggedVolume AS ( SELECT fd.ticker, fd.formatted_date, fd.numeric_volume, ( SELECT prev_fd.numeric_volume FROM FormattedData AS prev_fd WHERE prev_fd.ticker = fd.ticker AND prev_fd.formatted_date < fd.formatted_date AND prev_fd.numeric_volume > 0 ORDER BY prev_fd.formatted_date DESC LIMIT 1 ) AS previous_day_volume FROM FormattedData AS fd ) SELECT ticker, formatted_date, CASE WHEN previous_day_volume IS NULL OR previous_day_volume = 0 THEN NULL ELSE ( (numeric_volume - previous_day_volume) * 100.0 / previous_day_volume ) END AS volume_percentage_change FROM LaggedVolume WHERE formatted_date BETWEEN '2021-08-01' AND '2021-08-10' ORDER BY ticker, formatted_date;
+```
+
+#### local298
+
+{"instance_id": "local298", "db": "bank_sales_trading", "question": "For each month, calculate the total balance from all users for the previous month (measured as of the 1st of each month), replacing any negative balances with zero. Ensure that data from the first month is used only as a baseline for calculating previous total balance, and exclude it
+from the final output. Sort the results in ascending order by month. ", "external_knowledge": null}
+
+> "모든 월에 걸쳐 가장 높은 composition 값을 기준으로 상위 10개와 하위 10개 관심사 카테고리를 찾으세요. 각 카테고리에 대해 시간(MM-YYYY), 관심사 이름, 그리고 composition 값을 표시하세요."
+
+```sql
+WITH CustomerMonthlyNet AS (
+  SELECT
+    customer_id,
+    STRFTIME('%Y-%m-01', txn_date) AS month_start,
+    SUM(
+      CASE
+        WHEN txn_type = 'deposit'
+        THEN txn_amount
+        ELSE - txn_amount
+      END
+    ) AS net_monthly_amount
+  FROM customer_transactions
+  GROUP BY
+    1,
+    2
+), AllCustomerMonths AS (
+  SELECT
+    c.customer_id,
+    m.month_start
+  FROM (
+    SELECT DISTINCT
+      customer_id
+    FROM customer_transactions
+  ) AS c
+  CROSS JOIN (
+    SELECT DISTINCT
+      STRFTIME('%Y-%m-01', txn_date) AS month_start
+    FROM customer_transactions
+  ) AS m
+), CustomerCumulativeBalance AS (
+  SELECT
+    a.customer_id,
+    a.month_start,
+    SUM(COALESCE(n.net_monthly_amount, 0)) OVER (PARTITION BY a.customer_id ORDER BY a.month_start) AS end_of_month_balance
+  FROM AllCustomerMonths AS a
+  LEFT JOIN CustomerMonthlyNet AS n
+    ON a.customer_id = n.customer_id
+    AND a.month_start = n.month_start
+), MonthlyTotalBalance AS (
+  SELECT
+    month_start,
+    SUM(
+      CASE
+        WHEN end_of_month_balance < 0
+        THEN 0
+        ELSE end_of_month_balance
+      END
+    ) AS total_balance_end_of_month
+  FROM CustomerCumulativeBalance
+  GROUP BY
+    1
+), LaggedBalances AS (
+  SELECT
+    month_start,
+    LAG(total_balance_end_of_month, 1, 0) OVER (ORDER BY month_start) AS previous_month_total_balance,
+    ROW_NUMBER() OVER (ORDER BY month_start) AS rn
+  FROM MonthlyTotalBalance
+)
+SELECT
+  month_start AS month,
+  previous_month_total_balance
+FROM LaggedBalances
+WHERE
+  rn > 1
+ORDER BY
+  month_start;
 ```
 
 ### City Legislation + Bank Sales Trading

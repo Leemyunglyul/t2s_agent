@@ -1,25 +1,35 @@
 # [SPIDER2 BANK & SALES DOMAIN RULES] - STRICT OVERRIDE
 
-1. THE "PURCHASE = WITHDRAWAL" RULE:
-In `customer_transactions`, 'purchase' MUST be subtracted from the balance exactly like 'withdrawal'.
-- Formula: `SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount ELSE 0 END)`
+1. LITERAL TRANSLATION RULE (CRITICAL):
+If the prompt explicitly says "subtract all withdrawal amounts", you MUST ONLY subtract `txn_type = 'withdrawal'`. 
+- DO NOT subtract 'purchase' or any other types. 
+- Correct formula: `SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal' THEN -txn_amount ELSE 0 END)`
 
-2. DATE NORMALIZATION (CRITICAL): 
-- `bitcoin_transactions.txn_date` and `bitcoin_prices.market_date` are `DD-MM-YYYY`. MUST convert using `SUBSTR` to `YYYY-MM-DD` before joining. 
-- `customer_transactions.txn_date`, `veg_txn_df.txn_date`, `veg_whsle_df.whsle_date` are ALREADY `YYYY-MM-DD`. NEVER use `DATE()` or `STRFTIME()` on them in JOIN conditions. Join them directly.
+2. "ALL CUSTOMERS" DENOMINATOR RULE (NO FILTERS ALLOWED):
+When calculating an average "across all customers", the denominator MUST be the total unique customers in the ENTIRE table.
+- MANDATORY Denominator: `(SELECT COUNT(DISTINCT customer_id) FROM customer_transactions)`
+- CRITIC WARNING: DO NOT add ANY date or year filters (e.g., `WHERE strftime('%Y', txn_date) = '2020'`) to this denominator. "All customers" literally means all customers in the database, regardless of the year.
 
-3. RETAIL LOSS MATH (VEGETABLES):
-Keep it strictly simple. Do NOT use complex division.
-- Total Wholesale Price = `SUM(qty_sold * wholesale_price)`
-- Total Loss = `SUM(qty_sold * unit_selling_price * (loss_rate / 100.0))`
+3. ABSOLUTE DIFFERENCE RULE:
+If the prompt asks for the "difference" between two values, you MUST wrap the final subtraction in the `ABS()` function to prevent negative results (e.g., `ABS(MAX(A) - MAX(B))`).
 
-4. SHOPPING CART METRICS:
-- If asked to group by "each product", you MUST SELECT and GROUP BY `product_id`, NOT `page_name`.
-- Abandoned in cart = `SUM(added_to_cart) - SUM(purchases)`.
+4. SPARSE TIME-SERIES RULE (CRITICAL FOR RUNNING BALANCES):
+When calculating monthly running/cumulative balances across all users, you MUST prevent users from disappearing in months where they had zero transactions.
+- You MUST create a base grid using `CROSS JOIN` between `(SELECT DISTINCT customer_id FROM ...)` and `(SELECT DISTINCT strftime('%Y-%m-01', txn_date) FROM ...)`.
+- Then `LEFT JOIN` their net monthly transactions to this grid, applying `COALESCE(net_amount, 0)`, BEFORE using the `SUM() OVER(...)` window function.
 
-5. PERCENTAGE DENOMINATOR:
-If computing "percentage of customers", the denominator MUST be the total unique customers in the raw table: `(SELECT COUNT(DISTINCT customer_id) FROM customer_transactions)`.
+5. NO GREATEST FUNCTION:
+SQLite does NOT support the `GREATEST()` function. To replace negative balances with zero, you MUST use a `CASE` statement: `CASE WHEN balance < 0 THEN 0 ELSE balance END`.
 
-6. MONTH-END BALANCE VS CUMULATIVE:
-- If a prompt asks for operations that occurred "during that specific month", calculate the NET CHANGE for that month only. DO NOT make it a cumulative running sum.
-- Only use `SUM() OVER (ORDER BY month)` if explicitly asked to "cumulatively sum" or find a "running balance".
+6. PERCENTAGE CHANGE & LAG RULE (CRITICAL):
+When calculating daily percentage change skipping zero-volume days within a date range, the benchmark uses a very specific order of operations. You MUST follow this exactly (NO correlated subqueries):
+- Step 1 (Innermost): Extract data, format dates, convert volume text to numbers, AND apply the date range filter (e.g., `BETWEEN '2021-08-01' AND '2021-08-10'`).
+- Step 2: From Step 1, filter out zero volumes (`WHERE volume > 0`). This naturally skips 0-volume days.
+- Step 3: Use `LAG(volume, 1, 0) OVER (...)` on the remaining rows to get `previous_volume`.
+- Step 4 (Outermost): Filter `WHERE previous_volume > 0` and calculate `((current - previous) / previous) * 100.0`.
+
+7. SHOPPING CART PRODUCT FUNNEL (CRITICAL):
+Purchase events (`event_type = 3`) occur at the visit/checkout level, NOT at the individual product level. 
+- To count "purchases" for a specific product, you MUST count when it was "added to cart" (`event_type = 2`) during a visit that eventually had a purchase (`visit_had_purchase = 1`).
+- Formula for product purchases: `SUM(CASE WHEN event_type = 2 AND visit_had_purchase = 1 THEN 1 ELSE 0 END)`
+- DO NOT use `SUM(CASE WHEN event_type = 3...)` grouped by product, because it will yield 0.

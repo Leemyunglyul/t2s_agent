@@ -7,6 +7,10 @@ import glob
 from datetime import datetime
 from spider_agent.graphs import build_agent_graph
 
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_PROJECT"] = "T2S-Agent"
+
 def setup_global_logging(run_name: str):
     log_dir = os.path.join(".", "output", run_name, "logs")
     os.makedirs(log_dir, exist_ok=True)
@@ -56,7 +60,7 @@ def run_single_task(question: str, workspace_path: str, instance_id: str, db_id:
         "db_id": db_id,
         "step_count": 0,
         "retry_count": 0,
-        "max_steps": 12,             
+        "max_steps": 10,             
         "execution_history": [],      
         "is_final_answer": False,
         "has_error": False,
@@ -64,7 +68,10 @@ def run_single_task(question: str, workspace_path: str, instance_id: str, db_id:
     }
     
     try:
-        final_state = agent_app.invoke(initial_state)
+        final_state = agent_app.invoke(
+            initial_state, 
+            config={"run_name": f"{run_name}_{instance_id}"} 
+        )
         return final_state
         
     except Exception as e:

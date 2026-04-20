@@ -7,10 +7,10 @@ from .nodes import (
     query_planning_node,
     schema_linking_node,
     data_profiling_node,
-    sql_writer_node,      # 💡 작성자 노드
-    sql_modifier_node,    # 💡 수정자 노드
+    sql_writer_node,
+    sql_modifier_node,
     execution_node,
-    critic_node 
+    critic_node         # 💡 주석 해제 (비평가 복구)
 )
 
 logger = logging.getLogger("langgraph_agent")
@@ -18,25 +18,24 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 
 def route_after_execution(state: AgentState):
     if state.get("has_error"):
-        if state.get("retry_count", 0) >= state.get("max_steps", 12):
+        if state.get("retry_count", 0) >= state.get("max_steps", 10):
             return "end"
         return "retry"
     else:
         if state.get("is_final_answer"):
-            return "critic"
+            return "critic" # 💡 성공 시 바로 END가 아니라 Critic으로 넘김
         return "retry"
 
-def route_after_critic(state: AgentState):
+def route_after_critic(state: AgentState): # 💡 비평가 라우터 복구
     if state.get("has_error"):
-        if state.get("retry_count", 0) >= state.get("max_steps", 12):
+        if state.get("retry_count", 0) >= state.get("max_steps", 10):
             return "end"
-        return "retry"
-    return "end"
+        return "retry" # 비평가가 반려하면 다시 Modifier로
+    return "end" # 비평가가 통과시키면 최종 종료
 
 def build_agent_graph():
     workflow = StateGraph(AgentState)
 
-    # 💡 노드 등록
     workflow.add_node("Keyword_Extraction", keyword_extraction_node)
     workflow.add_node("Schema_Linking", schema_linking_node)
     workflow.add_node("Data_Profiling", data_profiling_node)
@@ -44,7 +43,7 @@ def build_agent_graph():
     workflow.add_node("SQL_Writer", sql_writer_node)
     workflow.add_node("SQL_Modifier", sql_modifier_node)
     workflow.add_node("Execution", execution_node)
-    workflow.add_node("Critic", critic_node)
+    workflow.add_node("Critic", critic_node) # 💡 노드 복구
 
     workflow.set_entry_point("Keyword_Extraction")
     workflow.add_edge("Keyword_Extraction", "Schema_Linking")
@@ -59,7 +58,7 @@ def build_agent_graph():
         "Execution",
         route_after_execution,
         {
-            "critic": "Critic",
+            "critic": "Critic",     # 💡 Execution 성공 -> Critic
             "retry": "SQL_Modifier",
             "end": END
         }
@@ -69,8 +68,8 @@ def build_agent_graph():
         "Critic",
         route_after_critic,
         {
-            "retry": "SQL_Modifier",
-            "end": END
+            "retry": "SQL_Modifier", # 💡 Critic 반려 -> Modifier
+            "end": END               # 💡 Critic 통과 -> END
         }
     )
 

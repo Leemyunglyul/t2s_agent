@@ -34,6 +34,7 @@ def clean_json_string(raw_string: str) -> str:
         return match.group(0)
     return raw_string
 
+'''
 def parse_llm_sql_output(response_text: str) -> Tuple[str, bool]:
     response_text = response_text.strip()
     
@@ -92,6 +93,42 @@ def parse_llm_sql_output(response_text: str) -> Tuple[str, bool]:
         return sql_match.group(1).strip(), True
     elif response_text.upper().startswith(("SELECT", "WITH", "CREATE", "DROP", "PRAGMA")):
         return response_text, True
+        
+    return response_text, True
+'''
+def parse_llm_sql_output(response_text: str) -> Tuple[str, bool]:
+    response_text = response_text.strip()
+    
+    # 💡 [수정 포인트] <thinking> 태그 추출 로직 추가
+    thinking_match = re.search(r"<thinking>\s*(.*?)\s*</thinking>", response_text, re.DOTALL | re.IGNORECASE)
+    if thinking_match:
+        logger.info(f"🧠 [Self-Verification & Thought]:\n{thinking_match.group(1).strip()}")
+    else:
+        # 기존 [Thought] 태그 하위 호환
+        thought_match = re.search(r"\[Thought\]:\s*(.*?)(?=\[EXPLORE SQL\]:|\[FINAL SQL\]:|$)", response_text, re.DOTALL | re.IGNORECASE)
+        if thought_match:
+            logger.info(f"[Thought]:\n{thought_match.group(1).strip()}")
+
+    # [FINAL SQL] 추출 (최종 정답)
+    if "[FINAL SQL]:" in response_text:
+        raw_sql = response_text.split("[FINAL SQL]:", 1)[1].strip()
+        sql_match = re.search(r"```sql\s*(.*?)\s*```", raw_sql, re.DOTALL | re.IGNORECASE)
+        sql = sql_match.group(1).strip() if sql_match else re.sub(r"^```sql\s*|\s*```$", "", raw_sql, flags=re.IGNORECASE).strip()
+        logger.info("✨ [텍스트 태그 파싱 성공] FINAL SQL 추출 완료!")
+        return sql, True
+        
+    # [EXPLORE SQL] 추출 (중간 탐색)
+    elif "[EXPLORE SQL]:" in response_text:
+        raw_sql = response_text.split("[EXPLORE SQL]:", 1)[1].strip()
+        sql_match = re.search(r"```sql\s*(.*?)\s*```", raw_sql, re.DOTALL | re.IGNORECASE)
+        sql = sql_match.group(1).strip() if sql_match else re.sub(r"^```sql\s*|\s*```$", "", raw_sql, flags=re.IGNORECASE).strip()
+        logger.info("🔍 [텍스트 태그 파싱 성공] EXPLORE SQL 추출 완료!")
+        return sql, False
+        
+    # fallback
+    sql_match = re.search(r"```sql\s*(.*?)\s*```", response_text, re.DOTALL | re.IGNORECASE)
+    if sql_match:
+        return sql_match.group(1).strip(), True
         
     return response_text, True
 
@@ -494,7 +531,7 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     ]
 
     status, response = call_llm({
-        "model": "gemini-2.5-flash",
+        "model": "gemini-2.5-pro",
         "messages": messages,
         "max_tokens": 8192,
         "temperature": 0.0
@@ -565,7 +602,7 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
         messages[1]["content"] += f"\n\n{error_header}\n{obs}\n\nYou MUST fix this specific issue in your next query."
 
     status, response = call_llm({
-        "model": "gemini-2.5-flash",
+        "model": "gemini-2.5-pro",
         "messages": messages,
         "temperature": dynamic_temp
     })
