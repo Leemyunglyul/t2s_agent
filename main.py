@@ -51,7 +51,7 @@ def remove_instance_logger(file_handler: logging.FileHandler):
     file_handler.close()
 
 # 💡 [수정] 단순 SQL 문자열이 아니라 final_state 딕셔너리 전체를 반환하도록 변경
-def run_single_task(question: str, workspace_path: str, instance_id: str, db_id: str, run_name: str) -> dict:
+def run_single_task(question: str, workspace_path: str, instance_id: str, db_id: str, run_name: str, use_semantic: bool) -> dict:
     """단일 테스트 케이스를 에이전트에 통과시키고 최종 상태(State)를 반환합니다."""
     initial_state = {
         "question": question,
@@ -64,7 +64,8 @@ def run_single_task(question: str, workspace_path: str, instance_id: str, db_id:
         "execution_history": [],      
         "is_final_answer": False,
         "has_error": False,
-        "run_name": run_name         
+        "run_name": run_name,
+        "use_semantic": use_semantic
     }
     
     try:
@@ -84,7 +85,7 @@ def run_single_task(question: str, workspace_path: str, instance_id: str, db_id:
             "retry_count": 0
         }
 
-def run_batch_evaluation(input_jsonl: str, db_base_dir: str, output_jsonl: str, run_name: str):
+def run_batch_evaluation(input_jsonl: str, db_base_dir: str, output_jsonl: str, run_name: str, use_semantic: bool):
     """JSONL 파일을 읽어와 전체 테스트 케이스를 순차적으로 실행합니다."""
     
     logger.info(f"🚀 배치 평가 시작! 입력 파일: {input_jsonl}")
@@ -130,7 +131,7 @@ def run_batch_evaluation(input_jsonl: str, db_base_dir: str, output_jsonl: str, 
                         shutil.copy(db_file, isolated_workspace)
                     
                     # 💡 [수정] 딕셔너리 형태로 반환된 State 받기
-                    final_state = run_single_task(question, isolated_workspace, instance_id, db_id, run_name)
+                    final_state = run_single_task(question, isolated_workspace, instance_id, db_id, run_name, use_semantic=True)
                     
                     # State에서 필요한 정보 추출
                     has_error = final_state.get("has_error", False)
@@ -172,6 +173,8 @@ if __name__ == "__main__":
 
     parser.add_argument("run_name", type=str, nargs="?", default="latest_run", help="Name of the experiment run")
     parser.add_argument("input", type=str, nargs="?", default="./testset/city_legislation.jsonl", help="Input JSONL file")
+    parser.add_argument("--use_semantic", action="store_true", help="시맨틱 모델(YAML) 사용 여부 토글")
+    
     args = parser.parse_args()
     
     logger = setup_global_logging(args.run_name)
@@ -180,4 +183,4 @@ if __name__ == "__main__":
     DB_BASE_DIRECTORY = "./examples" 
     OUTPUT_FILE = f"./output/{args.run_name}/predictions.jsonl"
     
-    run_batch_evaluation(INPUT_FILE, DB_BASE_DIRECTORY, OUTPUT_FILE, args.run_name)
+    run_batch_evaluation(INPUT_FILE, DB_BASE_DIRECTORY, OUTPUT_FILE, args.run_name, args.use_semantic)
