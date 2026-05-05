@@ -1,0 +1,26 @@
+descriptions:
+- table: cities
+  column: insert_date
+  meaning: The date a city record was added to the database.
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: year
+  sql_logic: CAST(STRFTIME('%Y', insert_date) AS INTEGER)
+- metric_name: month
+  sql_logic: CAST(STRFTIME('%m', insert_date) AS INTEGER)
+- metric_name: monthly_total
+  sql_logic: COUNT(city_id)
+- metric_name: cumulative_running_total
+  sql_logic: SUM(monthly_total) OVER (PARTITION BY month ORDER BY year)
+- metric_name: previous_year_monthly_total
+  sql_logic: LAG(monthly_total, 1, 0) OVER (PARTITION BY month ORDER BY year)
+- metric_name: previous_year_cumulative_total
+  sql_logic: LAG(cumulative_running_total, 1, 0) OVER (PARTITION BY month ORDER BY
+    year)
+- metric_name: monthly_yoy_growth
+  sql_logic: CASE WHEN previous_year_monthly_total = 0 THEN NULL ELSE (monthly_total
+    - previous_year_monthly_total) * 100.0 / previous_year_monthly_total END
+- metric_name: cumulative_yoy_growth
+  sql_logic: CASE WHEN previous_year_cumulative_total = 0 THEN NULL ELSE (cumulative_running_total
+    - previous_year_cumulative_total) * 100.0 / previous_year_cumulative_total END

@@ -1,0 +1,49 @@
+descriptions:
+- table: wicket_taken
+  column: kind_out
+  meaning: Dismissals of type 'run out', 'hit wicket', or 'retired hurt' are not credited
+    to the bowler.
+relations:
+- table_1: ball_by_ball
+  column_1: match_id, over_id, ball_id, innings_no
+  table_2: batsman_scored
+  column_2: match_id, over_id, ball_id, innings_no
+- table_1: ball_by_ball
+  column_1: match_id, over_id, ball_id, innings_no
+  table_2: wicket_taken
+  column_2: match_id, over_id, ball_id, innings_no
+synonyms:
+- nl_term: batsman
+  db_target: ball_by_ball.striker
+  type: column
+- nl_term: bowler
+  db_target: ball_by_ball.bowler
+  type: column
+- nl_term: total runs
+  db_target: SUM(batsman_scored.runs_scored)
+  type: column
+- nl_term: total wickets
+  db_target: COUNT(*) FROM wicket_taken WHERE kind_out NOT IN ('run out', 'hit wicket',
+    'retired hurt')
+  type: condition
+- nl_term: top 3
+  db_target: ROW_NUMBER() OVER (...) <= 3
+  type: condition
+biz_logic:
+- metric_name: Total Runs by Player per Season
+  sql_logic: SELECT M.season_id, BB.striker AS player_id, SUM(BS.runs_scored) AS total_runs
+    FROM match AS M JOIN ball_by_ball AS BB ON M.match_id = BB.match_id JOIN batsman_scored
+    AS BS ON BB.match_id = BS.match_id AND BB.over_id = BS.over_id AND BB.ball_id
+    = BS.ball_id AND BB.innings_no = BS.innings_no GROUP BY M.season_id, BB.striker
+- metric_name: Total Wickets by Player per Season
+  sql_logic: SELECT M.season_id, BB.bowler AS player_id, COUNT(*) AS total_wickets
+    FROM match AS M JOIN ball_by_ball AS BB ON M.match_id = BB.match_id JOIN wicket_taken
+    AS WT ON BB.match_id = WT.match_id AND BB.over_id = WT.over_id AND BB.ball_id
+    = WT.ball_id AND BB.innings_no = WT.innings_no WHERE WT.kind_out NOT IN ('run
+    out', 'hit wicket', 'retired hurt') GROUP BY M.season_id, BB.bowler
+- metric_name: Batsman Rank by Season
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY season_id ORDER BY total_runs DESC, player_id
+    ASC)
+- metric_name: Bowler Rank by Season
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY season_id ORDER BY total_wickets DESC,
+    player_id ASC)

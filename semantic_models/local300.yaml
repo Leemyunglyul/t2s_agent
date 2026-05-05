@@ -1,0 +1,29 @@
+descriptions:
+- table: customer_transactions
+  column: txn_type
+  meaning: For balance calculations, 'withdrawal' and 'purchase' transactions are
+    treated as negative amounts (debits), while other types like 'deposit' are treated
+    as positive amounts (credits).
+relations: []
+synonyms:
+- nl_term: month
+  db_target: STRFTIME('%Y-%m', date)
+  type: column
+biz_logic:
+- metric_name: Net Daily Transaction Amount
+  sql_logic: SUM(CASE WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount
+    ELSE txn_amount END)
+- metric_name: Daily Cumulative Balance
+  sql_logic: SUM(net_change) OVER (PARTITION BY customer_id ORDER BY date ROWS BETWEEN
+    UNBOUNDED PRECEDING AND CURRENT ROW)
+- metric_name: Adjusted Daily Balance (non-negative)
+  sql_logic: MAX(0, daily_balance)
+- metric_name: Customer Monthly Max Balance
+  sql_logic: MAX(adjusted_balance)
+- metric_name: Total Monthly Max Balance
+  sql_logic: SUM(monthly_max_balance)
+- metric_name: Date Series Generation (Recursive)
+  sql_logic: WITH All_Dates AS (SELECT initial_date UNION ALL SELECT DATE(date, '+1
+    day') FROM All_Dates WHERE date < end_date)
+- metric_name: Daily Change with Zero-Fill
+  sql_logic: COALESCE(net_amount, 0)

@@ -1,0 +1,23 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: team
+  db_target: Team
+  type: table
+- nl_term: team name
+  db_target: Team.team_long_name
+  type: column
+- nl_term: top 10
+  db_target: DENSE_RANK() OVER (ORDER BY ... DESC) ... WHERE rank_num <= 10
+  type: value
+- nl_term: wins
+  db_target: number_of_wins
+  type: column
+biz_logic:
+- metric_name: Number of Wins
+  sql_logic: WITH wins AS (SELECT home_team_api_id AS team_id FROM Match WHERE home_team_goal
+    > away_team_goal UNION ALL SELECT away_team_api_id AS team_id FROM Match WHERE
+    away_team_goal > home_team_goal), win_counts AS (SELECT team_id, COUNT(*) AS number_of_wins
+    FROM wins GROUP BY team_id)
+- metric_name: Team Win Ranking
+  sql_logic: DENSE_RANK() OVER (ORDER BY number_of_wins DESC)

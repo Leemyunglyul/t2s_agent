@@ -1,0 +1,23 @@
+descriptions:
+- table: legislators
+  column: gender
+  meaning: Value 'F' indicates the legislator is female.
+relations: []
+synonyms:
+- nl_term: female
+  db_target: gender = 'F'
+  type: condition
+- nl_term: served over a new year
+  db_target: term_end >= DATE(strftime('%Y', term_start) || '-12-31') AND term_start
+    <= DATE(strftime('%Y', term_end) || '-12-31')
+  type: condition
+- nl_term: first term
+  db_target: ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC)
+    = 1
+  type: condition
+biz_logic:
+- metric_name: First Legislator Term
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC)
+- metric_name: Term Spanning Year-End
+  sql_logic: term_end >= DATE(strftime('%Y', term_start) || '-12-31') AND term_start
+    <= DATE(strftime('%Y', term_end) || '-12-31')

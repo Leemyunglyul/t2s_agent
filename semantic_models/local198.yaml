@@ -1,0 +1,17 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: countries with more than 4 customers
+  db_target: customers.Country IN (SELECT Country FROM customers GROUP BY Country
+    HAVING COUNT(DISTINCT CustomerId) > 4)
+  type: condition
+biz_logic:
+- metric_name: Total Sales per Country
+  sql_logic: SUM(invoices.Total)
+- metric_name: Customer Count per Country
+  sql_logic: COUNT(DISTINCT customers.CustomerId)
+- metric_name: Median Calculation
+  sql_logic: WITH RankedData AS (SELECT <column_to_rank>, ROW_NUMBER() OVER (ORDER
+    BY <column_to_rank>) AS rn, COUNT(*) OVER () AS total_count FROM <source_table>)
+    SELECT AVG(<column_to_rank>) FROM RankedData WHERE rn IN ((total_count + 1) /
+    2, (total_count + 2) / 2)

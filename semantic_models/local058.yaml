@@ -1,0 +1,13 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: unique_product_count
+  sql_logic: COUNT(DISTINCT hardware_fact_sales_monthly.product_code)
+- metric_name: unique_products_2020
+  sql_logic: SUM(CASE WHEN fiscal_year = 2020 THEN unique_product_count ELSE 0 END)
+- metric_name: unique_products_2021
+  sql_logic: SUM(CASE WHEN fiscal_year = 2021 THEN unique_product_count ELSE 0 END)
+- metric_name: percentage_increase
+  sql_logic: (CAST(unique_products_2021 AS REAL) - unique_products_2020) * 100.0 /
+    NULLIF(unique_products_2020, 0)

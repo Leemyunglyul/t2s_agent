@@ -1,0 +1,10 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: cities
+  db_target: city
+  type: table
+- nl_term: cities where the name either starts with 'A' or contains a hyphen
+  db_target: (city.city LIKE 'A%' OR city.city LIKE '%-%')
+  type: condition
+biz_logic: []

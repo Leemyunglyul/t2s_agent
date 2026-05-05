@@ -1,0 +1,23 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Total Driver Points per Year
+  sql_logic: SELECT T1.year, T2.driver_id, SUM(T2.points) AS total_driver_points FROM
+    races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id
+- metric_name: Total Constructor Points per Year
+  sql_logic: SELECT T1.year, T2.constructor_id, SUM(T2.points) AS total_constructor_points
+    FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year,
+    T2.constructor_id
+- metric_name: Maximum Driver Points per Year
+  sql_logic: SELECT year, MAX(total_driver_points) AS max_driver_points FROM (SELECT
+    T1.year, T2.driver_id, SUM(T2.points) AS total_driver_points FROM races AS T1
+    JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id)
+    GROUP BY year
+- metric_name: Maximum Constructor Points per Year
+  sql_logic: SELECT year, MAX(total_constructor_points) AS max_constructor_points
+    FROM (SELECT T1.year, T2.constructor_id, SUM(T2.points) AS total_constructor_points
+    FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year,
+    T2.constructor_id) GROUP BY year
+- metric_name: Yearly Dominance Score
+  sql_logic: max_driver_points + max_constructor_points

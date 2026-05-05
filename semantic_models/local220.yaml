@@ -1,0 +1,49 @@
+descriptions:
+- table: Match
+  column: home_player_1, ..., home_player_11
+  meaning: The columns from home_player_1 to home_player_11 contain the player_api_id
+    for each of the 11 players on the home team.
+- table: Match
+  column: away_player_1, ..., away_player_11
+  meaning: The columns from away_player_1 to away_player_11 contain the player_api_id
+    for each of the 11 players on the away team.
+- table: Match
+  column: home_team_goal, away_team_goal
+  meaning: A match is considered a draw if home_team_goal = away_team_goal. The query
+    logic `home_team_goal != away_team_goal` filters out draws when calculating wins
+    and losses.
+relations: []
+synonyms:
+- nl_term: player with most wins
+  db_target: DENSE_RANK() OVER (ORDER BY wins_count DESC) AS win_rank WHERE win_rank
+    = 1
+  type: condition
+- nl_term: player with most losses
+  db_target: DENSE_RANK() OVER (ORDER BY losses_count DESC) AS loss_rank WHERE loss_rank
+    = 1
+  type: condition
+- nl_term: win count
+  db_target: wins_count
+  type: column
+- nl_term: loss count
+  db_target: losses_count
+  type: column
+biz_logic:
+- metric_name: Player Win Count
+  sql_logic: SUM(CASE WHEN (team_type = 'home' AND home_team_goal > away_team_goal)
+    THEN 1 WHEN (team_type = 'away' AND away_team_goal > home_team_goal) THEN 1 ELSE
+    0 END)
+- metric_name: Player Loss Count
+  sql_logic: SUM(CASE WHEN (team_type = 'home' AND home_team_goal < away_team_goal)
+    THEN 1 WHEN (team_type = 'away' AND away_team_goal < home_team_goal) THEN 1 ELSE
+    0 END)
+- metric_name: Unpivot Player Data from Match Table
+  sql_logic: The PlayerGames CTE unpivots the 22 player columns (home_player_1-11,
+    away_player_1-11) from the Match table into a single row per player per match,
+    creating a normalized view for aggregation.
+- metric_name: Exclude Draw Matches
+  sql_logic: WHERE home_team_goal != away_team_goal
+- metric_name: Rank Players by Wins
+  sql_logic: DENSE_RANK() OVER (ORDER BY wins_count DESC)
+- metric_name: Rank Players by Losses
+  sql_logic: DENSE_RANK() OVER (ORDER BY losses_count DESC)

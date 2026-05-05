@@ -1,0 +1,20 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Average Loss Rate for Wholesale Items
+  sql_logic: AVG("loss_rate_%")
+- metric_name: Sample Standard Deviation of Loss Rate for Wholesale Items
+  sql_logic: CASE WHEN COUNT("loss_rate_%") <= 1 THEN 0.0 ELSE SQRT(SUM(("loss_rate_%"
+    - avg_loss_rate) * ("loss_rate_%" - avg_loss_rate)) / (COUNT("loss_rate_%") -
+    1.0)) END
+- metric_name: Loss Rate Category
+  sql_logic: CASE WHEN "loss_rate_%" < (avg_loss_rate - std_dev_loss_rate) THEN 'Below
+    1 Std Dev' WHEN "loss_rate_%" > (avg_loss_rate + std_dev_loss_rate) THEN 'Above
+    1 Std Dev' ELSE 'Within 1 Std Dev' END
+- metric_name: Items Below 1 Std Dev
+  sql_logic: COUNT(CASE WHEN loss_rate_category = 'Below 1 Std Dev' THEN 1 END)
+- metric_name: Items Within 1 Std Dev
+  sql_logic: COUNT(CASE WHEN loss_rate_category = 'Within 1 Std Dev' THEN 1 END)
+- metric_name: Items Above 1 Std Dev
+  sql_logic: COUNT(CASE WHEN loss_rate_category = 'Above 1 Std Dev' THEN 1 END)

@@ -43,7 +43,7 @@ def build_agent_graph():
     workflow.add_node("SQL_Writer", sql_writer_node)
     workflow.add_node("SQL_Modifier", sql_modifier_node)
     workflow.add_node("Execution", execution_node)
-    workflow.add_node("Critic", critic_node) # 💡 노드 복구
+    workflow.add_node("Critic", critic_node)
 
     workflow.set_entry_point("Keyword_Extraction")
     workflow.add_edge("Keyword_Extraction", "Schema_Linking")

@@ -1,0 +1,27 @@
+descriptions:
+- table: promotions
+  column: promo_total_id
+  meaning: The value '1' in promo_total_id is used to filter for a specific aggregate
+    category of promotions, possibly 'All Promotions' or 'No Promotion'.
+- table: channels
+  column: channel_total_id
+  meaning: The value '1' in channel_total_id is used to filter for a specific aggregate
+    category of channels, possibly 'All Channels'.
+relations:
+- table_1: currency
+  column_1: country
+  table_2: countries
+  column_2: country_name
+- table_1: currency
+  column_1: month
+  table_2: times
+  column_2: calendar_month_number
+synonyms: []
+biz_logic:
+- metric_name: Projected Sales (YoY Growth Method)
+  sql_logic: s20.monthly_sales * (s20.monthly_sales * 1.0 / NULLIF(s19.monthly_sales,
+    0))
+- metric_name: Projected Sales in USD
+  sql_logic: projected_2021_sales * cu.to_us
+- metric_name: Average Projected Monthly Sales in USD
+  sql_logic: AVG(projected_usd_sales)

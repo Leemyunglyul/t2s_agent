@@ -1,0 +1,11 @@
+descriptions:
+- table: orders
+  column: order_status
+  meaning: A value of 'FINISHED' indicates a completed order suitable for analytical
+    calculations.
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Percentage Increase in Monthly Orders
+  sql_logic: (CAST(Current_Month_Orders AS DECIMAL) - Previous_Month_Orders) * 100.0
+    / Previous_Month_Orders

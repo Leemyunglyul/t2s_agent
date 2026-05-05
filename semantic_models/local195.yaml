@@ -1,0 +1,16 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: top 5 actors
+  db_target: DENSE_RANK() OVER (ORDER BY rental_count DESC) <= 5
+  type: condition
+biz_logic:
+- metric_name: Actor Rank by Rental Count
+  sql_logic: DENSE_RANK() OVER (ORDER BY rental_count DESC)
+- metric_name: Actor Rental Count
+  sql_logic: COUNT(rental.rental_id) GROUP BY actor.actor_id
+- metric_name: Percentage of Customers Renting from Top 5 Actors
+  sql_logic: (CAST(COUNT(DISTINCT CustomersRentingFromTopActors.customer_id) AS DECIMAL)
+    * 100.0) / TotalCustomerCount.total_customers
+- metric_name: Total Customer Count
+  sql_logic: SELECT COUNT(DISTINCT customer_id) FROM customer

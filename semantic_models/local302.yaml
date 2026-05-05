@@ -1,0 +1,34 @@
+descriptions:
+- table: cleaned_weekly_sales
+  column: week_date
+  meaning: 'Sales are analyzed in two distinct 84-day periods: a ''before'' period
+    (84 days prior to a key date) and an ''after'' period (84 days following the key
+    date).'
+relations: []
+synonyms:
+- nl_term: sales attribute
+  db_target: region, platform, age_band, demographic, customer_type
+  type: column
+- nl_term: before period
+  db_target: week_date >= DATE('2020-06-15', '-84 days') AND week_date < '2020-06-15'
+  type: condition
+- nl_term: after period
+  db_target: week_date >= '2020-06-15' AND week_date < DATE('2020-06-15', '+84 days')
+  type: condition
+- nl_term: highest negative impact
+  db_target: ORDER BY avg_percentage_change ASC LIMIT 1
+  type: condition
+biz_logic:
+- metric_name: Sales Before Period
+  sql_logic: SUM(CASE WHEN week_date >= DATE('2020-06-15', '-84 days') AND week_date
+    < '2020-06-15' THEN sales ELSE 0 END)
+- metric_name: Sales After Period
+  sql_logic: SUM(CASE WHEN week_date >= '2020-06-15' AND week_date < DATE('2020-06-15',
+    '+84 days') THEN sales ELSE 0 END)
+- metric_name: Percentage Change in Sales
+  sql_logic: (sales_after - sales_before) * 100.0 / NULLIF(sales_before, 0)
+- metric_name: Average Percentage Change by Attribute
+  sql_logic: AVG(percentage_change) GROUP BY attribute_type
+- metric_name: Unpivot Sales Attributes
+  sql_logic: A technique to transform columns (e.g., region, platform, age_band) into
+    rows with an 'attribute_type' and 'attribute_value', typically using UNION ALL.

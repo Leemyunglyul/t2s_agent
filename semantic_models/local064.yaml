@@ -1,0 +1,45 @@
+descriptions:
+- table: customer_transactions
+  column: txn_type
+  meaning: Defines the transaction direction. 'deposit' adds to a balance, while 'withdrawal'
+    subtracts from it.
+relations: []
+synonyms:
+- nl_term: monthly balance
+  db_target: SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal'
+    THEN -txn_amount ELSE 0 END)
+  type: condition
+- nl_term: customers with a positive balance
+  db_target: COUNT(DISTINCT customer_id) FILTER (WHERE balance > 0)
+  type: condition
+- nl_term: average month-end balance
+  db_target: SUM(balance) * 1.0 / (SELECT COUNT(DISTINCT customer_id) FROM all_unique_customers)
+  type: condition
+- nl_term: month with most positive customers
+  db_target: MAX(CASE WHEN DENSE_RANK() OVER (ORDER BY positive_customer_count DESC,
+    month_str ASC) = 1 THEN month_str END)
+  type: condition
+- nl_term: month with fewest positive customers
+  db_target: MAX(CASE WHEN DENSE_RANK() OVER (ORDER BY positive_customer_count ASC,
+    month_str ASC) = 1 THEN month_str END)
+  type: condition
+biz_logic:
+- metric_name: monthly_balance_calculation
+  sql_logic: SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal'
+    THEN -txn_amount ELSE 0 END)
+- metric_name: positive_balance_customer_count
+  sql_logic: COUNT(DISTINCT customer_id) FILTER (WHERE balance > 0)
+- metric_name: avg_month_end_balance_across_all_customers
+  sql_logic: SUM(balance) * 1.0 / (SELECT COUNT(DISTINCT customer_id) FROM all_unique_customers)
+- metric_name: rank_month_by_highest_positive_customers
+  sql_logic: DENSE_RANK() OVER (ORDER BY positive_customer_count DESC, month_str ASC)
+- metric_name: rank_month_by_lowest_positive_customers
+  sql_logic: DENSE_RANK() OVER (ORDER BY positive_customer_count ASC, month_str ASC)
+- metric_name: difference_in_avg_balance
+  sql_logic: ABS(MAX(CASE WHEN rn_highest = 1 THEN avg_month_end_balance END) - MAX(CASE
+    WHEN rn_lowest = 1 THEN avg_month_end_balance END))
+- metric_name: zero_fill_monthly_data_scaffolding
+  sql_logic: A technique to handle sparse time-series data. Create a complete grid
+    of entities (e.g., customers) and time periods (e.g., months) using a CROSS JOIN.
+    Then, LEFT JOIN the actual transaction data onto this grid, using COALESCE to
+    replace NULLs with 0 for periods with no activity.

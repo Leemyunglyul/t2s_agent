@@ -1,0 +1,29 @@
+descriptions:
+- table: packaging_relations
+  column: null
+  meaning: This table defines a hierarchical or bill-of-materials relationship between
+    packaging items. 'packaging_id' is the container, 'contains_id' is the content,
+    and 'qty' is the quantity of the content within the container.
+relations:
+- table_1: packaging
+  column_1: id
+  table_2: packaging_relations
+  column_2: packaging_id
+  description: Defines the recursive link for traversing a packaging hierarchy. The
+    item from the previous step in the hierarchy (represented by a packaging.id) is
+    joined to packaging_relations.packaging_id to find all the items it contains.
+synonyms:
+- nl_term: leaf items
+  db_target: packaging.id NOT IN (SELECT packaging_id FROM packaging_relations)
+  type: condition
+- nl_term: top-level packages
+  db_target: packaging.id NOT IN (SELECT contains_id FROM packaging_relations)
+  type: condition
+biz_logic:
+- metric_name: Cumulative Quantity in Hierarchy
+  sql_logic: parent_cumulative_qty * current_level_qty
+- metric_name: Total Leaf Quantity per Package
+  sql_logic: WITH RECURSIVE ... SELECT root_package_id, SUM(cumulative_qty) FROM (hierarchy
+    expansion) WHERE item_is_leaf GROUP BY root_package_id
+- metric_name: Average Total Leaf Quantity
+  sql_logic: AVG(COALESCE(total_leaf_quantity, 1.0))

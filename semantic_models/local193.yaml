@@ -1,0 +1,26 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: first_purchase_date
+  sql_logic: The first payment_date for a given customer, identified by ranking payments
+    with `ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY payment_date ASC)`
+    and selecting the first one.
+- metric_name: total_ltv
+  sql_logic: SUM(amount) per customer
+- metric_name: ltv_7_days
+  sql_logic: SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+7 day')
+    THEN amount ELSE 0 END)
+- metric_name: ltv_30_days
+  sql_logic: SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+30 day')
+    THEN amount ELSE 0 END)
+- metric_name: pct_ltv_7_days
+  sql_logic: (ltv_7_days * 100.0 / total_ltv)
+- metric_name: pct_ltv_30_days
+  sql_logic: (ltv_30_days * 100.0 / total_ltv)
+- metric_name: average_total_ltv
+  sql_logic: AVG(total_ltv)
+- metric_name: average_pct_ltv_7_days
+  sql_logic: AVG(pct_ltv_7_days)
+- metric_name: average_pct_ltv_30_days
+  sql_logic: AVG(pct_ltv_30_days)

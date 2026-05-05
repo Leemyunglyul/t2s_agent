@@ -1,0 +1,18 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: best selling artist
+  db_target: artists.ArtistId IN (SELECT T3.ArtistId FROM invoice_items AS T1 JOIN
+    tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId
+    GROUP BY T3.ArtistId ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1)
+  type: condition
+- nl_term: amount spent
+  db_target: SUM(invoice_items.UnitPrice * invoice_items.Quantity)
+  type: column
+biz_logic:
+- metric_name: Total Sales Amount
+  sql_logic: SUM(invoice_items.UnitPrice * invoice_items.Quantity)
+- metric_name: Best Selling Artist Logic
+  sql_logic: SELECT T3.ArtistId FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId
+    = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId GROUP BY T3.ArtistId
+    ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1

@@ -1,0 +1,52 @@
+descriptions:
+- table: cleaned_weekly_sales
+  column: (derived) period
+  meaning: The value 'Before' represents the 4-week period leading up to the week
+    of June 15th, defined by `week_number BETWEEN mid_june_week - 4 AND mid_june_week
+    - 1`.
+- table: cleaned_weekly_sales
+  column: (derived) period
+  meaning: The value 'After' represents the 4-week period following the week of June
+    15th, defined by `week_number BETWEEN mid_june_week + 1 AND mid_june_week + 4`.
+relations:
+- table_1: cleaned_weekly_sales
+  column_1: calendar_year
+  table_2: cleaned_weekly_sales
+  column_2: calendar_year
+  notes: Implicit self-join via CTEs to align weekly sales data with a calculated
+    event date (e.g., June 15th) for the same year.
+synonyms:
+- nl_term: 4 weeks before
+  db_target: period = 'Before'
+  type: condition
+- nl_term: 4 weeks after
+  db_target: period = 'After'
+  type: condition
+- nl_term: percentage change
+  db_target: percentage_change
+  type: column
+- nl_term: before sales
+  db_target: before_sales
+  type: column
+- nl_term: after sales
+  db_target: after_sales
+  type: column
+- nl_term: mid-June week
+  db_target: (calendar_year || '-06-15') BETWEEN week_date AND date(week_date, '+6
+    days')
+  type: condition
+biz_logic:
+- metric_name: sales_analysis_period_definition
+  sql_logic: CASE WHEN cws.week_number BETWEEN mjw.mid_june_week - 4 AND mjw.mid_june_week
+    - 1 THEN 'Before' WHEN cws.week_number BETWEEN mjw.mid_june_week + 1 AND mjw.mid_june_week
+    + 4 THEN 'After' END
+- metric_name: mid_june_week_identification
+  sql_logic: (calendar_year || '-06-15') BETWEEN week_date AND date(week_date, '+6
+    days')
+- metric_name: percentage_change_after_vs_before
+  sql_logic: (CAST(after_sales AS REAL) - before_sales) * 100.0 / NULLIF(before_sales,
+    0)
+- metric_name: before_sales_total
+  sql_logic: SUM(CASE WHEN period = 'Before' THEN sales ELSE 0 END)
+- metric_name: after_sales_total
+  sql_logic: SUM(CASE WHEN period = 'After' THEN sales ELSE 0 END)

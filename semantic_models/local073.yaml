@@ -1,0 +1,77 @@
+descriptions:
+- table: pizza_customer_orders
+  column: exclusions
+  meaning: A comma-separated string of topping_ids to be removed. The value 'None'
+    or an empty string is treated as no exclusions, handled via NULLIF(TRIM(exclusions),
+    'None').
+- table: pizza_customer_orders
+  column: extras
+  meaning: A comma-separated string of topping_ids to be added. The value 'None' or
+    an empty string is treated as no extras, handled via NULLIF(TRIM(extras), 'None').
+- table: pizza_recipes
+  column: toppings
+  meaning: The base recipe for a pizza, represented as a comma-separated string of
+    topping_ids.
+relations:
+- table_1: pizza_customer_orders
+  column_1: pizza_id
+  table_2: pizza_names
+  column_2: pizza_id
+- table_1: pizza_recipes
+  column_1: toppings
+  table_2: pizza_toppings
+  column_2: topping_id
+  type: hidden
+  join_condition: The 'toppings' column is a comma-separated string of IDs that correspond
+    to 'topping_id'.
+- table_1: pizza_customer_orders
+  column_1: extras
+  table_2: pizza_toppings
+  column_2: topping_id
+  type: hidden
+  join_condition: The 'extras' column is a comma-separated string of IDs that correspond
+    to 'topping_id'.
+- table_1: pizza_customer_orders
+  column_1: exclusions
+  table_2: pizza_toppings
+  column_2: topping_id
+  type: hidden
+  join_condition: The 'exclusions' column is a comma-separated string of IDs that
+    correspond to 'topping_id'.
+- table_1: pizza_customer_orders
+  column_1: pizza_id
+  table_2: pizza_recipes
+  column_2: pizza_id
+  type: hidden
+  join_condition: 'The join is indirect. pizza_customer_orders.pizza_id is used to
+    get pizza_names.pizza_name, which is then mapped to a recipe ID (pizza_recipes.pizza_id)
+    via a business rule (see biz_logic: ''Effective Pizza Recipe Mapping'').'
+synonyms: []
+biz_logic:
+- metric_name: Final Pizza Ingredients Calculation
+  sql_logic: The final set of ingredients is calculated by combining base recipe toppings
+    and customer-added extras (using UNION ALL), and then removing any customer-specified
+    exclusions (using a LEFT JOIN and checking for NULL).
+- metric_name: Comma-Separated ID Parsing
+  sql_logic: A recursive CTE pattern is used to split comma-separated strings of IDs
+    from the `pizza_recipes.toppings`, `pizza_customer_orders.extras`, and `pizza_customer_orders.exclusions`
+    columns into individual rows for processing.
+- metric_name: Double Ingredient Formatting
+  sql_logic: 'When an ingredient is counted more than once for a single pizza (e.g.,
+    it''s in the base recipe and also added as an extra), it is prefixed with ''2x
+    '' in the final ingredient string. These ''2x'' items are also sorted to appear
+    first in the list. SQL: CASE WHEN ingredient_count > 1 THEN ''2x '' || topping_name
+    ELSE topping_name END'
+- metric_name: Order Item Uniqueness
+  sql_logic: A unique row identifier (`row_id`) is created for each ordered item using
+    `ROW_NUMBER() OVER (ORDER BY order_id, order_time)` to distinguish between multiple
+    identical pizzas in the same order.
+- metric_name: Handling of Empty Ingredient Lists
+  sql_logic: The string value 'None' or empty strings in the `exclusions` and `extras`
+    columns are converted to NULL to represent no changes, using the logic `NULLIF(TRIM(column),
+    'None')`.
+- metric_name: Effective Pizza Recipe Mapping
+  sql_logic: 'A business rule maps pizza names to a specific recipe ID to fetch base
+    toppings. ''Meatlovers'' uses recipe ID 1, and all other pizzas use recipe ID
+    2. SQL Logic: CASE WHEN pizza_names.pizza_name = ''Meatlovers'' THEN 1 ELSE 2
+    END'

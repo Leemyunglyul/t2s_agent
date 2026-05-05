@@ -1,0 +1,17 @@
+descriptions:
+- table: ratings
+  column: avg_rating
+  meaning: A value greater than 8 indicates a 'High-Rated Movie'.
+relations: []
+synonyms:
+- nl_term: high-rated movies
+  db_target: ratings.avg_rating > 8
+  type: condition
+biz_logic:
+- metric_name: High-Rated Movie Count by Director
+  sql_logic: SELECT T3.name, COUNT(DISTINCT T1.movie_id) FROM ratings AS T1 JOIN director_mapping
+    AS T2 ON T1.movie_id = T2.movie_id JOIN names AS T3 ON T2.name_id = T3.id WHERE
+    T1.avg_rating > 8 GROUP BY T3.name
+- metric_name: High-Rated Movie Count by Genre
+  sql_logic: SELECT T2.genre, COUNT(DISTINCT T1.movie_id) FROM ratings AS T1 JOIN
+    genre AS T2 ON T1.movie_id = T2.movie_id WHERE T1.avg_rating > 8 GROUP BY T2.genre

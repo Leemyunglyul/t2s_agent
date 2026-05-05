@@ -1,0 +1,25 @@
+descriptions:
+- table: olist_orders
+  column: order_status
+  meaning: '''delivered'' status indicates a successfully completed order, often used
+    as a filter for performance analysis.'
+- table: olist_order_reviews
+  column: review_score
+  meaning: A value of 5 represents a '5-Star Rating'.
+relations: []
+synonyms:
+- nl_term: 5-star rating
+  db_target: olist_order_reviews.review_score = 5
+  type: condition
+- nl_term: distinct customers
+  db_target: olist_customers.customer_unique_id
+  type: column
+biz_logic:
+- metric_name: seller_profit
+  sql_logic: SUM(olist_order_items.price - olist_order_items.freight_value)
+- metric_name: seller_distinct_customers_count
+  sql_logic: COUNT(DISTINCT olist_customers.customer_unique_id)
+- metric_name: seller_distinct_orders_count
+  sql_logic: COUNT(DISTINCT olist_orders.order_id)
+- metric_name: seller_five_star_ratings_count
+  sql_logic: COUNT(DISTINCT olist_orders.order_id)

@@ -1,0 +1,20 @@
+descriptions:
+- table: olist_products
+  column: product_category_name
+  meaning: Categories with a NULL name are considered invalid or irrelevant for analysis
+    and are filtered out.
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Average of Maximum Payment Counts per Category
+  sql_logic: "WITH OrderCategory AS (\n  SELECT DISTINCT\n    oi.order_id,\n    p.product_category_name\n\
+    \  FROM olist_order_items AS oi\n  INNER JOIN olist_products AS p\n    ON oi.product_id\
+    \ = p.product_id\n  WHERE\n    p.product_category_name IS NOT NULL\n), CategoryPaymentData\
+    \ AS (\n  SELECT\n    oc.product_category_name,\n    op.payment_type\n  FROM OrderCategory\
+    \ AS oc\n  INNER JOIN olist_order_payments AS op\n    ON oc.order_id = op.order_id\n\
+    ), CategoryPaymentCounts AS (\n  SELECT\n    product_category_name,\n    payment_type,\n\
+    \    COUNT(*) AS payment_count\n  FROM CategoryPaymentData\n  GROUP BY\n    product_category_name,\n\
+    \    payment_type\n), MaxPaymentCountsPerCategory AS (\n  SELECT\n    product_category_name,\n\
+    \    MAX(payment_count) AS max_payment_count\n  FROM CategoryPaymentCounts\n \
+    \ GROUP BY\n    product_category_name\n)\nSELECT\n  AVG(max_payment_count)\nFROM\
+    \ MaxPaymentCountsPerCategory;"

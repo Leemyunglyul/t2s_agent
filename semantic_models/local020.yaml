@@ -1,0 +1,51 @@
+descriptions:
+- table: wicket_taken
+  column: kind_out
+  meaning: The type of dismissal. Dismissals of type 'run out', 'retired hurt', 'obstructing
+    the field', and 'handled the ball' are not credited to the bowler.
+- table: extra_runs
+  column: extra_type
+  meaning: The type of extra run. Only 'wides' and 'noballs' are counted as runs conceded
+    by the bowler.
+relations:
+- table_1: player
+  column_1: player_id
+  table_2: ball_by_ball
+  column_2: bowler
+- table_1: ball_by_ball
+  column_1: '[match_id, over_id, ball_id, innings_no]'
+  table_2: batsman_scored
+  column_2: '[match_id, over_id, ball_id, innings_no]'
+- table_1: ball_by_ball
+  column_1: '[match_id, over_id, ball_id, innings_no]'
+  table_2: extra_runs
+  column_2: '[match_id, over_id, ball_id, innings_no]'
+- table_1: ball_by_ball
+  column_1: '[match_id, over_id, ball_id, innings_no]'
+  table_2: wicket_taken
+  column_2: '[match_id, over_id, ball_id, innings_no]'
+synonyms:
+- nl_term: best bowler
+  db_target: ORDER BY bowling_average ASC LIMIT 1
+  type: value
+- nl_term: bowling average
+  db_target: bowling_average
+  type: column
+- nl_term: bowler
+  db_target: ball_by_ball.bowler
+  type: column
+- nl_term: runs conceded
+  db_target: total_runs_conceded
+  type: column
+- nl_term: wickets taken
+  db_target: total_wickets
+  type: column
+biz_logic:
+- metric_name: Bowling Average
+  sql_logic: CAST(total_runs_conceded AS REAL) / total_wickets
+- metric_name: Total Runs Conceded by Bowler
+  sql_logic: SUM(COALESCE(runs_scored, 0) + COALESCE(CASE WHEN extra_type IN ('wides',
+    'noballs') THEN extra_runs ELSE 0 END, 0))
+- metric_name: Total Wickets Credited to Bowler
+  sql_logic: SUM(CASE WHEN kind_out IS NOT NULL AND kind_out NOT IN ('run out', 'retired
+    hurt', 'obstructing the field', 'handled the ball') THEN 1 ELSE 0 END)

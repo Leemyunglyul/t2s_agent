@@ -1,0 +1,25 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: team name
+  db_target: Team.team_long_name
+  type: column
+- nl_term: team with the fewest wins
+  db_target: ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC) =
+    1
+  type: condition
+- nl_term: league name
+  db_target: League.name
+  type: column
+biz_logic:
+- metric_name: Unified Match Results
+  sql_logic: SELECT league_id, home_team_api_id AS team_id, CASE WHEN home_team_goal
+    > away_team_goal THEN 1 ELSE 0 END AS is_win FROM Match UNION ALL SELECT league_id,
+    away_team_api_id AS team_id, CASE WHEN away_team_goal > home_team_goal THEN 1
+    ELSE 0 END AS is_win FROM Match
+- metric_name: Total Wins per Team
+  sql_logic: SELECT league_id, team_id, SUM(is_win) AS total_wins FROM TeamMatchResults
+    GROUP BY league_id, team_id
+- metric_name: Rank Teams by Fewest Wins
+  sql_logic: SELECT league_id, team_id, total_wins, ROW_NUMBER() OVER (PARTITION BY
+    league_id ORDER BY total_wins ASC) AS rank_num FROM TeamTotalWins

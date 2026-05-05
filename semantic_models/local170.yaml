@@ -1,0 +1,35 @@
+descriptions:
+- table: legislators
+  column: gender
+  meaning: The gender of the legislator, where 'M' represents Male and 'F' represents
+    Female.
+relations: []
+synonyms:
+- nl_term: legislator
+  db_target: legislators
+  type: table
+- nl_term: legislator term
+  db_target: legislators_terms
+  type: table
+- nl_term: male
+  db_target: '''M'''
+  type: value
+- nl_term: female
+  db_target: '''F'''
+  type: value
+- nl_term: first term start date
+  db_target: MIN(term_start)
+  type: condition
+biz_logic:
+- metric_name: Legislator Retention at Year X
+  sql_logic: MAX(CASE WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y', gft.global_first_term_start,
+    '+X years') || '-12-31') AND lt_all_terms.term_end >= DATE(STRFTIME('%Y', gft.global_first_term_start,
+    '+X years') || '-12-31') THEN 1 ELSE 0 END)
+- metric_name: Valid State-Gender Cohort
+  sql_logic: GROUP BY state, gender HAVING SUM(retained_at_0) > 0 AND SUM(retained_at_2)
+    > 0 AND SUM(retained_at_4) > 0 AND SUM(retained_at_6) > 0 AND SUM(retained_at_8)
+    > 0 AND SUM(retained_at_10) > 0
+- metric_name: State with Dual-Gender Valid Cohorts
+  sql_logic: GROUP BY state HAVING COUNT(gender) = 2
+- metric_name: Global First Term Start Date
+  sql_logic: MIN(term_start)

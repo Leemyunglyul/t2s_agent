@@ -1,0 +1,24 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: ranks
+  db_target: university_faculty.FacRank
+  type: column
+- nl_term: first names
+  db_target: university_faculty.FacFirstName
+  type: column
+- nl_term: last names
+  db_target: university_faculty.FacLastName
+  type: column
+- nl_term: salaries
+  db_target: university_faculty.FacSalary
+  type: column
+- nl_term: faculty with salary closest to the rank average
+  db_target: DENSE_RANK() OVER (PARTITION BY FacRank ORDER BY ABS(FacSalary - AVG(FacSalary)
+    OVER (PARTITION BY FacRank)) ASC) = 1
+  type: condition
+biz_logic:
+- metric_name: Average Salary by Rank
+  sql_logic: AVG(FacSalary) OVER (PARTITION BY FacRank)
+- metric_name: Salary Difference from Rank Average
+  sql_logic: ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank))

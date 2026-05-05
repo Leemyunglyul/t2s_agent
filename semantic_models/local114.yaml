@@ -1,0 +1,38 @@
+descriptions:
+- table: RankedRepSales (CTE)
+  column: rank_num
+  meaning: A value of 1 indicates the sales representative with the highest total
+    sales amount within their region. DENSE_RANK is used, so multiple representatives
+    can have a rank of 1 if they are tied.
+relations: []
+synonyms:
+- nl_term: region
+  db_target: web_region
+  type: table
+- nl_term: sales representative
+  db_target: web_sales_reps
+  type: table
+- nl_term: total region sales
+  db_target: SUM(web_orders.total_amt_usd)
+  type: column
+- nl_term: total region orders
+  db_target: COUNT(web_orders.id)
+  type: column
+- nl_term: top sales rep
+  db_target: DENSE_RANK() OVER (PARTITION BY region_id ORDER BY total_rep_sales DESC)
+    = 1
+  type: condition
+- nl_term: top sales rep sales
+  db_target: MAX(total_rep_sales)
+  type: column
+biz_logic:
+- metric_name: Total Sales per Representative per Region
+  sql_logic: SUM(wo.total_amt_usd) GROUP BY wr.id, wr.name, wsr.id, wsr.name
+- metric_name: Total Sales per Region
+  sql_logic: SUM(wo.total_amt_usd) GROUP BY wr.id, wr.name
+- metric_name: Total Orders per Region
+  sql_logic: COUNT(wo.id) GROUP BY wr.id, wr.name
+- metric_name: Sales Rep Regional Ranking
+  sql_logic: DENSE_RANK() OVER (PARTITION BY region_id ORDER BY total_rep_sales DESC)
+- metric_name: Handling Tied Top Sales Reps
+  sql_logic: GROUP_CONCAT(sales_rep_name)

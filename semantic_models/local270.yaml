@@ -1,0 +1,46 @@
+descriptions:
+- table: packaging
+  column: null
+  meaning: Represents items that can be part of a packaging hierarchy, acting as either
+    containers or contents.
+- table: packaging_relations
+  column: packaging_id
+  meaning: The ID of the packaging item that acts as a container.
+- table: packaging_relations
+  column: contains_id
+  meaning: The ID of the packaging item that is contained within another.
+- table: packaging
+  column: id
+  meaning: An item is a 'top-level container' if its ID does not appear in the 'packaging_relations.contains_id'
+    column.
+- table: packaging
+  column: id
+  meaning: An item is a 'base item' (i.e., not a container) if its ID does not appear
+    in the 'packaging_relations.packaging_id' column.
+relations: []
+synonyms:
+- nl_term: container name
+  db_target: packaging.name
+  type: column
+- nl_term: item name
+  db_target: packaging.name
+  type: column
+- nl_term: container
+  db_target: packaging
+  type: table
+- nl_term: item
+  db_target: packaging
+  type: table
+biz_logic:
+- metric_name: Total Accumulated Base Item Quantity in Top-Level Container
+  sql_logic: WITH RECURSIVE TopLevelContainers AS (SELECT p.id FROM packaging AS p
+    LEFT JOIN packaging_relations AS pr ON p.id = pr.contains_id WHERE pr.contains_id
+    IS NULL), PackagingHierarchy AS (SELECT tlc.id AS top_level_id, tlc.id AS item_id,
+    1 AS accumulated_qty FROM TopLevelContainers AS tlc UNION ALL SELECT ph.top_level_id,
+    pr.contains_id AS item_id, ph.accumulated_qty * pr.qty AS accumulated_qty FROM
+    PackagingHierarchy AS ph INNER JOIN packaging_relations AS pr ON ph.item_id =
+    pr.packaging_id), BaseItems AS (SELECT p.id FROM packaging AS p LEFT JOIN packaging_relations
+    AS pr ON p.id = pr.packaging_id WHERE pr.packaging_id IS NULL), AccumulatedQuantities
+    AS (SELECT ph.top_level_id, ph.item_id, SUM(ph.accumulated_qty) AS total_accumulated_qty
+    FROM PackagingHierarchy AS ph INNER JOIN BaseItems AS bi ON ph.item_id = bi.id
+    GROUP BY ph.top_level_id, ph.item_id)

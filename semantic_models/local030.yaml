@@ -1,0 +1,21 @@
+descriptions:
+- table: olist_orders
+  column: order_status
+  meaning: The value 'delivered' indicates that the order has been successfully delivered
+    to the customer.
+relations: []
+synonyms:
+- nl_term: bottom 5 cities
+  db_target: DENSE_RANK() OVER (ORDER BY SUM(payment_value) ASC) <= 5
+  type: condition
+biz_logic:
+- metric_name: total_payments_per_city
+  sql_logic: SUM(payment_value)
+- metric_name: delivered_order_count_per_city
+  sql_logic: COUNT(DISTINCT order_id)
+- metric_name: city_rank_by_lowest_payment
+  sql_logic: DENSE_RANK() OVER (ORDER BY total_payments ASC)
+- metric_name: avg_total_payment_for_bottom_5_cities
+  sql_logic: AVG(total_payments)
+- metric_name: avg_delivered_order_count_for_bottom_5_cities
+  sql_logic: AVG(delivered_order_count)

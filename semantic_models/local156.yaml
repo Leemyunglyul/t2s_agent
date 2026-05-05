@@ -1,0 +1,55 @@
+descriptions:
+- table: bitcoin_transactions
+  column: txn_type
+  meaning: A value of 'BUY' indicates a purchase transaction.
+- table: bitcoin_transactions
+  column: ticker
+  meaning: A value of 'BTC' represents the Bitcoin cryptocurrency.
+- table: bitcoin_transactions
+  column: txn_date
+  meaning: The date of the transaction, stored as a string in 'DD-MM-YYYY' format.
+    The year can be extracted using CAST(SUBSTR(txn_date, 7, 4) AS INTEGER).
+- table: bitcoin_prices
+  column: market_date
+  meaning: The market date, stored as a string in 'DD-MM-YYYY' format. It corresponds
+    to the txn_date in the bitcoin_transactions table.
+relations:
+- table_1: bitcoin_transactions
+  column_1: member_id
+  table_2: bitcoin_members
+  column_2: member_id
+- table_1: bitcoin_transactions
+  column_1: '["ticker", "txn_date"]'
+  table_2: bitcoin_prices
+  column_2: '["ticker", "market_date"]'
+  description: A transaction's value is determined by joining on both the asset ticker
+    and the specific date of the transaction to find the corresponding daily price.
+    This represents a composite key relationship where bitcoin_transactions.txn_date
+    maps to bitcoin_prices.market_date.
+synonyms:
+- nl_term: buy transaction
+  db_target: bitcoin_transactions.txn_type = 'BUY'
+  type: condition
+biz_logic:
+- metric_name: Total Spent
+  sql_logic: SUM(bt.quantity * bp.price)
+- metric_name: Total Quantity
+  sql_logic: SUM(bt.quantity)
+- metric_name: Average Purchase Price
+  sql_logic: SUM(bt.quantity * bp.price) * 1.0 / NULLIF(SUM(bt.quantity), 0)
+- metric_name: Transaction Year
+  sql_logic: CAST(SUBSTR(txn_date, 7, 4) AS INTEGER)
+- metric_name: Previous Year's Average Price
+  sql_logic: LAG(avg_purchase_price) OVER (PARTITION BY region ORDER BY txn_year)
+- metric_name: Region Rank by Average Purchase Price
+  sql_logic: DENSE_RANK() OVER (PARTITION BY txn_year ORDER BY avg_purchase_price
+    DESC)
+- metric_name: Annual Percentage Change in Average Purchase Price
+  sql_logic: CASE WHEN previous_year_price IS NULL OR previous_year_price = 0 THEN
+    NULL ELSE (avg_purchase_price - previous_year_price) * 100.0 / previous_year_price
+    END
+- metric_name: Year Rank for Region
+  sql_logic: DENSE_RANK() OVER (PARTITION BY region ORDER BY txn_year)
+  description: Used to rank years within each region to enable filtering out the first
+    year of data for accurate year-over-year comparisons (e.g., WHERE year_rank >
+    1).

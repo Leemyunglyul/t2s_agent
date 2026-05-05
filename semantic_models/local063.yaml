@@ -1,0 +1,22 @@
+descriptions:
+- table: sales
+  column: promo_id
+  meaning: A value of 999 indicates a special promotion type, possibly 'No Promotion'
+    or a baseline for sales without specific promotional activity.
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Growing Cities
+  sql_logic: HAVING SUM(CASE WHEN calendar_quarter_id = 1776 THEN total_city_sales
+    ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN calendar_quarter_id = 1772 THEN total_city_sales
+    ELSE 0 END), 0) >= 1.20 AND SUM(CASE WHEN calendar_quarter_id = 1772 THEN total_city_sales
+    ELSE 0 END) > 0
+- metric_name: Top 20 Percent Products by Sales
+  sql_logic: DENSE_RANK() OVER (ORDER BY total_product_sales_overall DESC) <= COUNT(prod_id)
+    OVER () * 0.2
+- metric_name: Product Quarterly Sales Share
+  sql_logic: SUM(fs.amount_sold) * 1.0 / NULLIF(SUM(SUM(fs.amount_sold)) OVER (PARTITION
+    BY fs.calendar_quarter_id), 0)
+- metric_name: Percentage Point Change in Share
+  sql_logic: ABS(SUM(CASE WHEN calendar_quarter_id = 1776 THEN product_share ELSE
+    0 END) - SUM(CASE WHEN calendar_quarter_id = 1772 THEN product_share ELSE 0 END))

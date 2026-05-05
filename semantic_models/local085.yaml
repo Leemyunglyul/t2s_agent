@@ -1,0 +1,21 @@
+descriptions:
+- table: orders
+  column: shippeddate
+  meaning: An order is considered 'late' if its shippeddate is on or after its requireddate.
+relations: []
+synonyms:
+- nl_term: late order
+  db_target: shippeddate >= requireddate
+  type: condition
+- nl_term: high-volume employee
+  db_target: COUNT(orderid) > 50
+  type: condition
+biz_logic:
+- metric_name: Late Orders Count
+  sql_logic: SUM(CASE WHEN shippeddate >= requireddate THEN 1 ELSE 0 END)
+- metric_name: Late Order Percentage
+  sql_logic: CAST(SUM(CASE WHEN shippeddate >= requireddate THEN 1 ELSE 0 END) AS
+    REAL) * 100.0 / COUNT(orderid)
+- metric_name: Employee Rank by Late Order Percentage
+  sql_logic: DENSE_RANK() OVER (ORDER BY CAST(SUM(CASE WHEN shippeddate >= requireddate
+    THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(orderid) DESC)

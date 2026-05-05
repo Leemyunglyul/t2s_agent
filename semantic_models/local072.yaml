@@ -1,0 +1,21 @@
+descriptions:
+- table: cities
+  column: capital
+  meaning: A value of 1 indicates that the city is a capital city.
+- table: cities
+  column: insert_date
+  meaning: The date a city record was added to the database.
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: proportion_of_capital_entries
+  sql_logic: CAST(SUM(capital) AS REAL) * 1.0 / COUNT(city_id)
+- metric_name: Longest Consecutive Activity Period (Gaps and Islands)
+  sql_logic: 'To find the longest consecutive period of dates with data, a ''gaps
+    and islands'' algorithm is used. A grouping key is created by subtracting a generated
+    row number from each date: `DATE(insert_date, ''-'' || ROW_NUMBER() OVER (ORDER
+    BY insert_date) || '' days'')`. Grouping by this key identifies consecutive date
+    sequences, from which the longest can be found.'
+- metric_name: Country Cohort with 9 Active Days in Jan 2022
+  sql_logic: SELECT country_code_2 FROM cities WHERE STRFTIME('%Y-%m', insert_date)
+    = '2022-01' GROUP BY country_code_2 HAVING COUNT(DISTINCT insert_date) = 9

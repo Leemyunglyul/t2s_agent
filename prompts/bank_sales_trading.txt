@@ -5,31 +5,54 @@ If the prompt explicitly says "subtract all withdrawal amounts", you MUST ONLY s
 - DO NOT subtract 'purchase' or any other types. 
 - Correct formula: `SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal' THEN -txn_amount ELSE 0 END)`
 
-2. "ALL CUSTOMERS" DENOMINATOR RULE (NO FILTERS ALLOWED):
-When calculating an average "across all customers", the denominator MUST be the total unique customers in the ENTIRE table.
-- MANDATORY Denominator: `(SELECT COUNT(DISTINCT customer_id) FROM customer_transactions)`
-- CRITIC WARNING: DO NOT add ANY date or year filters (e.g., `WHERE strftime('%Y', txn_date) = '2020'`) to this denominator. "All customers" literally means all customers in the database, regardless of the year.
+2. "ALL CUSTOMERS" DENOMINATOR RULE (FATAL):
+When calculating an average "across all customers", you MUST NOT use the `AVG()` function.
+- You MUST manually calculate it as: `SUM(metric) * 1.0 / (SELECT COUNT(DISTINCT customer_id) FROM customer_transactions)`
+- The denominator must be the total unique customers in the ENTIRE table, without any date filters.
 
-3. ABSOLUTE DIFFERENCE RULE:
-If the prompt asks for the "difference" between two values, you MUST wrap the final subtraction in the `ABS()` function to prevent negative results (e.g., `ABS(MAX(A) - MAX(B))`).
+3. ABSOLUTE DIFFERENCE RULE (FATAL):
+If the prompt asks for the "difference" between two values, you MUST wrap the final subtraction in the `ABS()` function (e.g., `ABS(val1 - val2)`).
 
-4. SPARSE TIME-SERIES RULE (CRITICAL FOR RUNNING BALANCES):
-When calculating monthly running/cumulative balances across all users, you MUST prevent users from disappearing in months where they had zero transactions.
-- You MUST create a base grid using `CROSS JOIN` between `(SELECT DISTINCT customer_id FROM ...)` and `(SELECT DISTINCT strftime('%Y-%m-01', txn_date) FROM ...)`.
-- Then `LEFT JOIN` their net monthly transactions to this grid, applying `COALESCE(net_amount, 0)`, BEFORE using the `SUM() OVER(...)` window function.
+4. RANKING TIE-BREAKER RULE (FATAL):
+When finding the highest or lowest month based on a count, you MUST NOT use `RANK()` or `DENSE_RANK()`.
+- You MUST use `ROW_NUMBER() OVER (ORDER BY count_metric DESC, month_col ASC)` to ensure only exactly one month is selected even if there is a tie.
 
-5. NO GREATEST FUNCTION:
-SQLite does NOT support the `GREATEST()` function. To replace negative balances with zero, you MUST use a `CASE` statement: `CASE WHEN balance < 0 THEN 0 ELSE balance END`.
+5. MISSING MONTHS PADDING RULE (FATAL):
+If evaluating all months in a year (e.g., 2020), you MUST NOT just `GROUP BY` the transaction data, because months with zero transactions will disappear.
+- You MUST create a calendar CTE with all 12 months (e.g., '2020-01' to '2020-12').
+- `LEFT JOIN` the aggregated transaction stats to this calendar and use `COALESCE(val, 0)` to fill missing months.
 
-6. PERCENTAGE CHANGE & LAG RULE (CRITICAL):
-When calculating daily percentage change skipping zero-volume days within a date range, the benchmark uses a very specific order of operations. You MUST follow this exactly (NO correlated subqueries):
-- Step 1 (Innermost): Extract data, format dates, convert volume text to numbers, AND apply the date range filter (e.g., `BETWEEN '2021-08-01' AND '2021-08-10'`).
-- Step 2: From Step 1, filter out zero volumes (`WHERE volume > 0`). This naturally skips 0-volume days.
-- Step 3: Use `LAG(volume, 1, 0) OVER (...)` on the remaining rows to get `previous_volume`.
-- Step 4 (Outermost): Filter `WHERE previous_volume > 0` and calculate `((current - previous) / previous) * 100.0`.
+6. NO GREATEST FUNCTION:
+SQLite does NOT support the `GREATEST()` function. Use a `CASE` statement.
 
-7. SHOPPING CART PRODUCT FUNNEL (CRITICAL):
-Purchase events (`event_type = 3`) occur at the visit/checkout level, NOT at the individual product level. 
-- To count "purchases" for a specific product, you MUST count when it was "added to cart" (`event_type = 2`) during a visit that eventually had a purchase (`visit_had_purchase = 1`).
-- Formula for product purchases: `SUM(CASE WHEN event_type = 2 AND visit_had_purchase = 1 THEN 1 ELSE 0 END)`
-- DO NOT use `SUM(CASE WHEN event_type = 3...)` grouped by product, because it will yield 0.
+7. PREVIOUS METRICS & DATE FILTERS (FATAL):
+- When finding a "previous day's volume", use a correlated subquery.
+- FATAL DATE FILTER RULE: If a date window is specified, apply it ONLY in the VERY LAST `WHERE` clause.
+- Output the formatted date (`YYYY-MM-DD`).
+
+8. OUTPUT COMPLETENESS RULE (CRITICAL):
+If the prompt asks to "determine which [item] has the highest/lowest [metric A]" and "compute [metric B] and provide the difference", your final SELECT statement MUST output ALL of the following as separate columns:
+1. The identifier for the highest item (e.g., highest month)
+2. The [metric A] for the highest item (e.g., highest positive count)
+3. The [metric B] for the highest item (e.g., highest avg balance)
+4. The identifier for the lowest item (e.g., lowest month)
+5. The [metric A] for the lowest item (e.g., lowest positive count)
+6. The [metric B] for the lowest item (e.g., lowest avg balance)
+7. The final calculated difference
+NEVER just output the identifiers and the difference. You MUST include all intermediate metrics in the final SELECT list.
+
+9. MASSIVE TABLE OPTIMIZATION (TIMEOUT PREVENTION):
+- NEVER apply string/date functions like `DATE(col)` or `STRFTIME()` to columns inside `JOIN ON` conditions or `WHERE` clauses. It disables database indexes and causes fatal timeouts.
+- If data profiling shows two date columns share the exact same format (e.g., both end with ' 00:00:00'), `JOIN` them directly using equality (`A.txn_date = B.whsle_date`).
+- Use index-friendly range filters instead of functions (e.g., `txn_date >= '2020-01-01 00:00:00' AND txn_date < '2024-01-01 00:00:00'` instead of `STRFTIME('%Y', txn_date) BETWEEN '2020' AND '2023'`).
+
+10. DIMENSION AVERAGE FAN-OUT RULE (CRITICAL):
+- When calculating averages (`AVG`) or finding max/min of dimension attributes (like wholesale price or loss rate) grouped by a higher level (like category), you MUST NOT aggregate directly after joining with the massive sales transaction table. Sales volume will cause Fan-out and weight the averages incorrectly.
+- You MUST use a CTE with `SELECT DISTINCT` to isolate the unique attribute values first (e.g., `SELECT DISTINCT year, category_name, item_code, whsle_date, whsle_price FROM ...`) and THEN apply `AVG()`, `MAX()`, `MIN()` on that specific CTE.
+
+11. RETAIL TOTAL LOSS FORMULA (CRITICAL):
+- When calculating the "total loss" value based on a loss rate percentage, you MUST calculate it based on the *purchased* quantity, not just the sold quantity.
+- Use this exact mathematical formula: `SUM(whsle_price * (qty_sold / (1.0 - loss_rate_percent / 100.0) - qty_sold))`
+
+12. VEGETABLE SALES FILTER RULE:
+- Whenever you aggregate or analyze transaction data from the `veg_txn_df` table, you MUST strictly apply the filter `"sale/return" = 'sale'` to exclude returned items, unless the prompt explicitly asks for returns.

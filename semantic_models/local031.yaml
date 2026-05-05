@@ -1,0 +1,40 @@
+descriptions:
+- table: olist_orders
+  column: order_status
+  meaning: The value 'delivered' indicates that the order has been successfully delivered
+    to the customer.
+relations: []
+synonyms:
+- nl_term: delivered orders
+  db_target: order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
+  type: condition
+- nl_term: delivery year
+  db_target: CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER)
+  type: column
+- nl_term: annual volume
+  db_target: COUNT(order_id)
+  type: column
+- nl_term: monthly volume
+  db_target: COUNT(order_id)
+  type: column
+- nl_term: peak monthly volume
+  db_target: MAX(monthly_volume)
+  type: column
+- nl_term: volume
+  db_target: COUNT(order_id)
+  type: column
+biz_logic:
+- metric_name: Annual Delivered Order Volume
+  sql_logic: SELECT CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER)
+    AS delivery_year, COUNT(order_id) AS annual_volume FROM olist_orders WHERE order_status
+    = 'delivered' AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_year
+- metric_name: Monthly Delivered Order Volume
+  sql_logic: SELECT STRFTIME('%Y-%m', order_delivered_customer_date) AS delivery_month,
+    COUNT(order_id) AS monthly_volume FROM olist_orders WHERE order_status = 'delivered'
+    AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_month
+- metric_name: Lowest Annual Volume Year
+  sql_logic: WITH AnnualVolumes AS (SELECT CAST(STRFTIME('%Y', order_delivered_customer_date)
+    AS INTEGER) AS delivery_year, COUNT(order_id) AS annual_volume FROM olist_orders
+    WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
+    GROUP BY delivery_year) SELECT delivery_year FROM AnnualVolumes ORDER BY annual_volume
+    ASC LIMIT 1

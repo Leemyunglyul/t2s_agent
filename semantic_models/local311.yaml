@@ -1,0 +1,7 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Constructor Combined Points
+  sql_logic: For a given year and constructor, this is the sum of `SUM(constructor_results.points)`
+    and `MAX(SUM(results.points) GROUP BY driver_id)`.

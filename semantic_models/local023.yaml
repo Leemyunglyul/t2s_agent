@@ -1,0 +1,70 @@
+descriptions:
+- table: match
+  column: season_id
+  meaning: The value '5' in the season_id column corresponds to 'Season 5' of the
+    tournament.
+- table: wicket_taken
+  column: player_out
+  meaning: A non-null value in this column indicates the ID of a player who was dismissed.
+- table: ball_by_ball
+  column: striker
+  meaning: The ID of the batsman currently facing the bowler and is credited for runs
+    scored.
+relations:
+- table_1: ball_by_ball
+  column_1: '[match_id, over_id, ball_id, innings_no]'
+  table_2: batsman_scored
+  column_2: '[match_id, over_id, ball_id, innings_no]'
+- table_1: ball_by_ball
+  column_1: '[match_id, over_id, ball_id, innings_no]'
+  table_2: wicket_taken
+  column_2: '[match_id, over_id, ball_id, innings_no]'
+synonyms:
+- nl_term: season 5
+  db_target: match.season_id = 5
+  type: condition
+- nl_term: total runs
+  db_target: SUM(batsman_scored.runs_scored)
+  type: column
+- nl_term: total dismissals
+  db_target: COUNT(wicket_taken.player_out)
+  type: column
+- nl_term: matches played
+  db_target: COUNT(DISTINCT player_match.match_id)
+  type: column
+- nl_term: top 5 players
+  db_target: DENSE_RANK() OVER (ORDER BY ... DESC) <= 5
+  type: condition
+- nl_term: average runs per match
+  db_target: Average Runs per Match
+  type: metric
+- nl_term: batting average
+  db_target: Batting Average
+  type: metric
+biz_logic:
+- metric_name: Total Runs by Player
+  sql_logic: SELECT bb.striker AS player_id, SUM(bs.runs_scored) AS total_runs FROM
+    ball_by_ball AS bb JOIN batsman_scored AS bs ON bb.match_id = bs.match_id AND
+    bb.over_id = bs.over_id AND bb.ball_id = bs.ball_id AND bb.innings_no = bs.innings_no
+    GROUP BY bb.striker
+- metric_name: Total Dismissals of Player
+  sql_logic: SELECT wt.player_out AS player_id, COUNT(wt.player_out) AS total_dismissals
+    FROM wicket_taken AS wt WHERE wt.player_out IS NOT NULL GROUP BY wt.player_out
+- metric_name: Matches Played by Player
+  sql_logic: SELECT pm.player_id, COUNT(DISTINCT pm.match_id) AS matches_played FROM
+    player_match AS pm GROUP BY pm.player_id
+- metric_name: Average Runs per Match
+  sql_logic: CAST(COALESCE(total_runs, 0) AS REAL) / COALESCE(matches_played, 1).
+    Depends on pre-calculating 'Total Runs by Player' and 'Matches Played by Player'.
+    The COALESCE functions provide robust handling for players with no runs or matches.
+- metric_name: Batting Average
+  sql_logic: CASE WHEN COALESCE(total_dismissals, 0) = 0 THEN NULL ELSE CAST(COALESCE(total_runs,
+    0) AS REAL) / COALESCE(total_dismissals, 1) END. Depends on pre-calculating 'Total
+    Runs by Player' and 'Total Dismissals of Player'. Returns NULL if the player has
+    never been dismissed.
+- metric_name: Player Ranking by Metric
+  sql_logic: DENSE_RANK() OVER (ORDER BY <metric_value> DESC)
+- metric_name: Player Statistics Aggregation
+  sql_logic: A pattern to create a comprehensive player profile by combining metrics
+    (e.g., total runs, matches played, dismissals) from different sources using FULL
+    JOIN on player_id and COALESCE to handle players not present in all source datasets.

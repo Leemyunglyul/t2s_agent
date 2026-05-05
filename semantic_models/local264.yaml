@@ -1,0 +1,8 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Most Frequent L1 Model
+  sql_logic: "WITH CategoryCounts AS (\n  SELECT\n    L1_model,\n    COUNT(*) AS total_count\n\
+    \  FROM model\n  GROUP BY\n    L1_model\n)\nSELECT\n  L1_model,\n  total_count\n\
+    FROM CategoryCounts\nORDER BY\n  total_count DESC\nLIMIT 1;"

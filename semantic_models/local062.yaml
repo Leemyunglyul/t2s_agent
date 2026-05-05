@@ -1,0 +1,22 @@
+descriptions: []
+relations:
+- table_1: sales
+  column_1: prod_id
+  table_2: costs
+  column_2: prod_id
+- table_1: sales
+  column_1: time_id
+  table_2: costs
+  column_2: time_id
+- table_1: sales
+  column_1: channel_id
+  table_2: costs
+  column_2: channel_id
+- table_1: sales
+  column_1: promo_id
+  table_2: costs
+  column_2: promo_id
+synonyms: []
+biz_logic:
+- metric_name: profit
+  sql_logic: sales.quantity_sold * (costs.unit_price - costs.unit_cost)

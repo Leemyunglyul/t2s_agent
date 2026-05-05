@@ -1,0 +1,40 @@
+descriptions:
+- table: Matches
+  column: title_change
+  meaning: A value of 0 indicates that the match did not result in a title change.
+- table: Matches
+  column: duration
+  meaning: The duration of a match, stored as a text string in 'MM:SS' format.
+relations:
+- table_1: Matches
+  column_1: title_id
+  table_2: Belts
+  column_2: id
+- table_1: Matches
+  column_1: winner_id
+  table_2: Wrestlers
+  column_2: id
+- table_1: Matches
+  column_1: loser_id
+  table_2: Wrestlers
+  column_2: id
+synonyms:
+- nl_term: loser
+  db_target: Wrestlers.name
+  type: column
+- nl_term: non-title match
+  db_target: Matches.title_change = 0
+  type: condition
+- nl_term: NXT
+  db_target: Belts.name LIKE '%NXT%'
+  type: condition
+- nl_term: shortest match
+  db_target: ORDER BY duration_in_seconds ASC LIMIT 1
+  type: condition
+- nl_term: winner
+  db_target: Wrestlers.name
+  type: column
+biz_logic:
+- metric_name: Duration in Seconds
+  sql_logic: CAST(SUBSTR(M.duration, 1, INSTR(M.duration, ':') - 1) AS INTEGER) *
+    60 + CAST(SUBSTR(M.duration, INSTR(M.duration, ':') + 1) AS INTEGER)

@@ -1,0 +1,37 @@
+descriptions:
+- table: cities
+  column: country_code_2
+  meaning: The value 'cn' in this column represents the country China.
+- table: cities
+  column: insert_date
+  meaning: The date when the city record was inserted, used for time-based analysis.
+relations: []
+synonyms:
+- nl_term: china
+  db_target: country_code_2 = 'cn'
+  type: condition
+- nl_term: consecutive day streak
+  db_target: DATE(insert_date, '-' || ROW_NUMBER() OVER (ORDER BY insert_date) ||
+    ' days')
+  type: condition
+- nl_term: july 2021
+  db_target: strftime('%Y-%m', insert_date) = '2021-07'
+  type: condition
+- nl_term: title case city name
+  db_target: UPPER(SUBSTR(city_name, 1, 1)) || LOWER(SUBSTR(city_name, 2))
+  type: column
+biz_logic:
+- metric_name: Consecutive Day Streak Grouping
+  sql_logic: DATE(insert_date, '-' || ROW_NUMBER() OVER (ORDER BY insert_date) ||
+    ' days')
+- metric_name: Daily Record Deduplication
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY insert_date ORDER BY city_id)
+- metric_name: Min/Max Streak Length Aggregation
+  sql_logic: MIN(streak_length), MAX(streak_length)
+- metric_name: Streak Length
+  sql_logic: COUNT(DISTINCT insert_date)
+- metric_name: Streak Type Categorization
+  sql_logic: CASE WHEN streak_length = min_len THEN 'shortest' WHEN streak_length
+    = max_len THEN 'longest' END
+- metric_name: Title Case Formatting
+  sql_logic: UPPER(SUBSTR(string_value, 1, 1)) || LOWER(SUBSTR(string_value, 2))

@@ -1,0 +1,38 @@
+descriptions:
+- table: model_score
+  column: model
+  meaning: The value 'Stack' refers to a stacking ensemble model.
+- table: model_score
+  column: model
+  meaning: Values other than 'Stack' refer to base or non-stacking models.
+- table: model_score
+  column: step
+  meaning: The values 1, 2, and 3 represent distinct stages in a modeling process.
+relations:
+- table_1: model_score
+  column_1: name
+  table_2: solution
+  column_2: name
+synonyms: []
+biz_logic:
+- metric_name: StackScores
+  sql_logic: SELECT name, version, step, test_score AS stack_test_score FROM model_score
+    WHERE model = 'Stack' AND step IN (1, 2, 3)
+- metric_name: NonStackMaxScores
+  sql_logic: SELECT name, version, step, MAX(test_score) AS max_non_stack_test_score
+    FROM model_score WHERE model != 'Stack' AND step IN (1, 2, 3) GROUP BY name, version,
+    step
+- metric_name: StackingOutperformancePerStep
+  sql_logic: SELECT ss.name FROM StackScores AS ss INNER JOIN NonStackMaxScores AS
+    nsms ON ss.name = nsms.name AND ss.version = nsms.version AND ss.step = nsms.step
+    WHERE nsms.max_non_stack_test_score IS NOT NULL AND ss.stack_test_score IS NOT
+    NULL AND nsms.max_non_stack_test_score < ss.stack_test_score
+- metric_name: StackingOutperformanceCounts
+  sql_logic: SELECT name, COUNT(*) AS stacking_outperformance_count FROM StackingOutperformancePerStep
+    GROUP BY name
+- metric_name: TotalSolutionOccurrences
+  sql_logic: SELECT name, COUNT(*) AS total_solution_occurrences FROM solution GROUP
+    BY name
+- metric_name: ProblemsWhereStackingCountExceedsSolutionCount
+  sql_logic: SELECT soc.name FROM StackingOutperformanceCounts AS soc INNER JOIN TotalSolutionOccurrences
+    AS tso ON soc.name = tso.name WHERE soc.stacking_outperformance_count > tso.total_solution_occurrences

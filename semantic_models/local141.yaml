@@ -1,0 +1,56 @@
+descriptions:
+- table: salesorderheader
+  column: salespersonid
+  meaning: A NULL value indicates that the sales order is not attributed to a specific
+    salesperson.
+relations:
+- table_1: salesorderheader
+  column_1: salespersonid
+  table_2: SalesPersonQuotaHistory
+  column_2: BusinessEntityID
+- table_1: salesorderheader
+  column_1: STRFTIME('%Y', orderdate)
+  table_2: SalesPersonQuotaHistory
+  column_2: STRFTIME('%Y', QuotaDate)
+synonyms:
+- nl_term: salesperson
+  db_target: salesorderheader.salespersonid
+  type: column
+- nl_term: salesperson
+  db_target: SalesPersonQuotaHistory.BusinessEntityID
+  type: column
+- nl_term: sales
+  db_target: salesorderheader.totaldue
+  type: column
+- nl_term: quota
+  db_target: SalesPersonQuotaHistory.SalesQuota
+  type: column
+- nl_term: year
+  db_target: STRFTIME('%Y', orderdate)
+  type: value
+- nl_term: year
+  db_target: STRFTIME('%Y', QuotaDate)
+  type: value
+biz_logic:
+- metric_name: Annual Sales
+  sql_logic: SELECT salespersonid, STRFTIME('%Y', orderdate) AS sales_year, SUM(totaldue)
+    AS total_sales FROM salesorderheader WHERE salespersonid IS NOT NULL GROUP BY
+    salespersonid, STRFTIME('%Y', orderdate)
+- metric_name: Annual Quota
+  sql_logic: SELECT BusinessEntityID AS salesperson_id, STRFTIME('%Y', QuotaDate)
+    AS quota_year, SUM(SalesQuota) AS annual_quota FROM SalesPersonQuotaHistory GROUP
+    BY BusinessEntityID, STRFTIME('%Y', QuotaDate)
+- metric_name: Sales vs Quota Difference
+  sql_logic: COALESCE(total_sales, 0) - COALESCE(annual_quota, 0)
+- metric_name: Salesperson Annual Performance (Sales vs. Quota Difference)
+  sql_logic: WITH AnnualSales AS (SELECT salespersonid, STRFTIME('%Y', orderdate)
+    AS sales_year, SUM(totaldue) AS total_sales FROM salesorderheader WHERE salespersonid
+    IS NOT NULL GROUP BY salespersonid, sales_year), AnnualQuotas AS (SELECT BusinessEntityID
+    AS salesperson_id, STRFTIME('%Y', QuotaDate) AS quota_year, SUM(SalesQuota) AS
+    annual_quota FROM SalesPersonQuotaHistory GROUP BY BusinessEntityID, quota_year)
+    SELECT COALESCE(ASales.salespersonid, AQuotas.salesperson_id) AS salesperson_id,
+    COALESCE(ASales.sales_year, AQuotas.quota_year) AS year, COALESCE(ASales.total_sales,
+    0) AS total_sales, COALESCE(AQuotas.annual_quota, 0) AS annual_quota, (COALESCE(ASales.total_sales,
+    0) - COALESCE(AQuotas.annual_quota, 0)) AS difference FROM AnnualSales AS ASales
+    FULL OUTER JOIN AnnualQuotas AS AQuotas ON ASales.salespersonid = AQuotas.salesperson_id
+    AND ASales.sales_year = AQuotas.quota_year ORDER BY salesperson_id, year

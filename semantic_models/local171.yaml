@@ -1,0 +1,42 @@
+descriptions:
+- table: legislators
+  column: gender
+  meaning: The value 'M' in the gender column represents 'Male'.
+- table: legislators_terms
+  column: state
+  meaning: The value 'LA' in the state column represents the state of Louisiana.
+relations:
+- table_1: legislators
+  column_1: id_bioguide
+  table_2: legislators_terms
+  column_2: id_bioguide
+synonyms:
+- nl_term: male legislator
+  db_target: legislators.gender = 'M'
+  type: condition
+- nl_term: represented LA
+  db_target: legislators_terms.state = 'LA'
+  type: condition
+- nl_term: active during year
+  db_target: year || '-12-31' >= term_start AND year || '-12-31' <= term_end
+  type: condition
+- nl_term: first term date
+  db_target: MIN(term_start)
+  type: column
+- nl_term: tenure
+  db_target: CAST(current_year AS INTEGER) - CAST(STRFTIME('%Y', first_term_date)
+    AS INTEGER)
+  type: column
+- nl_term: years of service
+  db_target: CAST(current_year AS INTEGER) - CAST(STRFTIME('%Y', first_term_date)
+    AS INTEGER)
+  type: column
+biz_logic:
+- metric_name: Legislator First Term Date
+  sql_logic: MIN(term_start)
+- metric_name: Legislator Active In Year
+  sql_logic: target_year || '-12-31' >= term_start AND target_year || '-12-31' <=
+    term_end
+- metric_name: Legislator Tenure
+  sql_logic: CAST(active_year AS INTEGER) - CAST(STRFTIME('%Y', first_term_start_date)
+    AS INTEGER)

@@ -1,0 +1,13 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: customer
+  db_target: customers.customer_unique_id
+  type: column
+biz_logic:
+- metric_name: avg_payment_per_order
+  sql_logic: SUM(order_payments.payment_value) / COUNT(DISTINCT orders.order_id)
+- metric_name: customer_lifespan_weeks
+  sql_logic: CASE WHEN (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
+    < 7 THEN 1.0 ELSE (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
+    / 7.0 END

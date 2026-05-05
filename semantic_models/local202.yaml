@@ -1,0 +1,33 @@
+descriptions:
+- table: alien_data
+  column: aggressive
+  meaning: A value of 0 indicates the alien is friendly.
+- table: alien_data
+  column: aggressive
+  meaning: A value of 1 indicates the alien is hostile.
+relations: []
+synonyms:
+- nl_term: friendly aliens
+  db_target: aggressive = 0
+  type: condition
+- nl_term: hostile aliens
+  db_target: aggressive = 1
+  type: condition
+- nl_term: top 10 states by population
+  db_target: DENSE_RANK() OVER (ORDER BY COUNT(id) DESC) <= 10
+  type: condition
+- nl_term: more friendly than hostile aliens
+  db_target: SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0 END) > SUM(CASE WHEN aggressive
+    = 1 THEN 1 ELSE 0 END)
+  type: condition
+biz_logic:
+- metric_name: total_alien_population
+  sql_logic: COUNT(id)
+- metric_name: friendly_aliens_count
+  sql_logic: SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0 END)
+- metric_name: hostile_aliens_count
+  sql_logic: SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0 END)
+- metric_name: average_alien_age
+  sql_logic: AVG(age)
+- metric_name: state_rank_by_population
+  sql_logic: DENSE_RANK() OVER (ORDER BY COUNT(id) DESC)

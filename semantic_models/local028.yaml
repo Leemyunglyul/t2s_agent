@@ -1,0 +1,32 @@
+descriptions:
+- table: olist_orders
+  column: order_status
+  meaning: A value of 'delivered' in conjunction with a non-null 'order_delivered_customer_date'
+    indicates the order has been successfully delivered to the customer.
+relations: []
+synonyms:
+- nl_term: delivered orders
+  db_target: order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
+  type: condition
+- nl_term: month
+  db_target: STRFTIME('%m', order_delivered_customer_date)
+  type: column
+- nl_term: year
+  db_target: STRFTIME('%Y', order_delivered_customer_date)
+  type: column
+- nl_term: number of orders
+  db_target: COUNT(order_id)
+  type: column
+biz_logic:
+- metric_name: DeliveredOrders
+  sql_logic: SELECT order_id, order_delivered_customer_date FROM olist_orders WHERE
+    order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
+- metric_name: Annual Order Count Pivot
+  sql_logic: COUNT(CASE WHEN STRFTIME('%Y', order_delivered_customer_date) = 'YYYY'
+    THEN order_id END)
+- metric_name: Month Name from Date
+  sql_logic: CASE STRFTIME('%m', date_column) WHEN '01' THEN 'January' WHEN '02' THEN
+    'February' WHEN '03' THEN 'March' WHEN '04' THEN 'April' WHEN '05' THEN 'May'
+    WHEN '06' THEN 'June' WHEN '07' THEN 'July' WHEN '08' THEN 'August' WHEN '09'
+    THEN 'September' WHEN '10' THEN 'October' WHEN '11' THEN 'November' WHEN '12'
+    THEN 'December' END

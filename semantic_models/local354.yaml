@@ -1,0 +1,10 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Eligible Driver Season
+  sql_logic: A driver's season is eligible if they raced for the same constructor
+    in their first and last race of the season and participated in at least two distinct
+    rounds. The condition is `first_race_constructor_id = last_race_constructor_id
+    AND distinct_rounds_count >= 2`, where these values are derived per driver per
+    season.

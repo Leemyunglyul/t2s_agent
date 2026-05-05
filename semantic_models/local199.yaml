@@ -1,0 +1,35 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: total rentals
+  db_target: COUNT(rental.rental_id)
+  type: column
+- nl_term: month
+  db_target: STRFTIME('%m', rental.rental_date)
+  type: column
+- nl_term: year
+  db_target: STRFTIME('%Y', rental.rental_date)
+  type: column
+- nl_term: store
+  db_target: staff.store_id
+  type: column
+- nl_term: best performing month
+  db_target: DENSE_RANK() OVER (PARTITION BY store_id ORDER BY COUNT(rental.rental_id)
+    DESC) = 1
+  type: condition
+biz_logic:
+- metric_name: Monthly Store Rentals
+  sql_logic: SELECT T2.store_id, STRFTIME('%Y', T1.rental_date) AS rental_year, STRFTIME('%m',
+    T1.rental_date) AS rental_month, COUNT(T1.rental_id) AS total_rentals FROM rental
+    AS T1 INNER JOIN staff AS T2 ON T1.staff_id = T2.staff_id GROUP BY T2.store_id,
+    rental_year, rental_month
+- metric_name: Best Performing Month Ranking
+  sql_logic: DENSE_RANK() OVER (PARTITION BY store_id ORDER BY total_rentals DESC)
+- metric_name: Best Rental Month per Store
+  sql_logic: WITH MonthlyStoreRentals AS (SELECT T2.store_id, STRFTIME('%Y', T1.rental_date)
+    AS rental_year, STRFTIME('%m', T1.rental_date) AS rental_month, COUNT(T1.rental_id)
+    AS total_rentals FROM rental AS T1 INNER JOIN staff AS T2 ON T1.staff_id = T2.staff_id
+    GROUP BY T2.store_id, rental_year, rental_month), RankedRentals AS (SELECT store_id,
+    rental_year, rental_month, total_rentals, DENSE_RANK() OVER (PARTITION BY store_id
+    ORDER BY total_rentals DESC) AS rank_num FROM MonthlyStoreRentals) SELECT store_id,
+    rental_year, rental_month, total_rentals FROM RankedRentals WHERE rank_num = 1

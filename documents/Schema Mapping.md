@@ -1007,6 +1007,89 @@ ROUND(SUM((t."unit_selling_px_rmb/kg" - w."whsle_px_rmb-kg") * t."qty_sold(kg)")
 Profit = (Total Selling Price) - (Total Wholesale Cost) - (Total Loss Amount)
 ```
 
+#### local064
+
+{"instance_id": "local064", "db": "bank_sales_trading", "question": "For each customer and each month of 2020, first calculate the month-end balance by adding all deposit amounts and subtracting all withdrawal amounts that occurred during that specific month. Then determine which month in 2020 has the highest count of customers with a positive month-end balance and which month has the lowest count. For each of these two months, compute the average month-end balance across all customers and provide the difference between these two averages", "external_knowledge": null}
+
+```sql
+WITH RECURSIVE Calendar(month_num) AS (
+  SELECT 1
+  UNION ALL
+  SELECT month_num + 1 FROM Calendar WHERE month_num < 12
+),
+Months AS (
+  SELECT '2020-' || PRINTF('%02d', month_num) AS month
+  FROM Calendar
+),
+MonthlyBalances AS (
+  SELECT
+    customer_id,
+    STRFTIME('%Y-%m', txn_date) AS month,
+    SUM(CASE
+      WHEN txn_type = 'deposit' THEN txn_amount
+      WHEN txn_type = 'withdrawal' THEN -txn_amount
+      ELSE 0
+    END) AS balance
+  FROM customer_transactions
+  WHERE STRFTIME('%Y', txn_date) = '2020'
+  GROUP BY
+    customer_id,
+    month
+),
+MonthlyStats AS (
+  SELECT
+    m.month,
+    COALESCE(COUNT(DISTINCT CASE WHEN mb.balance > 0 THEN mb.customer_id END), 0) AS positive_balance_customer_count,
+    COALESCE(SUM(mb.balance), 0) AS total_monthly_balance
+  FROM Months AS m
+  LEFT JOIN MonthlyBalances AS mb
+    ON m.month = mb.month
+  GROUP BY
+    m.month
+),
+TotalCustomers AS (
+  SELECT
+    COUNT(DISTINCT customer_id) AS total_customer_count
+  FROM customer_transactions
+),
+RankedMonths AS (
+  SELECT
+    month,
+    positive_balance_customer_count,
+    total_monthly_balance,
+    ROW_NUMBER() OVER (ORDER BY positive_balance_customer_count DESC, month ASC) AS high_rank,
+    ROW_NUMBER() OVER (ORDER BY positive_balance_customer_count ASC, month ASC) AS low_rank
+  FROM MonthlyStats
+),
+HighestMonth AS (
+  SELECT
+    month,
+    positive_balance_customer_count,
+    total_monthly_balance
+  FROM RankedMonths
+  WHERE
+    high_rank = 1
+),
+LowestMonth AS (
+  SELECT
+    month,
+    positive_balance_customer_count,
+    total_monthly_balance
+  FROM RankedMonths
+  WHERE
+    low_rank = 1
+)
+SELECT
+  h.month AS highest_month,
+  h.positive_balance_customer_count AS highest_positive_customer_count,
+  h.total_monthly_balance * 1.0 / tc.total_customer_count AS highest_avg_balance,
+  l.month AS lowest_month,
+  l.positive_balance_customer_count AS lowest_positive_customer_count,
+  l.total_monthly_balance * 1.0 / tc.total_customer_count AS lowest_avg_balance,
+  ABS(h.total_monthly_balance * 1.0 / tc.total_customer_count - l.total_monthly_balance * 1.0 / tc.total_customer_count) AS difference
+FROM HighestMonth AS h, LowestMonth AS l, TotalCustomers AS tc;
+```
+
 #### local075
 
 {"instance_id": "local075", "db": "bank_sales_trading", "question": "Can you provide a breakdown of how many times each product was viewed, how many times they were added to the shopping cart, and how many times they were left in the cart without being purchased? Also, give me the count of actual purchases for each product. Ensure that products with a page id in (1, 2, 12, 13) are filtered out.", "external_knowledge": null}

@@ -1,0 +1,40 @@
+descriptions:
+- table: payment
+  column: payment_date
+  meaning: The earliest payment_date for a customer is used to identify their 'first
+    rental'.
+- table: film
+  column: rating
+  meaning: A film's content rating, used as a category to group customers by their
+    first rental choice.
+relations: []
+synonyms:
+- nl_term: rating_category
+  db_target: film.rating
+  type: column
+- nl_term: first rental
+  db_target: ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY payment_date ASC)
+    = 1
+  type: condition
+- nl_term: total spent
+  db_target: SUM(payment.amount)
+  type: value
+- nl_term: total rentals
+  db_target: COUNT(payment.rental_id)
+  type: value
+- nl_term: subsequent rentals
+  db_target: COUNT(payment.rental_id) - 1
+  type: value
+biz_logic:
+- metric_name: First Rental Identification
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY payment_date ASC)
+- metric_name: Customer Total Spend
+  sql_logic: SUM(payment.amount)
+- metric_name: Customer Total Rentals
+  sql_logic: COUNT(payment.rental_id)
+- metric_name: Subsequent Rentals
+  sql_logic: COUNT(payment.rental_id) - 1
+- metric_name: average_total_amount_spent_per_customer
+  sql_logic: AVG(SUM(payment.amount))
+- metric_name: average_number_of_subsequent_rentals
+  sql_logic: AVG(COUNT(payment.rental_id) - 1)

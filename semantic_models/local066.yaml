@@ -1,0 +1,54 @@
+descriptions:
+- table: pizza_clean_runner_orders
+  column: cancellation
+  meaning: A NULL value indicates a successful, non-cancelled (delivered) order.
+- table: pizza_recipes
+  column: toppings
+  meaning: A comma-separated string of topping_ids that constitute the base recipe
+    for a pizza.
+- table: pizza_clean_customer_orders
+  column: exclusions
+  meaning: A comma-separated string of topping_ids to be removed from the base pizza
+    recipe.
+- table: pizza_clean_customer_orders
+  column: extras
+  meaning: A comma-separated string of topping_ids to be added to the pizza.
+relations:
+- table_1: pizza_recipes
+  column_1: toppings
+  table_2: pizza_toppings
+  column_2: topping_id
+- table_1: pizza_clean_customer_orders
+  column_1: exclusions
+  table_2: pizza_toppings
+  column_2: topping_id
+- table_1: pizza_clean_customer_orders
+  column_1: extras
+  table_2: pizza_toppings
+  column_2: topping_id
+synonyms:
+- nl_term: delivered order
+  db_target: pizza_clean_runner_orders.cancellation IS NULL
+  type: condition
+- nl_term: base toppings
+  db_target: pizza_recipes.toppings
+  type: column
+- nl_term: extra toppings
+  db_target: pizza_clean_customer_orders.extras
+  type: column
+- nl_term: excluded toppings
+  db_target: pizza_clean_customer_orders.exclusions
+  type: column
+biz_logic:
+- metric_name: Delivered Order Definition
+  sql_logic: An order is considered delivered if the 'cancellation' column in the
+    'pizza_clean_runner_orders' table is NULL.
+- metric_name: Net Topping Quantity Calculation
+  sql_logic: 'The net quantity of a topping on a pizza is calculated by summing quantities:
+    +1 for each base topping (from pizza_recipes.toppings), +1 for each extra topping
+    (from pizza_clean_customer_orders.extras), and -1 for each excluded topping (from
+    pizza_clean_customer_orders.exclusions).'
+- metric_name: Unnest Comma-Separated IDs
+  sql_logic: A recursive CTE can be used to parse comma-separated ID strings from
+    columns like 'toppings', 'extras', and 'exclusions' into separate rows for each
+    ID.

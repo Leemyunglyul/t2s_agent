@@ -1,0 +1,50 @@
+descriptions:
+- table: M_Cast
+  column: PID
+  meaning: The PID from the Person table, indicating the person is an actor in the
+    movie specified by MID.
+- table: M_Director
+  column: PID
+  meaning: The PID from the Person table, indicating the person is a director of the
+    movie specified by MID.
+relations:
+- table_1: M_Cast
+  column_1: MID
+  table_2: M_Director
+  column_2: MID
+- table_1: M_Cast
+  column_1: PID
+  table_2: Person
+  column_2: PID
+- table_1: M_Director
+  column_1: PID
+  table_2: Person
+  column_2: PID
+synonyms:
+- nl_term: actor
+  db_target: M_Cast
+  type: table
+- nl_term: director
+  db_target: M_Director
+  type: table
+- nl_term: Yash Chopra
+  db_target: Person.Name = ' Yash Chopra'
+  type: value
+- nl_term: worked with
+  db_target: M_Cast.MID = M_Director.MID
+  type: condition
+- nl_term: collaborated with
+  db_target: M_Cast.MID = M_Director.MID
+  type: condition
+- nl_term: worked with a director more than any other single director
+  db_target: YC.FilmCount > OM.MaxOtherFilmCount OR OM.MaxOtherFilmCount IS NULL
+  type: condition
+biz_logic:
+- metric_name: Actor-Director Film Count
+  sql_logic: SELECT MC.PID, MD.PID, COUNT(DISTINCT MC.MID) AS FilmCount FROM M_Cast
+    AS MC JOIN M_Director AS MD ON MC.MID = MD.MID GROUP BY MC.PID, MD.PID
+- metric_name: Actor's Max Film Count with Other Directors
+  sql_logic: SELECT T.ActorPID, MAX(T.FilmCount) FROM (SELECT MC.PID AS ActorPID,
+    MD.PID AS DirectorPID, COUNT(DISTINCT MC.MID) AS FilmCount FROM M_Cast AS MC JOIN
+    M_Director AS MD ON MC.MID = MD.MID WHERE MD.PID <> [Primary Director PID] GROUP
+    BY MC.PID, MD.PID) AS T GROUP BY T.ActorPID

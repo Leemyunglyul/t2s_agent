@@ -2,8 +2,8 @@
 
 ## 1. Legislator Cohort Analysis (CRITICAL)
 - **True Global First Term**: You MUST compute it globally BEFORE applying any state or gender filters: `SELECT id_bioguide, MIN(term_start) AS first_term_start FROM legislators_terms GROUP BY id_bioguide`. NEVER use `term_number`.
-- **1-Based Period Math (FATAL)**: To calculate the correct check year for Period N, you MUST use `start_year + period_number - 1`. DO NOT FORGET TO SUBTRACT 1.
-- **Year-End Activity Check**: To check if active at year-end: `term_start <= '[YEAR]-12-31' AND term_end >= '[YEAR]-12-31'`.
+- **1-Based Period Math (FATAL)**: To calculate the correct check year for Period N, you MUST explicitly use `start_year + period_number - 1`. DO NOT FORGET TO SUBTRACT 1.
+- **Year-End Activity Check (FATAL)**: To check if active at year-end, you MUST explicitly construct the date string dynamically (e.g., `CAST(year_val AS TEXT) || '-12-31'`) and use `term_start <= check_date AND term_end >= check_date`. NEVER join with `legislation_date_dim` to find December 31st, as it is incomplete and will drop valid rows.
 - **Retention Rate Math (FATAL)**: The prompt asks for a "proportion", which means a value between 0.0 and 1.0. You MUST multiply by `1.0` (e.g., `retained * 1.0 / total`). NEVER multiply by 100.0. Percentage is WRONG.
 
 ## 2. Job Postings & Skills

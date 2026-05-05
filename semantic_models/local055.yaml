@@ -1,0 +1,29 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: sales
+  db_target: invoice_items.UnitPrice * invoice_items.Quantity
+  type: condition
+- nl_term: top-selling artist
+  db_target: DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity)
+    DESC, artists.Name ASC) = 1
+  type: condition
+- nl_term: lowest-selling artist
+  db_target: DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity)
+    ASC, artists.Name ASC) = 1
+  type: condition
+biz_logic:
+- metric_name: Total Sales per Artist
+  sql_logic: SUM(invoice_items.UnitPrice * invoice_items.Quantity) GROUP BY artists.ArtistId
+- metric_name: Customer Spending on an Artist
+  sql_logic: SUM(invoice_items.UnitPrice * invoice_items.Quantity) GROUP BY customers.CustomerId,
+    artists.ArtistId
+- metric_name: Average Customer Spending on Top Selling Artist(s)
+  sql_logic: The average of 'Customer Spending on an Artist' calculated only for artists
+    that are defined as 'top-selling artist'.
+- metric_name: Average Customer Spending on Lowest Selling Artist(s)
+  sql_logic: The average of 'Customer Spending on an Artist' calculated only for artists
+    that are defined as 'lowest-selling artist'.
+- metric_name: Absolute Difference in Average Spending
+  sql_logic: The absolute difference between 'Average Customer Spending on Top Selling
+    Artist(s)' and 'Average Customer Spending on Lowest Selling Artist(s)'.

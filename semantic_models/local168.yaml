@@ -1,0 +1,28 @@
+descriptions:
+- table: job_postings_fact
+  column: job_work_from_home
+  meaning: A value of 1 indicates that the job can be done from home.
+- table: job_postings_fact
+  column: job_title_short
+  meaning: A standardized short title for the job role, such as 'Data Analyst'.
+relations: []
+synonyms:
+- nl_term: data analyst
+  db_target: job_postings_fact.job_title_short = 'Data Analyst'
+  type: value
+- nl_term: work from home
+  db_target: job_postings_fact.job_work_from_home = 1
+  type: value
+- nl_term: salary
+  db_target: job_postings_fact.salary_year_avg
+  type: column
+- nl_term: skills
+  db_target: skills_dim
+  type: table
+biz_logic:
+- metric_name: Skill Demand
+  sql_logic: COUNT(DISTINCT job_id) GROUP BY skill_id
+- metric_name: Top 3 Skills by Job Count
+  sql_logic: DENSE_RANK() OVER (ORDER BY job_count DESC) <= 3
+- metric_name: overall_average_salary
+  sql_logic: AVG(salary_year_avg) FROM JobsWithTopSkills

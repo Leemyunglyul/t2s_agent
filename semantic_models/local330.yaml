@@ -1,0 +1,26 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: page
+  db_target: activity_log.path
+  type: column
+- nl_term: sessions
+  db_target: activity_log.session
+  type: column
+- nl_term: landing page
+  db_target: ROW_NUMBER() OVER (PARTITION BY session ORDER BY stamp ASC) = 1
+  type: condition
+- nl_term: exit page
+  db_target: ROW_NUMBER() OVER (PARTITION BY session ORDER BY stamp DESC) = 1
+  type: condition
+- nl_term: landing or exit page
+  db_target: ROW_NUMBER() OVER (PARTITION BY session ORDER BY stamp ASC) = 1 OR ROW_NUMBER()
+    OVER (PARTITION BY session ORDER BY stamp DESC) = 1
+  type: condition
+biz_logic:
+- metric_name: Landing Page Rank
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY session ORDER BY stamp ASC)
+- metric_name: Exit Page Rank
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY session ORDER BY stamp DESC)
+- metric_name: Total Unique Sessions
+  sql_logic: COUNT(DISTINCT session)

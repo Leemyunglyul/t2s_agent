@@ -1,0 +1,25 @@
+descriptions:
+- table: bitcoin_prices
+  column: market_date
+  meaning: Date of market data stored as a string in 'DD-MM-YYYY' format.
+- table: bitcoin_prices
+  column: volume
+  meaning: A string representing trade volume. A value of '-' means 0. A 'K' suffix
+    denotes thousands (x1000), and an 'M' suffix denotes millions (x1000000).
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Formatted Date from DD-MM-YYYY
+  sql_logic: SUBSTR(market_date, 7, 4) || '-' || SUBSTR(market_date, 4, 2) || '-'
+    || SUBSTR(market_date, 1, 2)
+- metric_name: Parsed Volume
+  sql_logic: CASE WHEN volume = '-' THEN 0.0 WHEN SUBSTR(volume, -1, 1) = 'K' THEN
+    CAST(REPLACE(volume, 'K', '') AS REAL) * 1000.0 WHEN SUBSTR(volume, -1, 1) = 'M'
+    THEN CAST(REPLACE(volume, 'M', '') AS REAL) * 1000000.0 ELSE CAST(volume AS REAL)
+    END
+- metric_name: Previous Day Non-Zero Volume
+  sql_logic: (SELECT prev_fd.numeric_volume FROM FormattedData AS prev_fd WHERE prev_fd.ticker
+    = fd.ticker AND prev_fd.formatted_date < fd.formatted_date AND prev_fd.numeric_volume
+    > 0 ORDER BY prev_fd.formatted_date DESC LIMIT 1)
+- metric_name: Volume Change Percentage
+  sql_logic: (numeric_volume - previous_day_non_zero_volume) * 100.0 / previous_day_non_zero_volume

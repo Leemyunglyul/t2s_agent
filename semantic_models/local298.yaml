@@ -1,0 +1,23 @@
+descriptions:
+- table: customer_transactions
+  column: txn_type
+  meaning: The value 'deposit' signifies a credit transaction (addition to balance),
+    while all other values are treated as debit transactions (subtraction from balance).
+relations: []
+synonyms:
+- nl_term: previous month total balance
+  db_target: Total Positive Balance at Start of Month
+  type: biz_logic
+biz_logic:
+- metric_name: Net Transaction Change
+  sql_logic: CASE WHEN txn_type = 'deposit' THEN txn_amount ELSE -txn_amount END
+- metric_name: Monthly Time-Series Generation
+  sql_logic: WITH RECURSIVE all_months AS (SELECT STRFTIME('%Y-%m-01', MIN(txn_date))
+    AS month FROM customer_transactions UNION ALL SELECT STRFTIME('%Y-%m-01', DATE(month,
+    '+1 month')) FROM all_months WHERE month < (SELECT STRFTIME('%Y-%m-01', MAX(txn_date))
+    FROM customer_transactions))
+- metric_name: Customer Balance at Start of Month
+  sql_logic: COALESCE(SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER
+    BY month ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0)
+- metric_name: Total Positive Balance at Start of Month
+  sql_logic: SUM(MAX(0, COALESCE(balance_at_month_start, 0)))

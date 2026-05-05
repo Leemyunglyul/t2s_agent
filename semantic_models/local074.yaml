@@ -1,0 +1,37 @@
+descriptions:
+- table: customer_transactions
+  column: txn_type
+  meaning: Defines the transaction's effect on balance. 'deposit' is a credit (adds
+    to balance), while 'withdrawal' and 'purchase' are debits (subtract from balance).
+    Other transaction types are considered neutral (0 change).
+relations: []
+synonyms:
+- nl_term: month
+  db_target: strftime('%Y-%m-01', txn_date)
+  type: column
+- nl_term: closing balance
+  db_target: monthly_closing_balance
+  type: column
+- nl_term: monthly cumulative bank balance
+  db_target: monthly_closing_balance
+  type: column
+- nl_term: running total
+  db_target: monthly_closing_balance
+  type: column
+- nl_term: monthly change
+  db_target: monthly_net_change
+  type: column
+- nl_term: net monthly amount
+  db_target: monthly_net_change
+  type: column
+biz_logic:
+- metric_name: Monthly Net Change
+  sql_logic: SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal',
+    'purchase') THEN -txn_amount ELSE 0 END)
+- metric_name: Monthly Closing Balance
+  sql_logic: SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER BY month)
+- metric_name: Data Scaffolding for Time Series
+  sql_logic: Generate a complete grid of entities (e.g., customers) and time periods
+    (e.g., months) via a CROSS JOIN between distinct entities and a generated time
+    series. This grid is then LEFT JOINed with actual data, using COALESCE(value,
+    0) to fill gaps, ensuring accurate running totals and other window functions.
