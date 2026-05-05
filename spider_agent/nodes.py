@@ -399,13 +399,13 @@ def data_profiling_node(state: AgentState) -> Dict[str, Any]:
         "step_count": state.get("step_count", 0) + 1
     }
     
-def load_domain_and_semantic_rules(work_dir: str, instance_id: str) -> str:
+def load_domain_and_semantic_rules(work_dir: str, instance_id: str, db_id: str) -> str:
     """
-    옵션과 상관없이 시맨틱 모델(.yaml)과 도메인 룰(.txt)이 존재하면 모두 로드하여 병합합니다.
+    격리된 폴더가 아닌, 실제 룰 파일이 있는 고정 폴더에서 텍스트를 읽어옵니다.
     """
     rules = []
     
-    # 1. 시맨틱 모델 탐색 (문항번호.yaml) - 존재하면 무조건 로드
+    # 1. 시맨틱 모델 탐색 (.yaml)
     if instance_id:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         semantic_path = os.path.join(current_dir, "..", "semantic_models", f"{instance_id}.yaml")
@@ -422,17 +422,26 @@ def load_domain_and_semantic_rules(work_dir: str, instance_id: str) -> str:
             except Exception as e:
                 logger.warning(f"시맨틱 모델 읽기 실패: {e}")
 
-    # 2. 도메인 룰 탐색 (.txt) - 존재하면 무조건 로드 (yaml 유무와 무관)
-    if work_dir:
-        txt_files = glob.glob(os.path.join(work_dir, "*.txt"))
-        for txt_file in txt_files:
+    # 2. 도메인 룰 탐색 (.txt) 
+    # 🚨 DB ID와 정확히 일치하는 txt 파일 하나만 읽어옵니다.
+    if db_id:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # 폴더 이름을 'guidelines'로 지정합니다.
+        rules_dir = os.path.join(current_dir, "..", "guidelines") 
+        
+        # db_id와 일치하는 특정 파일의 경로를 만듭니다 (예: guidelines/bank_sales_trading.txt)
+        specific_txt_file = os.path.join(rules_dir, f"{db_id}.txt")
+        
+        if os.path.exists(specific_txt_file):
             try:
-                with open(txt_file, 'r', encoding='utf-8') as f:
+                with open(specific_txt_file, 'r', encoding='utf-8') as f:
                     content = f.read().strip()
                     if content:
-                        rules.append(f"--- [Domain Info: {os.path.basename(txt_file)}] ---\n{content}")
+                        rules.append(f"--- [Domain Info: {os.path.basename(specific_txt_file)}] ---\n{content}")
+                        logger.info(f"📜 룰 파일 적용 완료: {os.path.basename(specific_txt_file)}")
             except Exception as e:
-                logger.warning(f"도메인 파일 읽기 실패 ({txt_file}): {e}")
+                logger.warning(f"도메인 파일 읽기 실패 ({specific_txt_file}): {e}")
                 
     return "\n\n".join(rules)
 
@@ -443,10 +452,11 @@ def query_planning_node(state: AgentState) -> Dict[str, Any]:
     schema = state.get("retrieved_schema", "")
     profiled = state.get("profiled_data", "No profiling data.")
     work_dir = state.get("working_dir", "")
+    db_id = state.get("db_id", "")
     
     instance_id = state.get("instance_id", "")
     
-    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id)
+    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
     domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
     
     dynamic_planner_system = QUERY_PLANNING_SYSTEM + domain_prompt
@@ -495,10 +505,11 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     profiled = state.get("profiled_data", "No profiling data.")
     plan = state.get("analyzed_query", {}).get("step_by_step_plan", "")
     work_dir = state.get("working_dir", "")
+    db_id = state.get("db_id", "")
 
     instance_id = state.get("instance_id", "")
     
-    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id)
+    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
     domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
 
     dynamic_system_prompt = f"{SQL_WRITER_PERSONA}\n\n{SQL_GENERATION_SYSTEM}\n{domain_prompt}"
@@ -562,8 +573,9 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
         selected_guideline = ERROR_GUIDELINES["PARSING"]
 
     instance_id = state.get("instance_id", "")
-    
-    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id)
+    db_id = state.get("db_id", "")
+
+    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
     domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
 
     # 시스템 프롬프트에 선택된 가이드라인 동적 주입
@@ -774,10 +786,10 @@ def critic_node(state: AgentState) -> Dict[str, Any]:
     preview = state.get("final_result_preview", "")
     history = state.get("execution_history", [])
     work_dir = state.get("working_dir", "")
-    
+    db_id = state.get("db_id", "")    
     instance_id = state.get("instance_id", "")
     
-    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id)
+    domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
     domain_prompt = f"\n# [STRICT BENCHMARK RULES]\nYou MUST check if the Generated SQL strictly follows these rules:\n{domain_rules}\n" if domain_rules else ""
     
     user_content = f"Question: {question}\n\nGenerated SQL:\n{sql}\n\nResult Preview:\n{preview}\n{domain_prompt}"
