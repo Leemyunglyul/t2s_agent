@@ -1,6 +1,52 @@
 ### 전체 DB 정확도
 
+| 데이터베이스 (DB Name)           | 전체 문항 | 맞음 (1) | 틀림 (0) | 정답률 (%) |
+| :------------------------------- | :-------: | :------: | :------: | :--------: |
+| **bank_sales_trading**           |    15     |    11    |    4     |   73.3%    |
+| **IPL**                          |    11     |    8     |    3     |   72.7%    |
+| **city_legislation**             |    10     |    9     |    1     |   90.0%    |
+| **f1**                           |     9     |    4     |    5     |   44.4%    |
+| **oracle_sql**                   |     8     |    3     |    5     |   37.5%    |
+| **Brazilian_E_Commerce**         |     8     |    6     |    2     |   75.0%    |
+| **modern_data**                  |     7     |    6     |    1     |   85.7%    |
+| **sqlite-sakila**                |     7     |    6     |    1     |   85.7%    |
+| **complex_oracle**               |     6     |    2     |    4     |   33.3%    |
+| **education_business**           |     5     |    4     |    1     |   80.0%    |
+| **log**                          |     5     |    1     |    4     |   20.0%    |
+| **Db-IMDB**                      |     5     |    1     |    4     |   20.0%    |
+| **EU_soccer**                    |     5     |    3     |    2     |   60.0%    |
+| **delivery_center**              |     3     |    2     |    1     |   66.7%    |
+| **EntertainmentAgency**          |     3     |    2     |    1     |   66.7%    |
+| **chinook**                      |     3     |    3     |    0     |   100.0%   |
+| **stacking**                     |     3     |    3     |    0     |   100.0%   |
+| **E_commerce**                   |     3     |    1     |    2     |   33.3%    |
+| **California_Traffic_Collision** |     3     |    0     |    3     |    0.0%    |
+| **Airlines**                     |     2     |    0     |    2     |    0.0%    |
+| **Baseball**                     |     2     |    1     |    1     |   50.0%    |
+| **imdb_movies**                  |     2     |    1     |    1     |   50.0%    |
+| **Pagila**                       |     2     |    1     |    1     |   50.0%    |
+| **northwind**                    |     2     |    2     |    0     |   100.0%   |
+| **AdventureWorks**               |     1     |    1     |    0     |   100.0%   |
+| **BowlingLeague**                |     1     |    1     |    0     |   100.0%   |
+| **WWE**                          |     1     |    1     |    0     |   100.0%   |
+| **school_scheduling**            |     1     |    0     |    1     |    0.0%    |
+| **music**                        |     1     |    0     |    1     |    0.0%    |
+| **electronic_sales**             |     1     |    0     |    1     |    0.0%    |
+| **합계**                         |  **135**  |  **83**  |  **52**  | **61.5%**  |
+
+| Final Score (%) | Zero-Retry Score (%) | Avg Retries | Avg Steps | Correct | Total |
+| --------------- | -------------------- | ----------- | --------- | ------- | ----- |
+| 64.34           | 51.94                | 0.67        | 4         | 83      | 129   |
+
 ### 진행사항 정리
+
+| 구분               | 1차(3/13)                                                           | 2차(3/27)                                                                                                                                            | 3차(4/6)                                                                                                          | 4차(4/10)                                                                          | 5차(4/11)                                                                                                                                   | 6차(5/5)                                                  |
+| ------------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 작업내역           | [T2S 에이전트 설계](#0313-t2s-에이전트-설계) <br> 사전정의 Semantic | [Data Profiling 추가](#0313-data-profiling-node-추가) <br> [Critic 추가](#0327-critic-node-추가) <br> DB 가이드라인 추가 <br> 사전정의 Semantic 제거 | [Writer/Modifier 분리](#0406-writer/modifier-분리) <br> DB 가이드라인, 프롬프트 개선 <br> 신규 DB 대응 Logic 추가 | [Planning Logic 개선](#0410-planning-logic-개선) <br> DB 가이드라인, 프롬프트 개선 | [Extractive Schema Linking](#0411-extractive-schema-linking-for-text-to-sql-논문-기법-적용) <br> DB 가이드라인, 프롬프트 개선 <br> CoT 추가 | [Semantic Model 자동화](#0505-자동화-semantic-model-적용) |
+| City(10), Bank(15) | City: 82.5% <br> Bank: 52.5%                                        | 변화 없음                                                                                                                                            | 변화없음                                                                                                          | 변화없음                                                                           | City: 90% <br> Bank: 50~60%                                                                                                                 | City: 90% <br> Bank: 80%                                  |
+| Local TC(135)      | 실시 X                                                              | 실시 X                                                                                                                                               | 42.96%, 58/135                                                                                                    | 47.4%, 64/135                                                                      | 54.07%, 73/135                                                                                                                              | 61.5%, 83/135                                             |
+
+![alt text](image.png)
 
 #### 0313: T2S 에이전트 설계
 
@@ -149,7 +195,7 @@ SQL이 에러 없이 실행되었다고 해서 정답이라고 확신할 수 없
 기존에 Keyword extraction + Query Planning을 첫 단계에서 했는데,
 Schema Linking과 Data Profiling 이후 정보를 종합해서 Query Planning을 따로 진행하는 것으로 변경함.
 
-정답률: 48.33%, 58/135 -> 47.4%, 64/135 (5개 SQL은 생성 실패)
+정답률: 42.96%, 58/135 -> 47.4%, 64/135 (5개 SQL은 생성 실패)
 
 ```txt
 [ START ]
@@ -225,7 +271,8 @@ Schema Linking과 Data Profiling 이후 정보를 종합해서 Query Planning을
 - **우리 코드의 적용:** 우리는 구조상 Generative LLM(Gemini)을 쓰고 있지만, 프롬프트 엔지니어링을 통해 **"JSON 형식으로 딱 떨어지게, 있는 컬럼만 골라서 배열에 담아라"**라고 지시함으로써 논문의 Extractive 효과를 모방하고 있습니다. (주관식 단답형 방식)
 
 Example output:
-'''txt
+
+```txt
 [FOCUSED SCHEMA DDL & SAMPLE DATA]
 
 --- Table: customer_transactions ---
@@ -248,7 +295,7 @@ join:
 condition: customer_transactions.txn_date
 group: customer_transactions.customer_id, customer_transactions.txn_date
 order:
-'''
+```
 
 #### 0505: 자동화 Semantic Model 적용
 
