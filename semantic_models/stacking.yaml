@@ -1,0 +1,100 @@
+descriptions:
+  - table: "model_score"
+    column: "model"
+    meaning: |
+      A value of 'Stack' refers to a stacked or ensemble model, which is compared against other individual (base) models. Values other than 'Stack' refer to these base models.
+  - table: "model_score"
+    column: "step"
+    meaning: |
+      The values 1, 2, and 3 represent distinct stages in a modeling process.
+  - table: "model"
+    column: "step"
+    meaning: |
+      A value of 1 indicates the first step of the model building process, used to uniquely identify the L1_model type for a given model version.
+  - table: "model"
+    column: "L1_model"
+    meaning: |
+      The type of the Level 1 (base) model, which can be 'regression' or 'tree'.
+relations:
+  - table_1: "model_score"
+    column_1: "name"
+    table_2: "solution"
+    column_2: "name"
+synonyms:
+  - nl_term: "status"
+    db_target: "final_status"
+    type: "column"
+  - nl_term: "strong model"
+    db_target: "final_status = 'strong'"
+    type: "condition"
+  - nl_term: "soft model"
+    db_target: "final_status = 'soft'"
+    type: "condition"
+  - nl_term: "top L1 model"
+    db_target: "DENSE_RANK() OVER (PARTITION BY final_status ORDER BY occurrence_count DESC) = 1"
+    type: "condition"
+biz_logic:
+  - metric_name: "stack_score"
+    sql_logic: |
+      MAX(CASE WHEN MS.model = 'Stack' THEN MS.test_score ELSE NULL END)
+  - metric_name: "max_non_stack_score"
+    sql_logic: |
+      MAX(CASE WHEN MS.model != 'Stack' THEN MS.test_score ELSE NULL END)
+  - metric_name: "step_status"
+    sql_logic: |
+      CASE WHEN max_non_stack_score < stack_score THEN 'strong' WHEN max_non_stack_score = stack_score THEN 'soft' ELSE NULL END
+  - metric_name: "final_status"
+    sql_logic: |
+      MAX(step_status)
+  - metric_name: "Stacking Outperformance Count"
+    sql_logic: |
+      SELECT name, COUNT(*) AS outperformance_count FROM (SELECT name, step FROM model_score GROUP BY name, step HAVING MAX(CASE WHEN model = 'Stack' THEN test_score END) > MAX(CASE WHEN model != 'Stack' THEN test_score END)) AS strong_steps GROUP BY name
+  - metric_name: "Top L1 Model by Status Rank"
+    sql_logic: |
+      DENSE_RANK() OVER (PARTITION BY final_status ORDER BY occurrence_count DESC)
+  - metric_name: "Most Frequent L1 Model"
+    sql_logic: |
+      WITH CategoryCounts AS (
+        SELECT
+          L1_model,
+          COUNT(*) AS total_count
+        FROM model
+        GROUP BY
+          L1_model
+      )
+      SELECT
+        L1_model,
+        total_count
+      FROM CategoryCounts
+      ORDER BY
+        total_count DESC
+      LIMIT 1;
+  - metric_name: "TotalSolutionOccurrences"
+    sql_logic: |
+      SELECT name, COUNT(*) AS total_solution_occurrences FROM solution GROUP BY name
+  - metric_name: "ProblemsWhereStackingCountExceedsSolutionCount"
+    sql_logic: |
+      WITH StackingOutperformanceCounts AS (
+          SELECT
+              name,
+              COUNT(*) AS outperformance_count
+          FROM (
+              SELECT name, step
+              FROM model_score
+              GROUP BY name, step
+              HAVING MAX(CASE WHEN model = 'Stack' THEN test_score END) > MAX(CASE WHEN model != 'Stack' THEN test_score END)
+          ) AS strong_steps
+          GROUP BY name
+      ),
+      TotalSolutionOccurrences AS (
+          SELECT
+              name,
+              COUNT(*) AS total_solution_occurrences
+          FROM solution
+          GROUP BY name
+      )
+      SELECT
+          soc.name
+      FROM StackingOutperformanceCounts AS soc
+      INNER JOIN TotalSolutionOccurrences AS tso ON soc.name = tso.name
+      WHERE soc.outperformance_count > tso.total_solution_occurrences

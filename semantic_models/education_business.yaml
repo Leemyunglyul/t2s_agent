@@ -1,0 +1,80 @@
+descriptions:
+  - table: "RankedRepSales (CTE)"
+    column: "rank_num"
+    meaning: |
+      A rank of 1 indicates the sales representative with the highest total sales amount within their region. DENSE_RANK is used, so multiple representatives can have a rank of 1 if they are tied.
+relations:
+  - table_1: "hardware_fact_sales_monthly"
+    column_1: "product_code"
+    table_2: "hardware_dim_product"
+    column_2: "product_code"
+  - table_1: "web_orders"
+    column_1: "sales_rep_id"
+    table_2: "web_sales_reps"
+    column_2: "id"
+  - table_1: "web_sales_reps"
+    column_1: "region_id"
+    table_2: "web_region"
+    column_2: "id"
+synonyms:
+  - nl_term: "ranks"
+    db_target: "university_faculty.FacRank"
+    type: "column"
+  - nl_term: "first names"
+    db_target: "university_faculty.FacFirstName"
+    type: "column"
+  - nl_term: "last names"
+    db_target: "university_faculty.FacLastName"
+    type: "column"
+  - nl_term: "salaries"
+    db_target: "university_faculty.FacSalary"
+    type: "column"
+  - nl_term: "faculty with salary closest to the rank average"
+    db_target: "DENSE_RANK() OVER (PARTITION BY FacRank ORDER BY ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank)) ASC) = 1"
+    type: "condition"
+  - nl_term: "region"
+    db_target: "web_region"
+    type: "table"
+  - nl_term: "sales representative"
+    db_target: "web_sales_reps"
+    type: "table"
+  - nl_term: "top sales rep"
+    db_target: "DENSE_RANK() OVER (PARTITION BY region_id ORDER BY total_rep_sales DESC) = 1"
+    type: "condition"
+  - nl_term: "total region sales"
+    db_target: "SUM(web_orders.total_amt_usd)"
+    type: "column"
+  - nl_term: "total region orders"
+    db_target: "COUNT(web_orders.id)"
+    type: "column"
+  - nl_term: "top sales rep sales"
+    db_target: "MAX(total_rep_sales)"
+    type: "column"
+biz_logic:
+  - metric_name: "overall_average_quantity_sold_of_top_3_products_per_division"
+    sql_logic: |
+      WITH sales_2021_by_product_division AS (SELECT p.division, s.product_code, SUM(s.sold_quantity) AS total_quantity_sold FROM hardware_fact_sales_monthly AS s JOIN hardware_dim_product AS p ON s.product_code = p.product_code WHERE STRFTIME('%Y', s.date) = '2021' GROUP BY p.division, s.product_code), ranked_products AS (SELECT division, product_code, total_quantity_sold, DENSE_RANK() OVER (PARTITION BY division ORDER BY total_quantity_sold DESC) AS product_rank FROM sales_2021_by_product_division) SELECT division, AVG(total_quantity_sold) AS overall_average_quantity_sold FROM ranked_products WHERE product_rank <= 3 GROUP BY division
+  - metric_name: "percentage_increase_in_unique_products_2020_to_2021"
+    sql_logic: |
+      WITH products_2020 AS (SELECT COUNT(DISTINCT product_code) AS count_2020 FROM hardware_fact_sales_monthly WHERE fiscal_year = 2020), products_2021 AS (SELECT COUNT(DISTINCT product_code) AS count_2021 FROM hardware_fact_sales_monthly WHERE fiscal_year = 2021) SELECT (CAST(p21.count_2021 AS REAL) - p20.count_2020) * 100.0 / NULLIF(p20.count_2020, 0) FROM products_2020 p20, products_2021 p21
+  - metric_name: "Average Salary by Rank"
+    sql_logic: |
+      AVG(FacSalary) OVER (PARTITION BY FacRank)
+  - metric_name: "Salary Difference from Rank Average"
+    sql_logic: |
+      ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank))
+  - metric_name: "Total Sales per Representative per Region"
+    sql_logic: |
+      SELECT wsr.name, wr.name, SUM(wo.total_amt_usd) FROM web_orders wo JOIN web_sales_reps wsr ON wo.sales_rep_id = wsr.id JOIN web_region wr ON wsr.region_id = wr.id GROUP BY wsr.id, wr.id
+  - metric_name: "Total Sales per Region"
+    sql_logic: |
+      SELECT wr.name, SUM(wo.total_amt_usd) FROM web_orders wo JOIN web_sales_reps wsr ON wo.sales_rep_id = wsr.id JOIN web_region wr ON wsr.region_id = wr.id GROUP BY wr.id
+  - metric_name: "Total Orders per Region"
+    sql_logic: |
+      SELECT wr.name, COUNT(wo.id) FROM web_orders wo JOIN web_sales_reps wsr ON wo.sales_rep_id = wsr.id JOIN web_region wr ON wsr.region_id = wr.id GROUP BY wr.id
+  - metric_name: "Sales Rep Regional Ranking"
+    sql_logic: |
+      DENSE_RANK() OVER (PARTITION BY region_id ORDER BY total_rep_sales DESC)
+  - metric_name: "List of Top Sales Reps per Region (handles ties)"
+    sql_logic: |
+      WITH RankedRepSales AS (SELECT wsr.name as sales_rep_name, wr.name as region_name, DENSE_RANK() OVER (PARTITION BY wr.id ORDER BY SUM(wo.total_amt_usd) DESC) as rank_num FROM web_orders wo JOIN web_sales_reps wsr ON wo.sales_rep_id = wsr.id JOIN web_region wr ON wsr.region_id = wr.id GROUP BY wsr.id, wr.id) SELECT region_name, GROUP_CONCAT(sales_rep_name) AS top_reps FROM RankedRepSales WHERE rank_num = 1 GROUP BY region_name

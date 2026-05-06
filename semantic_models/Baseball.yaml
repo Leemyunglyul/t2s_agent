@@ -1,0 +1,28 @@
+descriptions: []
+relations: []
+synonyms:
+  - nl_term: "Games Played"
+    db_target: "batting.g"
+    type: "column"
+  - nl_term: "Runs"
+    db_target: "batting.r"
+    type: "column"
+  - nl_term: "Hits"
+    db_target: "batting.h"
+    type: "column"
+  - nl_term: "Home Runs"
+    db_target: "batting.hr"
+    type: "column"
+  - nl_term: "player name"
+    db_target: "player.name_given"
+    type: "column"
+  - nl_term: "leader"
+    db_target: "WHERE column = (SELECT MAX(column) FROM ...)"
+    type: "condition"
+biz_logic:
+  - metric_name: "Player Career Batting Totals"
+    sql_logic: |
+      SELECT player_id, SUM(g) AS total_g, SUM(r) AS total_r, SUM(h) AS total_h, SUM(hr) AS total_hr FROM batting GROUP BY player_id
+  - metric_name: "Category Leader Identification"
+    sql_logic: |
+      SELECT T1.player_id FROM PlayerStats AS T1 JOIN (SELECT MAX(stat_column) AS max_stat FROM PlayerStats) AS T2 ON T1.stat_column = T2.max_stat

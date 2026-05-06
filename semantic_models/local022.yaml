@@ -1,18 +1,6 @@
 descriptions: []
 relations:
 - table_1: ball_by_ball
-  column_1: striker
-  table_2: player
-  column_2: player_id
-- table_1: player_match
-  column_1: player_id
-  table_2: player
-  column_2: player_id
-- table_1: player_match
-  column_1: match_id
-  table_2: match
-  column_2: match_id
-- table_1: ball_by_ball
   column_1:
   - match_id
   - over_id
@@ -34,7 +22,7 @@ relations:
   - player_id
 synonyms:
 - nl_term: century
-  db_target: SUM(bs.runs_scored) >= 100
+  db_target: SUM(runs_scored) >= 100
   type: condition
 - nl_term: players
   db_target: player.player_name
@@ -43,6 +31,13 @@ synonyms:
   db_target: ball_by_ball.striker
   type: column
 - nl_term: their team lost the match
+  db_target: player_match.team_id = (CASE WHEN match.match_winner = match.team_1 THEN
+    match.team_2 ELSE match.team_1 END)
+  type: condition
+- nl_term: centurion
+  db_target: SUM(runs_scored) >= 100
+  type: condition
+- nl_term: losing cause
   db_target: player_match.team_id = (CASE WHEN match.match_winner = match.team_1 THEN
     match.team_2 ELSE match.team_1 END)
   type: condition

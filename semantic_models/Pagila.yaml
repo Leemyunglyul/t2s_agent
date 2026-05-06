@@ -1,0 +1,40 @@
+descriptions:
+  - table: "film"
+    column: "rating"
+    meaning: |
+      Ratings 'G' and 'PG' are considered suitable for children's films.
+  - table: "film"
+    column: "length"
+    meaning: |
+      The duration of a film in minutes.
+  - table: "film"
+    column: "rental_duration"
+    meaning: |
+      The duration of the rental in days.
+relations: []
+synonyms:
+  - nl_term: "cities"
+    db_target: "city"
+    type: "table"
+  - nl_term: "cities where the name either starts with 'A' or contains a hyphen"
+    db_target: "(city.city LIKE 'A%' OR city.city LIKE '%-%')"
+    type: "condition"
+  - nl_term: "specific children's film"
+    db_target: "language.name = 'English' AND category.name = 'Children' AND film.rating IN ('G', 'PG') AND film.length <= 120 AND film.release_year BETWEEN '2000' AND '2010'"
+    type: "condition"
+  - nl_term: "top actor"
+    db_target: "DENSE_RANK() OVER (ORDER BY COUNT(DISTINCT film_id) DESC) = 1"
+    type: "condition"
+biz_logic:
+  - metric_name: "Actor Rank by Film Count"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY film_count DESC)
+  - metric_name: "Actor Film Count"
+    sql_logic: |
+      COUNT(DISTINCT film_id)
+  - metric_name: "Actor Full Name"
+    sql_logic: |
+      actor.first_name || ' ' || actor.last_name
+  - metric_name: "total rental hours"
+    sql_logic: |
+      SUM(film.rental_duration * 24)

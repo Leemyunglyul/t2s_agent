@@ -1,0 +1,84 @@
+descriptions:
+  - table: "sales"
+    column: "promo_id"
+    meaning: |
+      A value of 999 indicates a special promotion type, likely 'No Promotion' or a baseline for sales without specific promotional activity.
+  - table: "promotions"
+    column: "promo_total_id"
+    meaning: |
+      The value '1' is used to filter for an aggregate category of promotions, such as 'All Promotions' or 'No Promotion'.
+  - table: "channels"
+    column: "channel_total_id"
+    meaning: |
+      The value '1' is used to filter for an aggregate category of channels, such as 'All Channels'.
+  - table: "times"
+    column: "calendar_month_number"
+    meaning: |
+      The numeric representation of the month, where 12 corresponds to December.
+relations:
+  - table_1: "sales"
+    column_1: "[prod_id, time_id, promo_id, channel_id]"
+    table_2: "costs"
+    column_2: "[prod_id, time_id, promo_id, channel_id]"
+  - table_1: "currency"
+    column_1: "country"
+    table_2: "countries"
+    column_2: "country_name"
+  - table_1: "currency"
+    column_1: "month"
+    table_2: "times"
+    column_2: "calendar_month_number"
+  - table_1: "currency"
+    column_1: "year"
+    table_2: "times"
+    column_2: "calendar_year"
+synonyms:
+  - nl_term: "Italian Customers"
+    db_target: "countries.country_name = 'Italy'"
+    type: "condition"
+  - nl_term: "December 2021"
+    db_target: "times.calendar_year = 2021 AND times.calendar_month_number = 12"
+    type: "condition"
+  - nl_term: "profit"
+    db_target: "sales.amount_sold - (AVG(costs.unit_cost) * sales.quantity_sold)"
+    type: "column"
+  - nl_term: "customer profit tiers"
+    db_target: "NTILE(10) OVER (ORDER BY SUM(sales.amount_sold - (costs.unit_cost * sales.quantity_sold)) ASC)"
+    type: "column"
+biz_logic:
+  - metric_name: "Growing Cities"
+    sql_logic: |
+      HAVING SUM(CASE WHEN calendar_quarter_id = 1776 THEN total_city_sales ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN calendar_quarter_id = 1772 THEN total_city_sales ELSE 0 END), 0) >= 1.20 AND SUM(CASE WHEN calendar_quarter_id = 1772 THEN total_city_sales ELSE 0 END) > 0
+  - metric_name: "Top 20 Percent Products by Sales"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY total_product_sales_overall DESC) <= COUNT(prod_id) OVER () * 0.2
+  - metric_name: "Product Quarterly Sales Share"
+    sql_logic: |
+      SUM(fs.amount_sold) * 1.0 / NULLIF(SUM(SUM(fs.amount_sold)) OVER (PARTITION BY fs.calendar_quarter_id), 0)
+  - metric_name: "Percentage Point Change in Share"
+    sql_logic: |
+      ABS(SUM(CASE WHEN calendar_quarter_id = 1776 THEN product_share ELSE 0 END) - SUM(CASE WHEN calendar_quarter_id = 1772 THEN product_share ELSE 0 END))
+  - metric_name: "Aggregated Unit Cost"
+    sql_logic: |
+      AVG(costs.unit_cost) GROUP BY costs.prod_id, costs.time_id, costs.promo_id, costs.channel_id
+  - metric_name: "Sale Profit"
+    sql_logic: |
+      sales.amount_sold - (aggregated_costs.avg_unit_cost * sales.quantity_sold)
+  - metric_name: "Total Customer Profit"
+    sql_logic: |
+      SUM(sale_profit) GROUP BY cust_id
+  - metric_name: "Customer Profit Tiers (Decile)"
+    sql_logic: |
+      NTILE(10) OVER (ORDER BY total_profit ASC)
+  - metric_name: "Projected Sales (YoY Growth Method)"
+    sql_logic: |
+      s20.monthly_sales * (s20.monthly_sales * 1.0 / NULLIF(s19.monthly_sales, 0))
+  - metric_name: "Projected Sales in USD"
+    sql_logic: |
+      projected_2021_sales * cu.to_us
+  - metric_name: "Average Projected Monthly Sales in USD"
+    sql_logic: |
+      AVG(projected_usd_sales)
+  - metric_name: "profit"
+    sql_logic: |
+      sales.quantity_sold * (costs.unit_price - costs.unit_cost)

@@ -1,0 +1,55 @@
+descriptions:
+  - table: "packaging"
+    column: null
+    meaning: |
+      Represents items that can be part of a packaging hierarchy, acting as either containers or contents.
+  - table: "packaging"
+    column: "id"
+    meaning: |
+      Primary key for the packaging item. An item is a 'top-level container' if its ID does not appear in the 'packaging_relations.contains_id' column. An item is a 'base' or 'leaf' item if its ID does not appear in the 'packaging_relations.packaging_id' column.
+  - table: "packaging_relations"
+    column: null
+    meaning: |
+      Defines a hierarchical or bill-of-materials relationship between packaging items. 'packaging_id' is the container, 'contains_id' is the content, and 'qty' is the quantity of the content within the container.
+  - table: "packaging_relations"
+    column: "packaging_id"
+    meaning: |
+      The ID of the packaging item that acts as a container. Foreign key to packaging.id.
+  - table: "packaging_relations"
+    column: "contains_id"
+    meaning: |
+      The ID of the packaging item that is contained within another. Foreign key to packaging.id.
+relations:
+  - table_1: "packaging"
+    column_1: "id"
+    table_2: "packaging_relations"
+    column_2: "packaging_id"
+synonyms:
+  - nl_term: "container name, item name"
+    db_target: "packaging.name"
+    type: "column"
+  - nl_term: "container, item"
+    db_target: "packaging"
+    type: "table"
+  - nl_term: "leaf items"
+    db_target: "packaging.id NOT IN (SELECT packaging_id FROM packaging_relations)"
+    type: "condition"
+  - nl_term: "top-level packages"
+    db_target: "packaging.id NOT IN (SELECT contains_id FROM packaging_relations)"
+    type: "condition"
+biz_logic:
+  - metric_name: "Total Leaf Quantity per Top-Level Package"
+    sql_logic: |
+      WITH RECURSIVE PackagingHierarchy AS (SELECT pr.packaging_id as top_level_id, pr.contains_id as item_id, pr.qty as cumulative_qty FROM packaging_relations pr WHERE pr.packaging_id NOT IN (SELECT contains_id FROM packaging_relations) UNION ALL SELECT ph.top_level_id, pr.contains_id, ph.cumulative_qty * pr.qty FROM PackagingHierarchy ph JOIN packaging_relations pr ON ph.item_id = pr.packaging_id) SELECT top_level_id, SUM(cumulative_qty) FROM PackagingHierarchy WHERE item_id NOT IN (SELECT packaging_id FROM packaging_relations) GROUP BY top_level_id
+  - metric_name: "Cumulative Quantity in Hierarchy"
+    sql_logic: |
+      parent_cumulative_qty * current_level_qty
+  - metric_name: "Average Total Leaf Quantity"
+    sql_logic: |
+      AVG(COALESCE(total_leaf_quantity, 1.0))
+  - metric_name: "average_quantity_picked"
+    sql_logic: |
+      AVG(picking_line.qty)
+  - metric_name: "Product Display Order by Pick Start"
+    sql_logic: |
+      ORDER BY MIN(picking_list.created)

@@ -6,13 +6,13 @@ relations:
   column_2: match_id, over_id, ball_id, innings_no
 synonyms:
 - nl_term: Qualifying Striker
-  db_target: A player who has scored more than 50 runs in at least one match, defined
-    in SQL as `runs_in_match > 50`
+  db_target: A striker who has scored more than 50 runs in at least one match.
   type: condition
 biz_logic:
 - metric_name: Runs In Match by Striker
-  sql_logic: SUM(batsman_scored.runs_scored)
+  sql_logic: SUM(batsman_scored.runs_scored) GROUP BY ball_by_ball.striker, ball_by_ball.match_id
 - metric_name: Total Career Runs by Striker
-  sql_logic: SUM(runs_in_match)
+  sql_logic: SUM(batsman_scored.runs_scored) GROUP BY ball_by_ball.striker
 - metric_name: Average Career Runs of Qualifying Strikers
-  sql_logic: AVG(total_career_runs)
+  sql_logic: The average of 'Total Career Runs by Striker' for all players who are
+    'Qualifying Strikers'.

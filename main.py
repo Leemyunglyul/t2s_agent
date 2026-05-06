@@ -50,7 +50,6 @@ def remove_instance_logger(file_handler: logging.FileHandler):
     logging.getLogger().removeHandler(file_handler)
     file_handler.close()
 
-# 💡 [수정] 단순 SQL 문자열이 아니라 final_state 딕셔너리 전체를 반환하도록 변경
 def run_single_task(question: str, workspace_path: str, instance_id: str, db_id: str, run_name: str, use_semantic: bool) -> dict:
     """단일 테스트 케이스를 에이전트에 통과시키고 최종 상태(State)를 반환합니다."""
     initial_state = {
@@ -77,7 +76,6 @@ def run_single_task(question: str, workspace_path: str, instance_id: str, db_id:
         
     except Exception as e:
         logger.error(f"에이전트 실행 중 치명적 에러: {e}")
-        # 에러 발생 시에도 규격에 맞는 최소한의 state 딕셔너리 반환
         return {
             "has_error": True,
             "observation": f"Exception occurred - {str(e)}",
@@ -130,7 +128,6 @@ def run_batch_evaluation(input_jsonl: str, db_base_dir: str, output_jsonl: str, 
                     for db_file in glob.glob(os.path.join(original_workspace, "*.sqlite")):
                         shutil.copy(db_file, isolated_workspace)
                     
-                    # 💡 [수정] 딕셔너리 형태로 반환된 State 받기
                     final_state = run_single_task(question, isolated_workspace, instance_id, db_id, run_name, use_semantic=True)
                     
                     # State에서 필요한 정보 추출
@@ -147,7 +144,6 @@ def run_batch_evaluation(input_jsonl: str, db_base_dir: str, output_jsonl: str, 
                     else:
                         success_count += 1
                 
-                # 💡 [수정] JSONL 파일에 retry_count 함께 저장
                 result_record = {
                     "instance_id": instance_id,
                     "db": db_id,

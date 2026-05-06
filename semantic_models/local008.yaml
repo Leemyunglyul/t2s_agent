@@ -1,19 +1,4 @@
-descriptions:
-- table: batting
-  column: g
-  meaning: Number of games played by a player in a specific year/stint.
-- table: batting
-  column: r
-  meaning: Number of runs scored by a player in a specific year/stint.
-- table: batting
-  column: h
-  meaning: Number of hits made by a player in a specific year/stint.
-- table: batting
-  column: hr
-  meaning: Number of home runs hit by a player in a specific year/stint.
-- table: player
-  column: name_given
-  meaning: The full given name of a player, including middle names.
+descriptions: []
 relations: []
 synonyms:
 - nl_term: Games Played
@@ -32,30 +17,13 @@ synonyms:
   db_target: player.name_given
   type: column
 - nl_term: leader
-  db_target: WHERE column = (SELECT MAX(column) FROM ...)
+  db_target: JOIN (SELECT MAX(stat_column) AS max_stat FROM ...) AS T2 ON T1.stat_column
+    = T2.max_stat
   type: condition
 biz_logic:
 - metric_name: Player Career Batting Totals
   sql_logic: SELECT player_id, SUM(g) AS total_g, SUM(r) AS total_r, SUM(h) AS total_h,
     SUM(hr) AS total_hr FROM batting GROUP BY player_id
 - metric_name: Category Leader Identification
-  sql_logic: SELECT player_id FROM [PlayerStatsTable] WHERE [total_stat] = (SELECT
-    MAX([total_stat]) FROM [PlayerStatsTable])
-- metric_name: Find Career Leaders for Multiple Batting Categories
-  sql_logic: WITH PlayerCareerStats AS (SELECT player_id, SUM(g) AS total_g, SUM(r)
-    AS total_r, SUM(h) AS total_h, SUM(hr) AS total_hr FROM batting GROUP BY player_id),
-    MaxCareerStats AS (SELECT MAX(total_g) AS max_g, MAX(total_r) AS max_r, MAX(total_h)
-    AS max_h, MAX(total_hr) AS max_hr FROM PlayerCareerStats), GamesPlayedLeader AS
-    (SELECT T1.player_id, T1.total_g AS score, 'Games Played' AS category FROM PlayerCareerStats
-    AS T1 JOIN MaxCareerStats AS T2 ON T1.total_g = T2.max_g), RunsLeader AS (SELECT
-    T1.player_id, T1.total_r AS score, 'Runs' AS category FROM PlayerCareerStats AS
-    T1 JOIN MaxCareerStats AS T2 ON T1.total_r = T2.max_r), HitsLeader AS (SELECT
-    T1.player_id, T1.total_h AS score, 'Hits' AS category FROM PlayerCareerStats AS
-    T1 JOIN MaxCareerStats AS T2 ON T1.total_h = T2.max_h), HomeRunsLeader AS (SELECT
-    T1.player_id, T1.total_hr AS score, 'Home Runs' AS category FROM PlayerCareerStats
-    AS T1 JOIN MaxCareerStats AS T2 ON T1.total_hr = T2.max_hr), AllLeaders AS (SELECT
-    player_id, score, category FROM GamesPlayedLeader UNION ALL SELECT player_id,
-    score, category FROM RunsLeader UNION ALL SELECT player_id, score, category FROM
-    HitsLeader UNION ALL SELECT player_id, score, category FROM HomeRunsLeader) SELECT
-    T2.name_given, T1.category, T1.score FROM AllLeaders AS T1 INNER JOIN player AS
-    T2 ON T1.player_id = T2.player_id ORDER BY T1.category
+  sql_logic: SELECT T1.player_id FROM PlayerStats AS T1 JOIN (SELECT MAX(stat_column)
+    AS max_stat FROM PlayerStats) AS T2 ON T1.stat_column = T2.max_stat

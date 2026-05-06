@@ -54,7 +54,6 @@ def extract_and_merge_semantic_model(db_id, instance_id, nl_question, correct_sq
     os.makedirs(semantic_dir, exist_ok=True)
     yaml_path = os.path.join(semantic_dir, f"{instance_id}.yaml")
     
-    # 💡 [변경 1] 스킵하지 않고 기존 YAML 데이터를 텍스트로 읽어옵니다.
     existing_model_str = "{}"
     if os.path.exists(yaml_path):
         print(f"🔍 [{instance_id}] 기존 시맨틱 모델 발견. AI 큐레이터가 최적화 및 병합을 시작합니다...")
@@ -69,7 +68,6 @@ def extract_and_merge_semantic_model(db_id, instance_id, nl_question, correct_sq
     else:
         print(f"🔍 [{instance_id}] 정답 SQL 역추적 시맨틱 추출 중 (신규 생성)...")
     
-    # 💡 [변경 2] 기존 모델 데이터를 user_content에 포함하여 전달
     user_content = (
         f"NL Question: {nl_question}\n\n"
         f"Correct SQL:\n{correct_sql}\n\n"
@@ -78,7 +76,7 @@ def extract_and_merge_semantic_model(db_id, instance_id, nl_question, correct_sq
     )
     
     status, response = call_llm({
-        "model": "gemini-2.5-pro", # 고도의 데이터 정제 작업이므로 Pro 필수
+        "model": "gemini-2.5-pro", 
         "messages": [
             {"role": "system", "content": SEMANTIC_EXTRACTOR_SYSTEM},
             {"role": "user", "content": user_content}
@@ -92,7 +90,6 @@ def extract_and_merge_semantic_model(db_id, instance_id, nl_question, correct_sq
             match = re.search(r'\{.*\}', response, re.DOTALL)
             extracted_data = json.loads(match.group(0)) if match else json.loads(response)
             
-            # 💡 [변경 3] 파이썬 코드로 합칠 필요 없이 LLM이 준 '완성본'을 그대로 덮어씁니다.
             with open(yaml_path, 'w', encoding='utf-8') as f:
                 yaml.dump(extracted_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
                 
@@ -260,7 +257,7 @@ def record_to_excel(run_name, dataset_name, output_log, metadata, excel_file="ev
     print(f"✅ 평가 지표 기록 완료! (Final: {final_score}%, 1-Shot: {zero_retry_score}%, Avg Retries: {avg_retries}, Avg Steps: {avg_steps})")
 
     # 💡 [핵심] 엑셀 기록 후, 정답 TC 대상 시맨틱 모델 추출 프로세스
-    print(f"\n🧠 정답 TC 대상 시맨틱(Semantic) 자산화 프로세스 시작...")
+    print(f"\n🧠 정답 TC 대상 시맨틱(Semantic) 프로세스 시작...")
     
     predictions_file = f"output/{run_name}/predictions.jsonl"
     if os.path.exists(predictions_file):

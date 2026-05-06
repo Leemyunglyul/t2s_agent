@@ -1,9 +1,16 @@
-descriptions: []
+descriptions:
+- table: customers
+  column: customer_unique_id
+  meaning: Unique identifier for a customer entity. A single customer can have multiple
+    'customer_id's, but they all map to one 'customer_unique_id'.
 relations: []
 synonyms:
 - nl_term: customer
   db_target: customers.customer_unique_id
   type: column
+- nl_term: number of orders
+  db_target: COUNT(DISTINCT orders.order_id)
+  type: condition
 biz_logic:
 - metric_name: avg_payment_per_order
   sql_logic: SUM(order_payments.payment_value) / COUNT(DISTINCT orders.order_id)
@@ -11,3 +18,7 @@ biz_logic:
   sql_logic: CASE WHEN (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
     < 7 THEN 1.0 ELSE (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
     / 7.0 END
+- metric_name: number of orders per customer
+  sql_logic: COUNT(DISTINCT orders.order_id)
+- metric_name: total customer payment
+  sql_logic: SUM(order_payments.payment_value)

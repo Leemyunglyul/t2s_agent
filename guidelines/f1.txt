@@ -1,0 +1,34 @@
+# [SPIDER2 F1 DOMAIN RULES] - STRICT OVERRIDE
+
+1. TOTAL POINTS CALCULATION (CRITICAL):
+When calculating "total points" for a season or driver, you MUST sum points from BOTH tables if they exist:
+- `results` table (Main Race)
+- `sprint_results` table (Sprint Race, introduced in 2021)
+- Formula: `(SELECT SUM(points) FROM results ...) + COALESCE((SELECT SUM(points) FROM sprint_results ...), 0)`
+
+2. ON-TRACK OVERTAKE DEFINITION (FATAL):
+A position change is ONLY a "Track Overtake" if it happens during a normal racing lap.
+- EXCLUDE Lap 1: Position changes on `lap = 1` are "start movements," not overtakes.
+- EXCLUDE Pit/Retirement Laps (Global): If ANY driver in the race pits or retires on Lap X, ALL position changes on Lap X for ALL drivers must be ignored. 
+- Reason: If Driver A pits, Driver B moves up automatically without an on-track pass.
+- Logic: `WHERE lap > 1 AND NOT EXISTS (SELECT 1 FROM pit_stops WHERE race_id = ... AND lap = ...) AND NOT EXISTS (SELECT 1 FROM retirements WHERE race_id = ... AND lap = ...)`
+
+3. STANDINGS TABLE USAGE:
+If the prompt asks for season-end champions or ranking positions without requiring manual point summation, PRIORITIZE using the pre-calculated standings tables:
+- `driver_standings` and `constructor_standings`
+- Use the record from the LAST `round` of the `year` to get the final season points/position.
+
+4. INDEPENDENT TOP-LIST JOINING (TIE-BREAKER RULE):
+When joining a "Top Driver" list and a "Top Constructor" list by year:
+- Use a subquery to select exactly one winner per category using `ROW_NUMBER() OVER (PARTITION BY year ORDER BY points DESC, wins DESC, driver_id ASC)`.
+- This prevents duplicate rows (Cartesian product) when multiple drivers or teams have the same points.
+
+5. DRIVER FULL NAME RULE:
+Always use the `full_name` column from the `drivers` or `drivers_ext` table. If it's a virtual column, use it directly. If not, concatenate: `forename || ' ' || surname`.
+
+6. TIME AND DURATION CONVERSION:
+- `milliseconds` to `seconds`: Always use `CAST(milliseconds AS FLOAT) / 1000.0`.
+- Avoid comparing `time` strings (e.g., '1:34.506') directly. Convert to numeric milliseconds first.
+
+7. PIT STOP EXCLUSION SCOPE:
+When the prompt says "excluding pit stops," you MUST exclude both the lap of entry AND the lap of exit (Lap N and Lap N+1), as speed is restricted in both.

@@ -11,14 +11,6 @@ relations:
   column_1: match_id, over_id, ball_id, innings_no
   table_2: batsman_scored
   column_2: match_id, over_id, ball_id, innings_no
-- table_1: player
-  column_1: player_id
-  table_2: player_match
-  column_2: player_id
-- table_1: player
-  column_1: player_id
-  table_2: ball_by_ball
-  column_2: striker
 synonyms:
 - nl_term: country
   db_target: player.country_name
@@ -33,18 +25,26 @@ synonyms:
   db_target: player_match
   type: table
 - nl_term: top 5
-  db_target: DENSE_RANK() OVER (ORDER BY ... DESC) AS rnk ... WHERE rnk <= 5
+  db_target: DENSE_RANK() OVER (ORDER BY ... DESC) AS rnk WHERE rnk <= 5
   type: condition
-- nl_term: batting average
+- nl_term: player batting average
   db_target: Player Batting Average
   type: metric
+- nl_term: country average batting average
+  db_target: Country Average Batting Average
+  type: metric
+- nl_term: highest
+  db_target: ORDER BY ... DESC
+  type: condition
 biz_logic:
 - metric_name: Player Total Runs
-  sql_logic: SUM(T2.runs_scored) FROM ball_by_ball AS T1 JOIN batsman_scored AS T2
-    ON T1.match_id = T2.match_id AND T1.over_id = T2.over_id AND T1.ball_id = T2.ball_id
-    AND T1.innings_no = T2.innings_no GROUP BY T1.striker
+  sql_logic: SELECT bbb.striker AS player_id, SUM(bs.runs_scored) AS total_runs FROM
+    ball_by_ball AS bbb INNER JOIN batsman_scored AS bs ON bbb.match_id = bs.match_id
+    AND bbb.over_id = bs.over_id AND bbb.ball_id = bs.ball_id AND bbb.innings_no =
+    bs.innings_no GROUP BY bbb.striker
 - metric_name: Player Total Matches
-  sql_logic: COUNT(DISTINCT T1.match_id) FROM player_match AS T1 GROUP BY T1.player_id
+  sql_logic: SELECT pm.player_id, COUNT(DISTINCT pm.match_id) AS total_matches FROM
+    player_match AS pm GROUP BY pm.player_id
 - metric_name: Player Batting Average
   sql_logic: CAST([Player Total Runs] AS REAL) / [Player Total Matches]
 - metric_name: Country Average Batting Average

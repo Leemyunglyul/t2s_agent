@@ -8,6 +8,8 @@ import threading
 import csv
 import math
 import yaml
+import chromadb
+from sentence_transformers import SentenceTransformer
 from typing import Dict, Any, Tuple
 
 import sqlglot
@@ -28,6 +30,73 @@ from .prompts import (
 )
 
 logger = logging.getLogger("langgraph_agent")
+
+embed_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+def get_few_shot_examples(db_id: str, current_question: str, n: int = 2) -> str:
+    """
+    ChromaDB를 사용하여 의미론적으로 가장 유사한 과거 정답 사례를 추출합니다.
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    gold_file_path = os.path.join(current_dir, "..", "gold_sql.jsonl")
+    db_path = os.path.join(current_dir, "..", "chroma_db") # 벡터 DB 저장 경로
+    
+    if not os.path.exists(gold_file_path):
+        return ""
+
+    try:
+        # 1. ChromaDB 클라이언트 초기화 (로컬 저장 방식)
+        client = chromadb.PersistentClient(path=db_path)
+        
+        # 2. DB별로 컬렉션 관리 (이미 있으면 가져오고 없으면 생성)
+        # 컬렉션 이름은 영문/숫자만 가능하므로 db_id를 정제하여 사용
+        collection_name = f"few_shot_{db_id.replace('-', '_')}"
+        collection = client.get_or_create_collection(name=collection_name)
+
+        # 3. 데이터 동기화 (gold_sql.jsonl의 내용이 DB에 없으면 인덱싱)
+        # 실시간으로 추가되는 gold_sql을 반영하기 위해 count 체크
+        with open(gold_file_path, 'r', encoding='utf-8') as f:
+            gold_data = [json.loads(line) for line in f if line.strip()]
+            db_specific_gold = [item for item in gold_data if item.get("db") == db_id]
+
+        if collection.count() < len(db_specific_gold):
+            logger.info(f"🔄 DB [{db_id}] 신규 Gold SQL 인덱싱 중...")
+            questions = [item['question'] for item in db_specific_gold]
+            # 질문들을 벡터로 변환
+            embeddings = embed_model.encode(questions).tolist()
+            
+            # 벡터 DB에 저장
+            collection.add(
+                embeddings=embeddings,
+                documents=questions,
+                metadatas=[{"gold_sql": item['gold_sql']} for item in db_specific_gold],
+                ids=[f"id_{i}" for i in range(len(db_specific_gold))]
+            )
+
+        if collection.count() == 0:
+            return ""
+
+        # 4. 현재 질문과 유사한 Top-N 검색
+        query_embedding = embed_model.encode([current_question]).tolist()
+        results = collection.query(
+            query_embeddings=query_embedding,
+            n_results=min(n, collection.count())
+        )
+
+        # 5. 검색 결과 포맷팅
+        few_shot_text = "\n# [FEW-SHOT EXAMPLES (SEMANTICALLY SIMILAR)]\n"
+        few_shot_text += "Use the following successful patterns to guide your SQL generation:\n\n"
+        
+        # results['documents'][0]은 유사한 질문 리스트, results['metadatas'][0]은 해당 SQL 정보
+        for q, meta in zip(results['documents'][0], results['metadatas'][0]):
+            few_shot_text += f"Example Question: {q}\n"
+            few_shot_text += f"Example SQL: {meta['gold_sql']}\n\n"
+            
+        return few_shot_text
+
+    except Exception as e:
+        logger.warning(f"임베딩 기반 Few-shot 추출 중 에러: {e}")
+        return ""
 
 def clean_json_string(raw_string: str) -> str:
     match = re.search(r'\{.*\}', raw_string, re.DOTALL)
@@ -163,7 +232,6 @@ def extractive_schema_linking(work_dir: str, question: str, keywords: list) -> s
         }}
         """
         
-        # 💡 [추가] API 호출 지연에 대비한 상태 변수 및 타임아웃 설정
         selected_tables = tables # 타임아웃 나면 전체 테이블을 쓰기 위한 기본값
         fine_grained_roles = ""
         api_result = {"status": False, "response": None}
@@ -405,32 +473,38 @@ def load_domain_and_semantic_rules(work_dir: str, instance_id: str, db_id: str) 
     """
     rules = []
     
-    # 1. 시맨틱 모델 탐색 (.yaml)
-    if instance_id:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        semantic_path = os.path.join(current_dir, "..", "semantic_models", f"{instance_id}.yaml")
-        
-        if os.path.exists(semantic_path):
-            try:
-                with open(semantic_path, 'r', encoding='utf-8') as f:
-                    semantic_data = yaml.safe_load(f)
-                    if semantic_data:
-                        semantic_text = f"--- [SEMANTIC KNOWLEDGE BASE FOR '{instance_id}'] ---\n"
-                        semantic_text += yaml.dump(semantic_data, allow_unicode=True, default_flow_style=False, sort_keys=False)
-                        rules.append(semantic_text)
-                        logger.info(f"🧠 [{instance_id}] 시맨틱 모델(.yaml) 적용 완료!")
-            except Exception as e:
-                logger.warning(f"시맨틱 모델 읽기 실패: {e}")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # 1 & 2. 시맨틱 모델 탐색 (.yaml)
+    semantic_dir = os.path.join(current_dir, "..", "semantic_models")
+    
+    # 1순위 경로 설정
+    instance_yaml_path = os.path.join(semantic_dir, f"{instance_id}.yaml")
+    # 2순위 경로 설정 (폴백)
+    db_yaml_path = os.path.join(semantic_dir, f"{db_id}.yaml")
+    
+    target_yaml = None
+    if instance_id and os.path.exists(instance_yaml_path):
+        target_yaml = instance_yaml_path
+        logger.info(f"🧠 [1순위] 문항 전용 시맨틱 모델 적용: {instance_id}.yaml")
+    elif db_id and os.path.exists(db_yaml_path):
+        target_yaml = db_yaml_path
+        logger.info(f"📂 [2순위] DB 공통 시맨틱 모델 폴백 적용: {db_id}.yaml")
+
+    if target_yaml:
+        try:
+            with open(target_yaml, 'r', encoding='utf-8') as f:
+                semantic_data = yaml.safe_load(f)
+                if semantic_data:
+                    semantic_text = f"--- [SEMANTIC KNOWLEDGE BASE: {os.path.basename(target_yaml)}] ---\n"
+                    semantic_text += yaml.dump(semantic_data, allow_unicode=True, default_flow_style=False, sort_keys=False)
+                    rules.append(semantic_text)
+        except Exception as e:
+            logger.warning(f"시맨틱 모델 읽기 실패 ({target_yaml}): {e}")
 
     # 2. 도메인 룰 탐색 (.txt) 
-    # 🚨 DB ID와 정확히 일치하는 txt 파일 하나만 읽어옵니다.
     if db_id:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        # 폴더 이름을 'guidelines'로 지정합니다.
         rules_dir = os.path.join(current_dir, "..", "guidelines") 
-        
-        # db_id와 일치하는 특정 파일의 경로를 만듭니다 (예: guidelines/bank_sales_trading.txt)
         specific_txt_file = os.path.join(rules_dir, f"{db_id}.txt")
         
         if os.path.exists(specific_txt_file):
@@ -438,8 +512,8 @@ def load_domain_and_semantic_rules(work_dir: str, instance_id: str, db_id: str) 
                 with open(specific_txt_file, 'r', encoding='utf-8') as f:
                     content = f.read().strip()
                     if content:
-                        rules.append(f"--- [Domain Info: {os.path.basename(specific_txt_file)}] ---\n{content}")
-                        logger.info(f"📜 룰 파일 적용 완료: {os.path.basename(specific_txt_file)}")
+                        rules.append(f"--- [Domain Guidelines: {db_id}.txt] ---\n{content}")
+                        logger.info(f"📜 도메인 가이드라인 적용 완료: {db_id}.txt")
             except Exception as e:
                 logger.warning(f"도메인 파일 읽기 실패 ({specific_txt_file}): {e}")
                 
@@ -455,10 +529,11 @@ def query_planning_node(state: AgentState) -> Dict[str, Any]:
     db_id = state.get("db_id", "")
     
     instance_id = state.get("instance_id", "")
-    
+       
+    few_shots = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
-    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
-    
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shots}\n" if (domain_rules or few_shots) else ""
+        
     dynamic_planner_system = QUERY_PLANNING_SYSTEM + domain_prompt
     
     user_content = (
@@ -509,8 +584,9 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
 
     instance_id = state.get("instance_id", "")
     
+    few_shot = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
-    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
 
     dynamic_system_prompt = f"{SQL_WRITER_PERSONA}\n\n{SQL_GENERATION_SYSTEM}\n{domain_prompt}"
     
@@ -559,7 +635,6 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     work_dir = state.get("working_dir", "")
     obs = state.get("observation", "")
 
-    # 💡 [추가] Observation 분석을 통한 동적 가이드라인 매핑
     selected_guideline = ERROR_GUIDELINES["DEFAULT"]
     if "Syntax Error" in obs or "no such" in obs.lower() or "ambiguous" in obs.lower():
         selected_guideline = ERROR_GUIDELINES["SYNTAX"]
@@ -575,8 +650,9 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     instance_id = state.get("instance_id", "")
     db_id = state.get("db_id", "")
 
+    few_shot = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
-    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if domain_rules else ""
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
 
     # 시스템 프롬프트에 선택된 가이드라인 동적 주입
     dynamic_system_prompt = (
@@ -648,7 +724,7 @@ def execution_node(state: AgentState) -> Dict[str, Any]:
                 "retry_count": state.get("max_steps", 40)
             }
 
-    # 2. 💡 [수정] 무한 루프 2차 방어 (Anti-Repetition 에러 메시지 강화)
+    # 2. 무한 루프 2차 방어 (Anti-Repetition 에러 메시지 강화)
     current_sql_upper = generated_sql.strip().upper()
     matching_history = [h for h in history if h.get("sql", "").strip().upper() == current_sql_upper]
     
@@ -736,7 +812,7 @@ def execution_node(state: AgentState) -> Dict[str, Any]:
             conn.close()
             return {"execution_history": history, "has_error": True, "retry_count": state.get("retry_count", 0) + 1, "observation": "Exploration successful. See history."}
             
-        # 8. 💡 [수정] FINAL 쿼리 0 rows 에러 처리 강화
+        # 8. FINAL 쿼리 0 rows 에러 처리 강화
         if is_final:
             if not results or len(results) == 0:
                 error_msg = (
@@ -804,7 +880,7 @@ def critic_node(state: AgentState) -> Dict[str, Any]:
         "response_mime_type": "application/json" 
     })
 
-    # 💡 [수정] Critic Fail-Safe 로직 완벽 적용
+    #  Critic Fail-Safe 로직 완벽 적용
     if not status or not response:
         logger.error("🚨 Critic API 호출 실패 또는 빈 응답")
         return {

@@ -1,0 +1,36 @@
+descriptions:
+  - table: "Entertainer_Styles"
+    column: "StyleStrength"
+    meaning: |
+      A ranking of an entertainer's proficiency in a musical style. 1 indicates the primary style, and 2 indicates the secondary style.
+  - table: "Musical_Preferences"
+    column: "PreferenceSeq"
+    meaning: |
+      A ranking of a customer's preference for a musical style. 1 is the primary/highest preference, 2 is secondary, and 3 is tertiary. Used for both weighted scoring and direct matching.
+relations: []
+synonyms:
+  - nl_term: "perfect match"
+    db_target: "(ESP.Style1 = CPP.Pref1 AND ESP.Style2 = CPP.Pref2) OR (ESP.Style1 = CPP.Pref2 AND ESP.Style2 = CPP.Pref1)"
+    type: "condition"
+  - nl_term: "matchable entertainer profile"
+    db_target: "COUNT(StyleID) <= 3 AND MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) IS NOT NULL"
+    type: "condition"
+  - nl_term: "matchable customer profile"
+    db_target: "COUNT(StyleID) <= 3 AND MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) IS NOT NULL"
+    type: "condition"
+biz_logic:
+  - metric_name: "Pivoted Entertainer Styles for Matchable Profiles"
+    sql_logic: |
+      SELECT EntertainerID, COUNT(StyleID) AS StyleCount, MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) AS Style1, MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) AS Style2 FROM Entertainer_Styles GROUP BY EntertainerID HAVING COUNT(StyleID) <= 3 AND MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) IS NOT NULL
+  - metric_name: "Pivoted Customer Preferences for Matchable Profiles"
+    sql_logic: |
+      SELECT CustomerID, COUNT(StyleID) AS PrefCount, MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) AS Pref1, MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) AS Pref2 FROM Musical_Preferences GROUP BY CustomerID HAVING COUNT(StyleID) <= 3 AND MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) IS NOT NULL
+  - metric_name: "Total Weighted Style Score"
+    sql_logic: |
+      SUM(CASE WHEN mp.PreferenceSeq = 1 THEN 3 WHEN mp.PreferenceSeq = 2 THEN 2 WHEN mp.PreferenceSeq = 3 THEN 1 ELSE 0 END)
+  - metric_name: "Overall Average Weighted Score"
+    sql_logic: |
+      AVG(TotalWeightedScore) FROM (SELECT SUM(CASE WHEN PreferenceSeq = 1 THEN 3 WHEN PreferenceSeq = 2 THEN 2 WHEN PreferenceSeq = 3 THEN 1 ELSE 0 END) AS TotalWeightedScore FROM Musical_Preferences GROUP BY StyleID)
+  - metric_name: "Absolute Difference from Average Score"
+    sql_logic: |
+      ABS(TotalWeightedScore - AverageTotalWeightedScore)

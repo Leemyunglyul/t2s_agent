@@ -1,0 +1,117 @@
+descriptions:
+  - table: "payment"
+    column: "payment_date"
+    meaning: |
+      The earliest payment_date for a customer identifies their 'first rental' or 'first purchase' date, which is the basis for Lifetime Value (LTV) calculations.
+  - table: "film"
+    column: "rating"
+    meaning: |
+      A film's content rating (e.g., G, PG-13, R), used as a business category to analyze customer preferences, especially based on their first rental.
+relations: []
+synonyms:
+  - nl_term: "total rentals"
+    db_target: "COUNT(rental.rental_id)"
+    type: "value"
+  - nl_term: "total spent"
+    db_target: "SUM(payment.amount)"
+    type: "value"
+  - nl_term: "store"
+    db_target: "staff.store_id"
+    type: "column"
+  - nl_term: "rating category, rating_category"
+    db_target: "film.rating"
+    type: "column"
+  - nl_term: "first rental"
+    db_target: "ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY payment_date ASC) = 1"
+    type: "condition"
+  - nl_term: "top 5 actors"
+    db_target: "DENSE_RANK() OVER (ORDER BY rental_count DESC) <= 5"
+    type: "condition"
+  - nl_term: "top 10 customers"
+    db_target: "DENSE_RANK() OVER (ORDER BY SUM(amount) DESC) <= 10"
+    type: "condition"
+  - nl_term: "best performing month"
+    db_target: "DENSE_RANK() OVER (PARTITION BY store_id ORDER BY COUNT(rental.rental_id) DESC) = 1"
+    type: "condition"
+  - nl_term: "payment volatility"
+    db_target: "average_monthly_payment_volatility"
+    type: "column"
+  - nl_term: "month"
+    db_target: "STRFTIME('%m', rental.rental_date)"
+    type: "column"
+  - nl_term: "year"
+    db_target: "STRFTIME('%Y', rental.rental_date)"
+    type: "column"
+  - nl_term: "largest change"
+    db_target: "MAX(ABS(total_monthly_payment - LAG(total_monthly_payment, 1, 0) OVER (PARTITION BY customer_id ORDER BY payment_month)))"
+    type: "condition"
+  - nl_term: "month of change"
+    db_target: "month_of_change"
+    type: "column"
+  - nl_term: "month-over-month difference"
+    db_target: "month_over_month_diff"
+    type: "column"
+  - nl_term: "total payment amount"
+    db_target: "total_payment_amount"
+    type: "column"
+  - nl_term: "subsequent rentals"
+    db_target: "COUNT(payment.rental_id) - 1"
+    type: "value"
+biz_logic:
+  - metric_name: "first_purchase_date"
+    sql_logic: |
+      The first payment_date for a customer, typically found using MIN(payment_date) or ROW_NUMBER() partitioned by customer_id.
+  - metric_name: "ltv_N_days"
+    sql_logic: |
+      SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+N day') THEN amount ELSE 0 END)
+  - metric_name: "pct_ltv_N_days"
+    sql_logic: |
+      (ltv_N_days * 100.0 / total_ltv)
+  - metric_name: "average_monthly_payment_volatility"
+    sql_logic: |
+      The average of the absolute differences between a customer's monthly payment amounts. Calculated via AVG(ABS(monthly_amount - LAG(monthly_amount) OVER (PARTITION BY customer_id ORDER BY payment_month))).
+  - metric_name: "customer_rank_by_payment_volatility"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY average_monthly_payment_volatility DESC)
+  - metric_name: "Best Rental Month per Store"
+    sql_logic: |
+      Identifies the month with the highest rental count for each store, using a DENSE_RANK() over monthly rental counts partitioned by store_id.
+  - metric_name: "Actor Rental Count"
+    sql_logic: |
+      The total number of rentals for films featuring a specific actor. Requires joining actor -> film_actor -> film -> inventory -> rental.
+  - metric_name: "Actor Rank by Rental Count"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY rental_count DESC)
+  - metric_name: "Percentage of Customers Renting from Top 5 Actors"
+    sql_logic: |
+      (CAST(COUNT(DISTINCT customers_renting_from_top_5) AS REAL) * 100.0) / (SELECT COUNT(DISTINCT customer_id) FROM customer)
+  - metric_name: "subsequent_rentals_per_customer"
+    sql_logic: |
+      COUNT(rental_id) - 1, calculated per customer after their first rental.
+  - metric_name: "customer_rank_by_total_payment"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY SUM(amount) DESC)
+  - metric_name: "payment_month"
+    sql_logic: |
+      STRFTIME('%Y-%m-01', payment_date)
+  - metric_name: "format_month_yyyy_mm"
+    sql_logic: |
+      STRFTIME('%Y-%m', payment_month)
+  - metric_name: "total_ltv"
+    sql_logic: |
+      SUM(amount) per customer
+  - metric_name: "average_total_ltv"
+    sql_logic: |
+      AVG(total_ltv)
+  - metric_name: "average_pct_ltv_7_days"
+    sql_logic: |
+      AVG(pct_ltv_7_days)
+  - metric_name: "average_pct_ltv_30_days"
+    sql_logic: |
+      AVG(pct_ltv_30_days)
+  - metric_name: "average_number_of_subsequent_rentals"
+    sql_logic: |
+      AVG(COUNT(payment.rental_id) - 1)
+  - metric_name: "monthly_customer_payment"
+    sql_logic: |
+      SELECT customer_id, STRFTIME('%Y-%m', payment_date) AS payment_month, SUM(amount) AS monthly_amount FROM payment GROUP BY customer_id, payment_month

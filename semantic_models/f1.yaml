@@ -1,0 +1,49 @@
+descriptions: []
+relations: []
+synonyms:
+  - nl_term: "changed constructor, team switch"
+    db_target: "constructor_id <> LEAD(constructor_id, 1) OVER (PARTITION BY driver_id, year ORDER BY round)"
+    type: "condition"
+  - nl_term: "driver appearances"
+    db_target: "results"
+    type: "table"
+  - nl_term: "fewer than three races missed"
+    db_target: "(LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round) - round - 1) < 3"
+    type: "condition"
+  - nl_term: "hiatus, missed races"
+    db_target: "(LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round) - round - 1) > 0"
+    type: "condition"
+biz_logic:
+  - metric_name: "Constructor Combined Points"
+    sql_logic: |
+      For a given year and constructor, this is the sum of `SUM(constructor_results.points)` and `MAX(SUM(results.points) GROUP BY driver_id)`.
+  - metric_name: "Driver Mid-Season Hiatus with Team Change"
+    sql_logic: |
+      A driver missed 1 or 2 races mid-season and returned with a different team. Logic (LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round) - round - 1) BETWEEN 1 AND 2 AND constructor_id <> LEAD(constructor_id, 1) OVER (PARTITION BY driver_id, year ORDER BY round)
+  - metric_name: "Eligible Driver Season"
+    sql_logic: |
+      A driver's season is eligible if they raced for the same constructor in their first and last race of the season and participated in at least two distinct rounds. The condition is `first_race_constructor_id = last_race_constructor_id AND distinct_rounds_count >= 2`, where these values are derived per driver per season.
+  - metric_name: "First Missed Round"
+    sql_logic: |
+      For a driver with a gap in races, this is the round number of the first race they missed. Logic `round + 1`
+  - metric_name: "Last Missed Round"
+    sql_logic: |
+      For a driver with a gap in races, this is the round number of the last race they missed before returning. Logic `LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round) - 1`
+  - metric_name: "Maximum Constructor Points per Year"
+    sql_logic: |
+      SELECT year, MAX(total_constructor_points) AS max_constructor_points FROM (SELECT T1.year, T2.constructor_id, SUM(T2.points) AS total_constructor_points FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.constructor_id) GROUP BY year
+  - metric_name: "Maximum Driver Points per Year"
+    sql_logic: |
+      SELECT year, MAX(total_driver_points) AS max_driver_points FROM (SELECT T1.year, T2.driver_id, SUM(T2.points) AS total_driver_points FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id) GROUP BY year
+  - metric_name: "Number of Missed Races"
+    sql_logic: |
+      The number of consecutive races a driver missed within a single season. Logic `LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round) - round - 1`
+  - metric_name: "Total Constructor Points per Year"
+    sql_logic: |
+      SELECT T1.year, T2.constructor_id, SUM(T2.points) AS total_constructor_points FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.constructor_id
+  - metric_name: "Total Driver Points per Year"
+    sql_logic: |
+      SELECT T1.year, T2.driver_id, SUM(T2.points) AS total_driver_points FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id
+  - metric_name: "Yearly Dominance Score"
+    sql_logic: |
+      The sum of the 'Maximum Driver Points per Year' and 'Maximum Constructor Points per Year'. Represents the theoretical maximum points achievable by a single dominant entity (driver + their constructor).

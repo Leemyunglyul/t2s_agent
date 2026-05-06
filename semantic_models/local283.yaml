@@ -1,0 +1,25 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: champion
+  db_target: ROW_NUMBER() OVER (PARTITION BY season, league_id ORDER BY total_points
+    DESC) = 1
+  type: condition
+- nl_term: champion team name
+  db_target: Team.team_long_name
+  type: column
+- nl_term: champion points
+  db_target: total_points
+  type: column
+biz_logic:
+- metric_name: Match Points Calculation
+  sql_logic: CASE WHEN home_team_goal > away_team_goal THEN 3 WHEN home_team_goal
+    = away_team_goal THEN 1 ELSE 0 END
+- metric_name: Team Rank by Season and League
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY season, league_id ORDER BY total_points
+    DESC)
+- metric_name: Total Season Points
+  sql_logic: SUM(points)
+- metric_name: Away Team Match Points
+  sql_logic: CASE WHEN away_team_goal > home_team_goal THEN 3 WHEN away_team_goal
+    = home_team_goal THEN 1 ELSE 0 END

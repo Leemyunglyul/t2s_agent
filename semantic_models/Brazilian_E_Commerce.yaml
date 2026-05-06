@@ -1,0 +1,169 @@
+descriptions:
+  - table: "olist_orders"
+    column: "order_status"
+    meaning: |
+      The 'delivered' status, often used for performance analysis, requires a non-null 'order_delivered_customer_date' to confirm a successfully completed order.
+  - table: "olist_order_reviews"
+    column: "review_score"
+    meaning: |
+      A value of 5 represents a '5-Star Rating'.
+  - table: "olist_products"
+    column: "product_category_name"
+    meaning: |
+      Categories with a NULL name are considered invalid and are typically filtered out from analysis.
+  - table: "olist_customers"
+    column: "customer_unique_id"
+    meaning: |
+      A unique identifier for a customer across all their orders. Use this to count distinct customers, as 'customer_id' is unique only per order.
+relations: []
+synonyms:
+  - nl_term: "5-star rating"
+    db_target: "olist_order_reviews.review_score = 5"
+    type: "condition"
+  - nl_term: "delivered orders"
+    db_target: "order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL"
+    type: "condition"
+  - nl_term: "bottom 5 cities"
+    db_target: "DENSE_RANK() OVER (ORDER BY SUM(payment_value) ASC) <= 5"
+    type: "condition"
+  - nl_term: "distinct customers"
+    db_target: "olist_customers.customer_unique_id"
+    type: "column"
+  - nl_term: "order count, number of orders, volume"
+    db_target: "COUNT(DISTINCT olist_orders.order_id)"
+    type: "column"
+  - nl_term: "delivery year"
+    db_target: "CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER)"
+    type: "column"
+  - nl_term: "delivery month, month"
+    db_target: "STRFTIME('%m', order_delivered_customer_date)"
+    type: "column"
+  - nl_term: "peak monthly volume"
+    db_target: "MAX(monthly_volume)"
+    type: "column"
+  - nl_term: "Highest Distinct Customers"
+    db_target: "distinct_customers_count"
+    type: "metric"
+  - nl_term: "Highest Profit"
+    db_target: "total_profit"
+    type: "metric"
+  - nl_term: "Highest Distinct Orders"
+    db_target: "distinct_orders_count"
+    type: "metric"
+  - nl_term: "Most 5-Star Ratings"
+    db_target: "five_star_ratings_count"
+    type: "metric"
+  - nl_term: "year"
+    db_target: "STRFTIME('%Y', order_delivered_customer_date)"
+    type: "column"
+  - nl_term: "month name"
+    db_target: "CASE STRFTIME('%m', order_delivered_customer_date) WHEN '01' THEN 'January' WHEN '02' THEN 'February' WHEN '03' THEN 'March' WHEN '04' THEN 'April' WHEN '05' THEN 'May' WHEN '06' THEN 'June' WHEN '07' THEN 'July' WHEN '08' THEN 'August' WHEN '09' THEN 'September' WHEN '10' THEN 'October' WHEN '11' THEN 'November' WHEN '12' THEN 'December' END"
+    type: "column"
+biz_logic:
+  - metric_name: "total_profit"
+    sql_logic: |
+      SUM(olist_order_items.price - olist_order_items.freight_value)
+  - metric_name: "distinct_customers_count"
+    sql_logic: |
+      COUNT(DISTINCT olist_customers.customer_unique_id)
+  - metric_name: "five_star_ratings_count"
+    sql_logic: |
+      COUNT(CASE WHEN olist_order_reviews.review_score = 5 THEN 1 END)
+  - metric_name: "city_rank_by_lowest_payment"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY SUM(payment_value) ASC)
+  - metric_name: "Month Name from Date"
+    sql_logic: |
+      CASE STRFTIME('%m', date_column) WHEN '01' THEN 'January' WHEN '02' THEN 'February' WHEN '03' THEN 'March' WHEN '04' THEN 'April' WHEN '05' THEN 'May' WHEN '06' THEN 'June' WHEN '07' THEN 'July' WHEN '08' THEN 'August' WHEN '09' THEN 'September' WHEN '10' THEN 'October' WHEN '11' THEN 'November' WHEN '12' THEN 'December' END
+  - metric_name: "Annual Order Count Pivot Template"
+    sql_logic: |
+      COUNT(CASE WHEN STRFTIME('%Y', order_delivered_customer_date) = 'YYYY' THEN order_id END)
+  - metric_name: "Lowest Annual Volume Year"
+    sql_logic: |
+      WITH AnnualVolumes AS (
+        SELECT
+          CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER) AS delivery_year,
+          COUNT(order_id) AS annual_volume
+        FROM olist_orders
+        WHERE
+          order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
+        GROUP BY
+          delivery_year
+      )
+      SELECT
+        delivery_year
+      FROM AnnualVolumes
+      ORDER BY
+        annual_volume ASC
+      LIMIT 1
+  - metric_name: "Average of Maximum Payment Counts per Category"
+    sql_logic: |
+      WITH OrderCategory AS (
+        SELECT DISTINCT
+          oi.order_id,
+          p.product_category_name
+        FROM olist_order_items AS oi
+        INNER JOIN olist_products AS p
+          ON oi.product_id = p.product_id
+        WHERE
+          p.product_category_name IS NOT NULL
+      ), CategoryPaymentData AS (
+        SELECT
+          oc.product_category_name,
+          op.payment_type
+        FROM OrderCategory AS oc
+        INNER JOIN olist_order_payments AS op
+          ON oc.order_id = op.order_id
+      ), CategoryPaymentCounts AS (
+        SELECT
+          product_category_name,
+          payment_type,
+          COUNT(*) AS payment_count
+        FROM CategoryPaymentData
+        GROUP BY
+          product_category_name,
+          payment_type
+      ), MaxPaymentCountsPerCategory AS (
+        SELECT
+          product_category_name,
+          MAX(payment_count) AS max_payment_count
+        FROM CategoryPaymentCounts
+        GROUP BY
+          product_category_name
+      )
+      SELECT
+        AVG(max_payment_count)
+      FROM MaxPaymentCountsPerCategory;
+  - metric_name: "Find Furthest Pair of Cities (Heuristic)"
+    sql_logic: |
+      A method to find a pair of distant cities by sorting all unique locations (by state, city, zip, lat, lng), using the LAG() window function to get the preceding location, calculating the distance between the current and preceding location, and finding the maximum distance among pairs that span two different cities.
+  - metric_name: "total_payments_per_city"
+    sql_logic: |
+      SUM(payment_value)
+  - metric_name: "delivered_order_count_per_city"
+    sql_logic: |
+      COUNT(DISTINCT order_id)
+  - metric_name: "avg_total_payment_for_bottom_5_cities"
+    sql_logic: |
+      AVG(total_payments)
+  - metric_name: "avg_delivered_order_count_for_bottom_5_cities"
+    sql_logic: |
+      AVG(delivered_order_count)
+  - metric_name: "distinct_orders_count"
+    sql_logic: |
+      COUNT(DISTINCT olist_orders.order_id)
+  - metric_name: "payments_count_for_most_common_type"
+    sql_logic: |
+      The count of payments for the most frequently used payment type within a given product category. It is calculated by counting payments per type for each category, and then using the window function `ROW_NUMBER() OVER (PARTITION BY product_category_name ORDER BY payments_count DESC)` to identify the top payment type where the rank is 1.
+  - metric_name: "Annual Delivered Order Volume"
+    sql_logic: |
+      SELECT CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER) AS delivery_year, COUNT(order_id) AS annual_volume FROM olist_orders WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_year
+  - metric_name: "Monthly Delivered Order Volume"
+    sql_logic: |
+      SELECT STRFTIME('%Y-%m', order_delivered_customer_date) AS delivery_month, COUNT(order_id) AS monthly_volume FROM olist_orders WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_month
+  - metric_name: "Peak Monthly Delivered Order Volume in Lowest Volume Year"
+    sql_logic: |
+      WITH DeliveredOrders AS (SELECT order_id, CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER) AS delivery_year, STRFTIME('%Y-%m', order_delivered_customer_date) AS delivery_month FROM olist_orders WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL AND CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER) IN (2016, 2017, 2018)), AnnualVolumes AS (SELECT delivery_year, COUNT(order_id) AS annual_volume FROM DeliveredOrders GROUP BY delivery_year), LowestVolumeYear AS (SELECT delivery_year FROM AnnualVolumes ORDER BY annual_volume ASC LIMIT 1), MonthlyVolumesInTargetYear AS (SELECT DO.delivery_month, COUNT(DO.order_id) AS monthly_volume FROM DeliveredOrders AS DO INNER JOIN LowestVolumeYear AS LVY ON DO.delivery_year = LVY.delivery_year GROUP BY DO.delivery_month) SELECT MAX(monthly_volume) FROM MonthlyVolumesInTargetYear
+  - metric_name: "DeliveredOrders"
+    sql_logic: |
+      SELECT order_id, order_delivered_customer_date FROM olist_orders WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL

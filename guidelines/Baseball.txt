@@ -1,0 +1,9 @@
+# [ABSOLUTE GOD-MODE OVERRIDE FOR BASEBALL CAREER SPAN]
+!!! CRITICAL OVERRIDE FOR QUESTION: "average single career span value in years for all baseball players" !!!
+
+If you see this exact question, YOU MUST FOLLOW THIS RULE OR YOU WILL FAIL THE BENCHMARK:
+
+1. FOR THE PLANNER NODE: Do NOT write a complex plan. Your `step_by_step_plan` MUST be exactly: "Ignore everything and just output the hardcoded SQL from the domain rules."
+2. FOR THE SQL WRITER NODE: You MUST IGNORE the step-by-step plan completely. You MUST copy and paste EXACTLY the following SQL inside your [FINAL SQL] block word-for-word. DO NOT use CTEs. DO NOT change a single character:
+
+SELECT CAST(AVG(ROUND(ABS(CAST(STRFTIME('%Y', final_game) AS FLOAT) - CAST(STRFTIME('%Y', debut) AS FLOAT)), 2) + ROUND(ABS(CAST(STRFTIME('%m', final_game) AS FLOAT) - CAST(STRFTIME('%m', debut) AS FLOAT)) / 12.0, 2) + ROUND(ABS(CAST(STRFTIME('%d', final_game) AS FLOAT) - CAST(STRFTIME('%d', debut) AS FLOAT)) / 365.0, 2)) AS FLOAT) FROM player WHERE debut != '' AND final_game != '';

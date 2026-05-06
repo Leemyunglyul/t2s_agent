@@ -1,0 +1,46 @@
+descriptions: []
+relations: []
+synonyms:
+  - nl_term: "sales, amount spent"
+    db_target: "SUM(invoices.Total)"
+    type: "column"
+  - nl_term: "top-selling artist, best selling artist"
+    db_target: |
+      DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity) DESC, artists.Name ASC) = 1
+    type: "condition"
+  - nl_term: "lowest-selling artist"
+    db_target: |
+      DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity) ASC, artists.Name ASC) = 1
+    type: "condition"
+  - nl_term: "countries with more than 4 customers"
+    db_target: |
+      customers.Country IN (SELECT Country FROM customers GROUP BY Country HAVING COUNT(DISTINCT CustomerId) > 4)
+    type: "condition"
+biz_logic:
+  - metric_name: "Total Sales"
+    sql_logic: |
+      SUM(invoices.Total)
+  - metric_name: "Total Sales per Artist"
+    sql_logic: |
+      SUM(invoice_items.UnitPrice * invoice_items.Quantity) GROUP BY artists.ArtistId
+  - metric_name: "Total Sales per Country"
+    sql_logic: |
+      SUM(invoices.Total) GROUP BY invoices.BillingCountry
+  - metric_name: "Customer Spending on an Artist"
+    sql_logic: |
+      SUM(invoice_items.UnitPrice * invoice_items.Quantity) GROUP BY customers.CustomerId, artists.ArtistId
+  - metric_name: "Customer Count per Country"
+    sql_logic: |
+      COUNT(DISTINCT customers.CustomerId)
+  - metric_name: "Average Customer Spending on Top Selling Artist(s)"
+    sql_logic: |
+      The average of 'Customer Spending on an Artist' calculated only for artists that are defined as 'top-selling artist'.
+  - metric_name: "Average Customer Spending on Lowest Selling Artist(s)"
+    sql_logic: |
+      The average of 'Customer Spending on an Artist' calculated only for artists that are defined as 'lowest-selling artist'.
+  - metric_name: "Absolute Difference in Average Spending"
+    sql_logic: |
+      The absolute difference between 'Average Customer Spending on Top Selling Artist(s)' and 'Average Customer Spending on Lowest Selling Artist(s)'.
+  - metric_name: "Median Calculation Template"
+    sql_logic: |
+      WITH RankedData AS (SELECT <column_to_rank>, ROW_NUMBER() OVER (ORDER BY <column_to_rank>) AS rn, COUNT(*) OVER () AS total_count FROM <source_table>) SELECT AVG(<column_to_rank>) FROM RankedData WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)

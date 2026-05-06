@@ -17,27 +17,29 @@ relations:
   column_1: match_id, innings_no, over_id, ball_id
   table_2: extra_runs
   column_2: match_id, innings_no, over_id, ball_id
-synonyms: []
+synonyms:
+- nl_term: highest scoring over
+  db_target: ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY total_runs_in_over
+    DESC) = 1
+  type: condition
 biz_logic:
-- metric_name: Total Runs per Over
-  sql_logic: WITH AllRuns AS (SELECT match_id, innings_no, over_id, ball_id, runs_scored
-    AS runs FROM batsman_scored UNION ALL SELECT match_id, innings_no, over_id, ball_id,
-    extra_runs AS runs FROM extra_runs) SELECT match_id, innings_no, over_id, SUM(runs)
-    AS total_runs_in_over FROM AllRuns GROUP BY match_id, innings_no, over_id
-- metric_name: Ranking Logic for Highest Scoring Over per Match
+- metric_name: Total Runs per Ball
+  sql_logic: SELECT match_id, innings_no, over_id, ball_id, runs_scored AS runs FROM
+    batsman_scored UNION ALL SELECT match_id, innings_no, over_id, ball_id, extra_runs
+    AS runs FROM extra_runs
+- metric_name: Highest Scoring Over (Ranking Logic)
   sql_logic: ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY total_runs_in_over
     DESC)
-- metric_name: Average of Highest Over Runs
-  sql_logic: WITH CTE_BallRuns AS ( SELECT match_id, innings_no, over_id, ball_id,
-    runs_scored AS runs FROM batsman_scored UNION ALL SELECT match_id, innings_no,
-    over_id, ball_id, extra_runs AS runs FROM extra_runs ), CTE_OverRunsWithBowler
-    AS ( SELECT br.match_id, br.innings_no, br.over_id, SUM(br.runs) AS total_runs_in_over,
-    MIN(bb.bowler) AS bowler_id FROM CTE_BallRuns AS br INNER JOIN ball_by_ball AS
-    bb ON br.match_id = bb.match_id AND br.innings_no = bb.innings_no AND br.over_id
-    = bb.over_id AND br.ball_id = bb.ball_id GROUP BY br.match_id, br.innings_no,
-    br.over_id ), CTE_RankedOvers AS ( SELECT match_id, innings_no, over_id, total_runs_in_over,
-    bowler_id, ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY total_runs_in_over
-    DESC) AS rn FROM CTE_OverRunsWithBowler ), CTE_HighestOversPerMatch AS ( SELECT
-    match_id, innings_no, over_id, total_runs_in_over, bowler_id FROM CTE_RankedOvers
-    WHERE rn = 1 ) SELECT AVG(total_runs_in_over) AS average_highest_over_runs FROM
-    CTE_HighestOversPerMatch;
+- metric_name: Average of Highest Scoring Over Runs per Match
+  sql_logic: WITH CTE_AllRuns AS (SELECT match_id, innings_no, over_id, ball_id, runs_scored
+    AS runs FROM batsman_scored UNION ALL SELECT match_id, innings_no, over_id, ball_id,
+    extra_runs AS runs FROM extra_runs), CTE_OverRunsWithBowler AS (SELECT br.match_id,
+    br.innings_no, br.over_id, SUM(br.runs) AS total_runs_in_over, MIN(bb.bowler)
+    AS bowler_id FROM CTE_AllRuns AS br INNER JOIN ball_by_ball AS bb ON br.match_id
+    = bb.match_id AND br.innings_no = bb.innings_no AND br.over_id = bb.over_id AND
+    br.ball_id = bb.ball_id GROUP BY br.match_id, br.innings_no, br.over_id), CTE_RankedOvers
+    AS (SELECT match_id, innings_no, over_id, total_runs_in_over, bowler_id, ROW_NUMBER()
+    OVER (PARTITION BY match_id ORDER BY total_runs_in_over DESC) AS rn FROM CTE_OverRunsWithBowler),
+    CTE_HighestOversPerMatch AS (SELECT match_id, innings_no, over_id, total_runs_in_over,
+    bowler_id FROM CTE_RankedOvers WHERE rn = 1) SELECT AVG(total_runs_in_over) AS
+    average_highest_over_runs FROM CTE_HighestOversPerMatch;

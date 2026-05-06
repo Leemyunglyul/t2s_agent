@@ -1,0 +1,211 @@
+```yaml
+descriptions:
+  - table: "ball_by_ball"
+    column: "striker"
+    meaning: |
+      The ID of the player currently batting (facing the bowler) and credited for runs scored off the bat.
+  - table: "ball_by_ball"
+    column: "striker, non_striker"
+    meaning: |
+      Represents the current batting partnership for a given ball.
+  - table: "batsman_scored"
+    column: "runs_scored"
+    meaning: |
+      Runs scored by the batsman off the bat. Must be combined with `extra_runs.extra_runs` for the total runs scored on a ball.
+  - table: "extra_runs"
+    column: "extra_runs"
+    meaning: |
+      Runs not scored off the bat (e.g., wides, no-balls). Must be combined with `batsman_scored.runs_scored` for the total runs scored on a ball.
+  - table: "extra_runs"
+    column: "extra_type"
+    meaning: |
+      The type of extra run. Only 'wides' and 'noballs' are counted as runs conceded by the bowler and are not counted as legal deliveries when calculating overs.
+  - table: "wicket_taken"
+    column: "kind_out"
+    meaning: |
+      The type of dismissal. Wickets are not credited to the bowler for types 'run out', 'retired hurt', 'obstructing the field', 'handled the ball', and 'hit wicket'.
+  - table: "wicket_taken"
+    column: "player_out"
+    meaning: |
+      The ID of the player who was dismissed.
+  - table: "player_match"
+    column: "player_id"
+    meaning: |
+      Indicates a player's participation in a specific match.
+  - table: "match"
+    column: "season_id"
+    meaning: |
+      The ID of the tournament season, where the value corresponds to the season number (e.g., 5 means 'Season 5').
+relations:
+  - table_1: "ball_by_ball"
+    column_1: ["match_id", "innings_no", "over_id", "ball_id"]
+    table_2: "batsman_scored"
+    column_2: ["match_id", "innings_no", "over_id", "ball_id"]
+  - table_1: "ball_by_ball"
+    column_1: ["match_id", "innings_no", "over_id", "ball_id"]
+    table_2: "wicket_taken"
+    column_2: ["match_id", "innings_no", "over_id", "ball_id"]
+  - table_1: "ball_by_ball"
+    column_1: ["match_id", "innings_no", "over_id", "ball_id"]
+    table_2: "extra_runs"
+    column_2: ["match_id", "innings_no", "over_id", "ball_id"]
+  - table_1: "player"
+    column_1: "player_id"
+    table_2: "player_match"
+    column_2: "player_id"
+  - table_1: "player_match"
+    column_1: "match_id"
+    table_2: "match"
+    column_2: "match_id"
+  - table_1: "player"
+    column_1: "player_id"
+    table_2: "ball_by_ball"
+    column_2: "striker"
+  - table_1: "player"
+    column_1: "player_id"
+    table_2: "ball_by_ball"
+    column_2: "bowler"
+  - table_1: "ball_by_ball"
+    column_1: ["match_id", "striker"]
+    table_2: "player_match"
+    column_2: ["match_id", "player_id"]
+synonyms:
+  - nl_term: "batsman, player who scored"
+    db_target: "ball_by_ball.striker"
+    type: "column"
+  - nl_term: "bowler"
+    db_target: "ball_by_ball.bowler"
+    type: "column"
+  - nl_term: "players"
+    db_target: "player.player_name"
+    type: "column"
+  - nl_term: "country"
+    db_target: "player.country_name"
+    type: "column"
+  - nl_term: "player"
+    db_target: "player"
+    type: "table"
+  - nl_term: "runs"
+    db_target: "batsman_scored.runs_scored"
+    type: "column"
+  - nl_term: "total runs"
+    db_target: "SUM(batsman_scored.runs_scored)"
+    type: "column"
+  - nl_term: "matches played"
+    db_target: "COUNT(DISTINCT player_match.match_id)"
+    type: "column"
+  - nl_term: "total dismissals"
+    db_target: "COUNT(wicket_taken.player_out)"
+    type: "column"
+  - nl_term: "total wickets, bowler's wicket"
+    db_target: "COUNT(*) FROM wicket_taken WHERE kind_out NOT IN ('run out', 'retired hurt', 'obstructing the field', 'handled the ball', 'hit wicket')"
+    type: "condition"
+  - nl_term: "batting average, player batting average"
+    db_target: "Batting Average"
+    type: "metric"
+  - nl_term: "average runs per match"
+    db_target: "Average Runs per Match"
+    type: "metric"
+  - nl_term: "bowling average"
+    db_target: "Bowling Average"
+    type: "metric"
+  - nl_term: "runs conceded"
+    db_target: "Total Runs Conceded by Bowler"
+    type: "metric"
+  - nl_term: "wickets taken, wickets"
+    db_target: "Total Wickets Credited to Bowler"
+    type: "metric"
+  - nl_term: "century, centurion"
+    db_target: "SUM(bs.runs_scored) >= 100"
+    type: "condition"
+  - nl_term: "season 5"
+    db_target: "match.season_id = 5"
+    type: "condition"
+  - nl_term: "top 3"
+    db_target: "ROW_NUMBER() OVER (...) <= 3"
+    type: "condition"
+  - nl_term: "top 5, top 5 players"
+    db_target: "DENSE_RANK() OVER (ORDER BY ... DESC) <= 5"
+    type: "condition"
+  - nl_term: "Qualifying Striker"
+    db_target: "A player who has scored more than 50 runs in at least one match, defined in SQL as `runs_in_match > 50`"
+    type: "condition"
+  - nl_term: "their team lost the match, losing cause"
+    db_target: "player_match.team_id = (CASE WHEN match.match_winner = match.team_1 THEN match.team_2 ELSE match.team_1 END)"
+    type: "condition"
+  - nl_term: "partnership"
+    db_target: "A pair of players identified by ball_by_ball.striker and ball_by_ball.non_striker, aggregated over an innings using a canonical key."
+    type: "value"
+  - nl_term: "highest scoring partnership"
+    db_target: "The partnership with rank = 1, derived from DENSE_RANK() OVER (PARTITION BY match_id ORDER BY total_partnership_score DESC)"
+    type: "condition"
+  - nl_term: "best bowler"
+    db_target: "ORDER BY bowling_average ASC LIMIT 1"
+    type: "value"
+  - nl_term: "bowling stats"
+    db_target: "player.player_name, total_wickets_taken, economy_rate, strike_rate, best_bowling_performance"
+    type: "column"
+  - nl_term: "economy"
+    db_target: "economy_rate"
+    type: "column"
+  - nl_term: "strike rate"
+    db_target: "strike_rate"
+    type: "column"
+  - nl_term: "best bowling"
+    db_target: "best_bowling_performance"
+    type: "column"
+  - nl_term: "legal delivery"
+    db_target: "extra_runs.extra_type NOT IN ('wides', 'noballs')"
+    type: "condition"
+  - nl_term: "highest scoring over"
+    db_target: "ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY total_runs_in_over DESC) = 1"
+    type: "condition"
+  - nl_term: "country average batting average"
+    db_target: "Country Average Batting Average"
+    type: "metric"
+  - nl_term: "highest"
+    db_target: "ORDER BY ... DESC"
+    type: "condition"
+biz_logic:
+  - metric_name: "Player Total Career Runs"
+    sql_logic: |
+      SELECT bb.striker AS player_id, SUM(bs.runs_scored) AS total_runs FROM ball_by_ball AS bb JOIN batsman_scored AS bs ON bb.match_id = bs.match_id AND bb.over_id = bs.over_id AND bb.ball_id = bs.ball_id AND bb.innings_no = bs.innings_no GROUP BY bb.striker
+  - metric_name: "Player Runs in Match"
+    sql_logic: |
+      SELECT bb.match_id, bb.striker AS player_id, SUM(bs.runs_scored) AS total_runs FROM ball_by_ball AS bb JOIN batsman_scored AS bs ON bb.match_id = bs.match_id AND bb.over_id = bs.over_id AND bb.ball_id = bs.ball_id AND bb.innings_no = bs.innings_no GROUP BY bb.match_id, bb.striker
+  - metric_name: "Player Runs per Season"
+    sql_logic: |
+      SELECT M.season_id, BB.striker AS player_id, SUM(BS.runs_scored) AS total_runs FROM match AS M JOIN ball_by_ball AS BB ON M.match_id = BB.match_id JOIN batsman_scored AS BS ON BB.match_id = BS.match_id AND BB.over_id = BS.over_id AND BB.ball_id = BS.ball_id AND BB.innings_no = BS.innings_no GROUP BY M.season_id, BB.striker
+  - metric_name: "Matches Played by Player"
+    sql_logic: |
+      SELECT pm.player_id, COUNT(DISTINCT pm.match_id) AS matches_played FROM player_match AS pm GROUP BY pm.player_id
+  - metric_name: "Total Dismissals of Player"
+    sql_logic: |
+      SELECT wt.player_out AS player_id, COUNT(wt.player_out) AS total_dismissals FROM wicket_taken AS wt WHERE wt.player_out IS NOT NULL GROUP BY wt.player_out
+  - metric_name: "Batting Average"
+    sql_logic: |
+      CASE WHEN COALESCE(total_dismissals, 0) = 0 THEN NULL ELSE CAST(COALESCE(total_runs, 0) AS REAL) / COALESCE(total_dismissals, 1) END. Depends on 'Player Total Career Runs' and 'Total Dismissals of Player'.
+  - metric_name: "Average Runs per Match"
+    sql_logic: |
+      CAST(COALESCE(total_runs, 0) AS REAL) / COALESCE(matches_played, 1). Depends on 'Player Total Career Runs' and 'Matches Played by Player'.
+  - metric_name: "Total Wickets Credited to Bowler"
+    sql_logic: |
+      SUM(CASE WHEN kind_out IS NOT NULL AND kind_out NOT IN ('run out', 'retired hurt', 'obstructing the field', 'handled the ball', 'hit wicket') THEN 1 ELSE 0 END)
+  - metric_name: "Total Runs Conceded by Bowler"
+    sql_logic: |
+      SUM(COALESCE(runs_scored, 0) + COALESCE(CASE WHEN extra_type IN ('wides', 'noballs') THEN extra_runs ELSE 0 END, 0))
+  - metric_name: "Bowling Average"
+    sql_logic: |
+      CAST(total_runs_conceded AS REAL) / total_wickets. Depends on 'Total Runs Conceded by Bowler' and 'Total Wickets Credited to Bowler'.
+  - metric_name: "Total Wickets by Player per Season"
+    sql_logic: |
+      SELECT M.season_id, BB.bowler AS player_id, COUNT(*) AS total_wickets FROM match AS M JOIN ball_by_ball AS BB ON M.match_id = BB.match_id JOIN wicket_taken AS WT ON BB.match_id = WT.match_id AND BB.over_id = WT.over_id AND BB.ball_id = WT.ball_id AND BB.innings_no = WT.innings_no WHERE WT.kind_out NOT IN ('run out', 'retired hurt', 'obstructing the field', 'handled the ball', 'hit wicket') GROUP BY M.season_id, BB.bowler
+  - metric_name: "Canonical Partnership Identifier"
+    sql_logic: |
+      CASE WHEN striker < non_striker THEN striker ELSE non_striker END AS player_a_id, CASE WHEN striker > non_striker THEN striker ELSE non_striker END AS player_b_id
+  - metric_name: "Total Partnership Score"
+    sql_logic: |
+      SUM(runs_scored) AS total_partnership_score
+  - metric_name: "Individual Contribution to Partnership"
+    sql_logic: |
+      SUM(CASE WHEN striker = player_a_id THEN runs_scored ELSE 0 END) AS player_a_score, SUM(CASE WHEN striker = player_b_id THEN runs_scored ELSE

@@ -1,0 +1,56 @@
+descriptions:
+- table: wicket_taken
+  column: kind_out
+  meaning: Dismissal types 'run out', 'retired hurt', and 'obstructing the field'
+    are not credited to the bowler as a wicket.
+- table: extra_runs
+  column: extra_type
+  meaning: Deliveries of type 'wides' and 'noballs' are not counted as legal balls
+    when calculating a bowler's overs.
+relations: []
+synonyms:
+- nl_term: bowler
+  db_target: ball_by_ball.bowler
+  type: column
+- nl_term: bowling stats
+  db_target: player.player_name, total_wickets_taken, economy_rate, strike_rate, best_bowling_performance
+  type: column
+- nl_term: economy
+  db_target: economy_rate
+  type: column
+- nl_term: strike rate
+  db_target: strike_rate
+  type: column
+- nl_term: best bowling
+  db_target: best_bowling_performance
+  type: column
+- nl_term: wickets
+  db_target: total_wickets_taken
+  type: column
+- nl_term: bowler's wicket
+  db_target: wicket_taken.kind_out IS NOT NULL AND wicket_taken.kind_out NOT IN ('run
+    out', 'retired hurt', 'obstructing the field')
+  type: condition
+- nl_term: legal delivery
+  db_target: extra_runs.extra_type NOT IN ('wides', 'noballs')
+  type: condition
+biz_logic:
+- metric_name: Legal Ball Logic
+  sql_logic: CASE WHEN extra_runs.extra_type IN ('wides', 'noballs') THEN 0 ELSE 1
+    END
+- metric_name: Bowler Wicket Logic
+  sql_logic: CASE WHEN wicket_taken.kind_out IS NOT NULL AND wicket_taken.kind_out
+    NOT IN ('run out', 'retired hurt', 'obstructing the field') THEN 1 ELSE 0 END
+- metric_name: Career Bowling Economy Rate
+  sql_logic: CASE WHEN SUM(legal_balls_bowled) = 0 THEN 0.0 ELSE CAST(SUM(runs_conceded)
+    AS REAL) / (SUM(legal_balls_bowled) / 6.0) END
+- metric_name: Career Bowling Strike Rate
+  sql_logic: CASE WHEN SUM(wickets_taken) = 0 THEN NULL ELSE CAST(SUM(legal_balls_bowled)
+    AS REAL) / SUM(wickets_taken) END
+- metric_name: Best Bowling Performance Ranking
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY bowler_id ORDER BY wickets_taken_match
+    DESC, runs_conceded_match ASC)
+- metric_name: Best Bowling Performance Format
+  sql_logic: printf('%d-%d', wickets_taken_match, runs_conceded_match)
+- metric_name: Runs Conceded From Bat (per ball)
+  sql_logic: COALESCE(batsman_scored.runs_scored, 0)

@@ -9,11 +9,7 @@ relations:
   column_1: interest_id
   table_2: interest_map
   column_2: id
-synonyms:
-- nl_term: top monthly interest
-  db_target: DENSE_RANK() OVER (PARTITION BY SUBSTR(month_year, 4, 4) || '-' || SUBSTR(month_year,
-    1, 2) || '-01' ORDER BY composition * 1.0 / NULLIF(index_value, 0) DESC) = 1
-  type: condition
+synonyms: []
 biz_logic:
 - metric_name: Average Composition
   sql_logic: composition * 1.0 / NULLIF(index_value, 0)
@@ -22,22 +18,17 @@ biz_logic:
 - metric_name: Metric Date from Year/Month
   sql_logic: DATE(CAST(_year AS INTEGER) || '-' || printf('%02d', CAST(_month AS INTEGER))
     || '-01')
-- metric_name: Monthly Interest Rank
-  sql_logic: DENSE_RANK() OVER (PARTITION BY SUBSTR(month_year, 4, 4) || '-' || SUBSTR(month_year,
-    1, 2) || '-01' ORDER BY composition * 1.0 / NULLIF(index_value, 0) DESC)
-- metric_name: 3-Month Rolling Average of Top Interest's Composition
-  sql_logic: AVG(max_index_composition) OVER (ORDER BY SUBSTR(month_year, 4, 4) ||
-    '-' || SUBSTR(month_year, 1, 2) || '-01' ROWS BETWEEN 2 PRECEDING AND CURRENT
-    ROW)
+- metric_name: Monthly Interest Rank for Top Item
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY month_date ORDER BY avg_composition DESC,
+    interest_name ASC)
+- metric_name: 3-Month Rolling Avg of Top Interest Composition
+  sql_logic: AVG(max_index_composition) OVER (ORDER BY month_date ROWS BETWEEN 2 PRECEDING
+    AND CURRENT ROW)
 - metric_name: Previous Month's Top Interest Composition
-  sql_logic: LAG(max_index_composition, 1) OVER (ORDER BY SUBSTR(month_year, 4, 4)
-    || '-' || SUBSTR(month_year, 1, 2) || '-01')
+  sql_logic: LAG(max_index_composition, 1) OVER (ORDER BY month_date)
 - metric_name: Previous Month's Top Interest Name
-  sql_logic: LAG(interest_name, 1) OVER (ORDER BY SUBSTR(month_year, 4, 4) || '-'
-    || SUBSTR(month_year, 1, 2) || '-01')
+  sql_logic: LAG(interest_name, 1) OVER (ORDER BY month_date)
 - metric_name: Two Months Prior Top Interest Composition
-  sql_logic: LAG(max_index_composition, 2) OVER (ORDER BY SUBSTR(month_year, 4, 4)
-    || '-' || SUBSTR(month_year, 1, 2) || '-01')
+  sql_logic: LAG(max_index_composition, 2) OVER (ORDER BY month_date)
 - metric_name: Two Months Prior Top Interest Name
-  sql_logic: LAG(interest_name, 2) OVER (ORDER BY SUBSTR(month_year, 4, 4) || '-'
-    || SUBSTR(month_year, 1, 2) || '-01')
+  sql_logic: LAG(interest_name, 2) OVER (ORDER BY month_date)

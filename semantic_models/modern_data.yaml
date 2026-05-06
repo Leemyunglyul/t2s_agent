@@ -1,0 +1,143 @@
+descriptions:
+  - table: "companies_funding"
+    column: "valuation"
+    meaning: |
+      A valuation of 1,000,000,000 or more indicates the company is a 'unicorn'.
+  - table: "pizza_clean_runner_orders"
+    column: "cancellation"
+    meaning: |
+      A NULL value indicates a successful, non-cancelled (delivered) order.
+  - table: "pizza_clean_customer_orders"
+    column: "exclusions"
+    meaning: |
+      A comma-separated string of topping_ids to be removed. 'None' or empty strings are handled as no exclusions via `NULLIF(TRIM(exclusions), 'None')`.
+  - table: "pizza_clean_customer_orders"
+    column: "extras"
+    meaning: |
+      A comma-separated string of topping_ids to be added. 'None' or empty strings are handled as no extras via `NULLIF(TRIM(extras), 'None')`.
+  - table: "pizza_recipes"
+    column: "toppings"
+    meaning: |
+      The base recipe for a pizza, represented as a comma-separated string of topping_ids.
+  - table: "pizza_names"
+    column: "pizza_name"
+    meaning: |
+      Defines base pizza prices for revenue calculation: 'Meatlovers' is 12, 'Vegetarian' is 10.
+  - table: "pizza_get_extras"
+    column: "extras_count"
+    meaning: |
+      Represents revenue from extras, implying each extra costs $1.
+  - table: "trees"
+    column: "boroname"
+    meaning: |
+      NULL or empty string values are excluded from analysis.
+  - table: "income_trees"
+    column: "Estimate_Median_income"
+    meaning: |
+      Only values greater than 0 are considered valid for analysis.
+  - table: "income_trees"
+    column: "Estimate_Mean_income"
+    meaning: |
+      Only values greater than 0 are considered valid for analysis.
+relations:
+  - table_1: "companies_industries"
+    column_1: "company_id"
+    table_2: "companies_dates"
+    column_2: "company_id"
+  - table_1: "pizza_clean_customer_orders"
+    column_1: "pizza_id"
+    table_2: "pizza_names"
+    column_2: "pizza_id"
+  - table_1: "pizza_clean_customer_orders"
+    column_1: "pizza_id"
+    table_2: "pizza_recipes"
+    column_2: "pizza_id"
+    type: "hidden"
+    join_condition: |
+      Indirect join: pizza_clean_customer_orders.pizza_id -> pizza_names.pizza_name, which maps to a recipe ID via a business rule (CASE WHEN pizza_name = 'Meatlovers' THEN 1 ELSE 2 END).
+  - table_1: "pizza_recipes"
+    column_1: "toppings"
+    table_2: "pizza_toppings"
+    column_2: "topping_id"
+    type: "hidden"
+    join_condition: |
+      The 'toppings' column is a comma-separated string of IDs that correspond to 'topping_id'.
+  - table_1: "pizza_clean_customer_orders"
+    column_1: "extras"
+    table_2: "pizza_toppings"
+    column_2: "topping_id"
+    type: "hidden"
+    join_condition: |
+      The 'extras' column is a comma-separated string of IDs that correspond to 'topping_id'.
+  - table_1: "pizza_clean_customer_orders"
+    column_1: "exclusions"
+    table_2: "pizza_toppings"
+    column_2: "topping_id"
+    type: "hidden"
+    join_condition: |
+      The 'exclusions' column is a comma-separated string of IDs that correspond to 'topping_id'.
+  - table_1: "trees"
+    column_1: "zipcode"
+    table_2: "income_trees"
+    column_2: "zipcode"
+synonyms:
+  - nl_term: "unicorn"
+    db_target: "valuation >= 1000000000"
+    type: "condition"
+  - nl_term: "joined year"
+    db_target: "STRFTIME('%Y', companies_dates.date_joined)"
+    type: "column"
+  - nl_term: "new unicorn count"
+    db_target: "COUNT(DISTINCT company_id)"
+    type: "column"
+  - nl_term: "successful order, delivered order, successful orders"
+    db_target: "pizza_clean_runner_orders.cancellation IS NULL"
+    type: "condition"
+  - nl_term: "base toppings"
+    db_target: "pizza_recipes.toppings"
+    type: "column"
+  - nl_term: "extra toppings"
+    db_target: "pizza_clean_customer_orders.extras"
+    type: "column"
+  - nl_term: "excluded toppings"
+    db_target: "pizza_clean_customer_orders.exclusions"
+    type: "column"
+  - nl_term: "total earnings"
+    db_target: "total_earnings"
+    type: "column"
+  - nl_term: "good health"
+    db_target: "health = 'Good'"
+    type: "condition"
+  - nl_term: "Bronx"
+    db_target: "boroname = 'Bronx'"
+    type: "condition"
+  - nl_term: "top industry"
+    db_target: "SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1"
+    type: "value"
+biz_logic:
+  - metric_name: "Final Pizza Ingredients Calculation"
+    sql_logic: |
+      The final ingredient list for an ordered pizza is calculated through a multi-step process:
+      1. Recipe Mapping: The pizza name is mapped to a recipe ID ('Meatlovers' -> 1, others -> 2).
+      2. ID Parsing: A recursive CTE unnests the comma-separated topping IDs from the base recipe, added extras, and removed exclusions. Empty or 'None' strings are handled as NULL.
+      3. Ingredient Aggregation: Base toppings and extras are combined, and then exclusions are removed from this set.
+      4. Formatting: Ingredients that appear more than once (e.g., in the base recipe and as an extra) are prefixed with '2x '.
+      5. Uniqueness: To handle multiple identical pizzas within the same order, a unique `row_id` is generated for each item using `ROW_NUMBER()`.
+  - metric_name: "Total Order Revenue"
+    sql_logic: |
+      Total revenue is the sum of Base Pizza Revenue and Extras Revenue for all successful orders (where cancellation IS NULL). Base revenue is calculated as SUM(CASE WHEN pizza_name = 'Meatlovers' THEN 12 WHEN pizza_name = 'Vegetarian' THEN 10 END). Extras revenue is SUM(extras_count), where each extra costs $1.
+  - metric_name: "Top Industry by Company Count"
+    sql_logic: |
+      SELECT T1.industry FROM companies_industries AS T1 JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1
+  - metric_name: "Percentage of Good Health Trees"
+    sql_logic: |
+      (SUM(CASE WHEN health = 'Good' THEN 1 ELSE 0 END) * 1.0 / NULLIF(COUNT(*), 0)) * 100.0
+  - metric_name: "Top 3 Boroughs by Tree Count"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY COUNT(tree_id) DESC) <= 3
+  - metric_name: "tree_count_per_borough"
+    sql_logic: |
+      COUNT(tree_id) GROUP BY boroname
+  - metric_name: "average_mean_income_per_borough"
+    sql_logic: |
+      AVG(Estimate_Mean_income) GROUP BY boroname

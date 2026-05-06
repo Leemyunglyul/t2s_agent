@@ -1,0 +1,287 @@
+descriptions:
+  - table: "alien_data"
+    column: "aggressive"
+    meaning: |
+      Defines the disposition of the alien; 0 indicates friendly, 1 indicates hostile.
+  - table: "cities"
+    column: "country_code_2"
+    meaning: |
+      The value 'cn' in this column represents the country China.
+  - table: "cities"
+    column: "capital"
+    meaning: |
+      A value of 1 indicates that the city is a capital city.
+  - table: "cities"
+    column: "insert_date"
+    meaning: |
+      The date when the city record was inserted, used for time-based analysis and identifying consecutive activity periods (streaks).
+  - table: "job_postings_fact"
+    column: "job_work_from_home"
+    meaning: |
+      A boolean flag where 1 indicates the job allows working from home.
+  - table: "job_postings_fact"
+    column: "job_title_short"
+    meaning: |
+      A standardized short title for the job role, e.g., 'Data Analyst'.
+  - table: "legislators"
+    column: "gender"
+    meaning: |
+      The gender of the legislator, where 'M' represents Male and 'F' represents Female.
+  - table: "legislators_terms"
+    column: "term_start"
+    meaning: |
+      The start date of a legislator's term. The earliest term_start for a legislator is considered their first day in office.
+  - table: "legislators_terms"
+    column: "term_end"
+    meaning: |
+      The end date of a legislator's term. Used with term_start to determine if a legislator was active during a specific time period.
+  - table: "legislators_terms"
+    column: "state"
+    meaning: |
+      The value 'LA' in this column represents the state of Louisiana.
+relations:
+  - table_1: "legislators"
+    column_1: "id_bioguide"
+    table_2: "legislators_terms"
+    column_2: "id_bioguide"
+synonyms:
+  - nl_term: "china"
+    db_target: "country_code_2 = 'cn'"
+    type: "condition"
+  - nl_term: "july 2021"
+    db_target: "strftime('%Y-%m', insert_date) = '2021-07'"
+    type: "condition"
+  - nl_term: "June 2022"
+    db_target: "insert_date BETWEEN '2022-06-01' AND '2022-06-30'"
+    type: "condition"
+  - nl_term: "title case city name"
+    db_target: "UPPER(SUBSTR(city_name, 1, 1)) || LOWER(SUBSTR(city_name, 2))"
+    type: "column"
+  - nl_term: "data analyst"
+    db_target: "job_postings_fact.job_title_short = 'Data Analyst'"
+    type: "condition"
+  - nl_term: "work from home"
+    db_target: "job_postings_fact.job_work_from_home = 1"
+    type: "condition"
+  - nl_term: "salary"
+    db_target: "job_postings_fact.salary_year_avg"
+    type: "column"
+  - nl_term: "skills"
+    db_target: "skills_dim"
+    type: "table"
+  - nl_term: "female"
+    db_target: "'''F'''"
+    type: "value"
+  - nl_term: "male"
+    db_target: "'''M'''"
+    type: "value"
+  - nl_term: "served over a new year"
+    db_target: "term_end >= DATE(strftime('%Y', term_start) || '-12-31') AND term_start <= DATE(strftime('%Y', term_end) || '-12-31')"
+    type: "condition"
+  - nl_term: "first term"
+    db_target: "ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC) = 1"
+    type: "condition"
+  - nl_term: "friendly aliens"
+    db_target: "aggressive = 0"
+    type: "condition"
+  - nl_term: "hostile aliens"
+    db_target: "aggressive = 1"
+    type: "condition"
+  - nl_term: "top 10 states by population"
+    db_target: "DENSE_RANK() OVER (ORDER BY COUNT(id) DESC) <= 10"
+    type: "condition"
+  - nl_term: "more friendly than hostile aliens"
+    db_target: "SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0 END) > SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0 END)"
+    type: "condition"
+  - nl_term: "first term start date, first term date"
+    db_target: "MIN(legislators_terms.term_start)"
+    type: "value"
+  - nl_term: "initial cohort"
+    db_target: "legislators_terms.term_start BETWEEN '1917-01-01' AND '1999-12-31'"
+    type: "condition"
+  - nl_term: "retained legislator"
+    db_target: "A legislator is considered retained in a year if they have a term covering the end of that year."
+    type: "value"
+  - nl_term: "retention rate"
+    db_target: "retained_count / cohort_size"
+    type: "value"
+  - nl_term: "legislator"
+    db_target: "legislators"
+    type: "table"
+  - nl_term: "legislator term"
+    db_target: "legislators_terms"
+    type: "table"
+  - nl_term: "male legislator"
+    db_target: "legislators.gender = 'M'"
+    type: "condition"
+  - nl_term: "female legislator"
+    db_target: "legislators.gender = 'F'"
+    type: "condition"
+  - nl_term: "represented LA"
+    db_target: "legislators_terms.state = 'LA'"
+    type: "condition"
+  - nl_term: "active during year"
+    db_target: "year || '-12-31' >= term_start AND year || '-12-31' <= term_end"
+    type: "condition"
+  - nl_term: "tenure, years of service"
+    db_target: "CAST(current_year AS INTEGER) - CAST(STRFTIME('%Y', first_term_date) AS INTEGER)"
+    type: "column"
+  - nl_term: "country"
+    db_target: "cities.country_code_2"
+    type: "column"
+  - nl_term: "city insertion"
+    db_target: "cities"
+    type: "table"
+  - nl_term: "consecutive day streak"
+    db_target: "DATE(insert_date, '-' || ROW_NUMBER() OVER (ORDER BY insert_date) || ' days')"
+    type: "condition"
+biz_logic:
+  - metric_name: "Longest Consecutive Activity Period (Gaps and Islands)"
+    sql_logic: |
+      To find the longest consecutive period of dates with data, a 'gaps and islands' algorithm is used. A grouping key is created by subtracting a generated row number from each date: `DATE(insert_date, ''-'' || ROW_NUMBER() OVER (ORDER BY insert_date) || '' days'')`. Grouping by this key identifies consecutive date sequences (islands), from which the longest can be found.
+  - metric_name: "Gaps and Islands Grouping Key"
+    sql_logic: |
+      julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER BY insert_date)
+  - metric_name: "Daily Record Deduplication"
+    sql_logic: |
+      ROW_NUMBER() OVER (PARTITION BY insert_date ORDER BY city_id)
+  - metric_name: "Streak Length"
+    sql_logic: |
+      COUNT(DISTINCT insert_date)
+  - metric_name: "proportion_of_capital_entries"
+    sql_logic: |
+      CAST(SUM(capital) AS REAL) * 1.0 / COUNT(city_id)
+  - metric_name: "Country Cohort with 9 Active Days in Jan 2022"
+    sql_logic: |
+      SELECT country_code_2 FROM cities WHERE STRFTIME('%Y-%m', insert_date) = '2022-01' GROUP BY country_code_2 HAVING COUNT(DISTINCT insert_date) = 9
+  - metric_name: "monthly_yoy_growth"
+    sql_logic: |
+      CASE WHEN LAG(COUNT(city_id), 1, 0) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)) = 0 THEN NULL ELSE (COUNT(city_id) - LAG(COUNT(city_id), 1, 0) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date))) * 100.0 / LAG(COUNT(city_id), 1, 0) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)) END
+  - metric_name: "cumulative_yoy_growth"
+    sql_logic: |
+      CASE WHEN LAG(SUM(COUNT(city_id)) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)), 1, 0) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)) = 0 THEN NULL ELSE (SUM(COUNT(city_id)) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)) - LAG(SUM(COUNT(city_id)) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)), 1, 0) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date))) * 100.0 / LAG(SUM(COUNT(city_id)) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)), 1, 0) OVER (PARTITION BY STRFTIME('%m', insert_date) ORDER BY STRFTIME('%Y', insert_date)) END
+  - metric_name: "Skill Demand"
+    sql_logic: |
+      COUNT(DISTINCT job_id) GROUP BY skill_id
+  - metric_name: "Top 3 Skills by Job Count"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY job_count DESC) <= 3
+  - metric_name: "First Legislator Term"
+    sql_logic: |
+      ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC)
+  - metric_name: "Term Spanning Year-End"
+    sql_logic: |
+      term_end >= DATE(strftime('%Y', term_start) || '-12-31') AND term_start <= DATE(strftime('%Y', term_end) || '-12-31')
+  - metric_name: "state_rank_by_population"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY COUNT(id) DESC)
+  - metric_name: "Legislator Retention Rate"
+    sql_logic: |
+      CAST(COALESCE(retained_count, 0) AS REAL) * 1.0 / cohort_size
+  - metric_name: "Legislator First Term Start"
+    sql_logic: |
+      SELECT id_bioguide, MIN(term_start) AS first_term_start_date FROM legislators_terms GROUP BY id_bioguide
+  - metric_name: "Legislator Cohort Definition"
+    sql_logic: |
+      first_term_start_date BETWEEN '1917-01-01' AND '1999-12-31'
+  - metric_name: "Legislator Yearly Retention Check"
+    sql_logic: |
+      term_start <= retention_check_date AND term_end >= retention_check_date
+  - metric_name: "Legislator Retention at Year X"
+    sql_logic: |
+      MAX(CASE WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y', gft.global_first_term_start, '+X years') || '-12-31') AND lt_all_terms.term_end >= DATE(STRFTIME('%Y', gft.global_first_term_start, '+X years') || '-12-31') THEN 1 ELSE 0 END)
+  - metric_name: "Valid State-Gender Cohort"
+    sql_logic: |
+      GROUP BY state, gender HAVING SUM(retained_at_0) > 0 AND SUM(retained_at_2) > 0 AND SUM(retained_at_4) > 0 AND SUM(retained_at_6) > 0 AND SUM(retained_at_8) > 0 AND SUM(retained_at_10) > 0
+  - metric_name: "State with Dual-Gender Valid Cohorts"
+    sql_logic: |
+      GROUP BY state HAVING COUNT(gender) = 2
+  - metric_name: "Legislator Tenure"
+    sql_logic: |
+      CAST(active_year AS INTEGER) - CAST(STRFTIME('%Y', first_term_start_date) AS INTEGER)
+  - metric_name: "Country with Longest Consecutive Insertion Streak"
+    sql_logic: |
+      WITH FilteredDates AS (
+        SELECT DISTINCT
+          country_code_2,
+          insert_date
+        FROM cities
+        WHERE
+          insert_date BETWEEN '2022-06-01' AND '2022-06-30'
+      ), DateGroups AS (
+        SELECT
+          country_code_2,
+          insert_date,
+          julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER BY insert_date) AS grouping_key
+        FROM FilteredDates
+      ), StreakCounts AS (
+        SELECT
+          country_code_2,
+          COUNT(insert_date) AS streak_length
+        FROM DateGroups
+        GROUP BY
+          country_code_2,
+          grouping_key
+      ), CountryMaxStreaks AS (
+        SELECT
+          country_code_2,
+          MAX(streak_length) AS max_streak
+        FROM StreakCounts
+        GROUP BY
+          country_code_2
+      ), RankedCountries AS (
+        SELECT
+          country_code_2,
+          DENSE_RANK() OVER (ORDER BY max_streak DESC) AS rnk
+        FROM CountryMaxStreaks
+      )
+      SELECT
+        country_code_2
+      FROM RankedCountries
+      WHERE
+        rnk = 1
+  - metric_name: "total_alien_population"
+    sql_logic: |
+      COUNT(id)
+  - metric_name: "friendly_aliens_count"
+    sql_logic: |
+      SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0 END)
+  - metric_name: "hostile_aliens_count"
+    sql_logic: |
+      SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0 END)
+  - metric_name: "average_alien_age"
+    sql_logic: |
+      AVG(age)
+  - metric_name: "Global First Term Start Date"
+    sql_logic: |
+      MIN(term_start)
+  - metric_name: "overall_average_salary"
+    sql_logic: |
+      AVG(salary_year_avg) FROM JobsWithTopSkills
+  - metric_name: "Min/Max Streak Length Aggregation"
+    sql_logic: |
+      MIN(streak_length), MAX(streak_length)
+  - metric_name: "Streak Type Categorization"
+    sql_logic: |
+      CASE WHEN streak_length = min_len THEN 'shortest' WHEN streak_length = max_len THEN 'longest' END
+  - metric_name: "Title Case Formatting"
+    sql_logic: |
+      UPPER(SUBSTR(string_value, 1, 1)) || LOWER(SUBSTR(string_value, 2))
+  - metric_name: "year"
+    sql_logic: |
+      CAST(STRFTIME('%Y', insert_date) AS INTEGER)
+  - metric_name: "month"
+    sql_logic: |
+      CAST(STRFTIME('%m', insert_date) AS INTEGER)
+  - metric_name: "monthly_total"
+    sql_logic: |
+      COUNT(city_id)
+  - metric_name: "cumulative_running_total"
+    sql_logic: |
+      SUM(monthly_total) OVER (PARTITION BY month ORDER BY year)
+  - metric_name: "previous_year_monthly_total"
+    sql_logic: |
+      LAG(monthly_total, 1, 0) OVER (PARTITION BY month ORDER BY year)
+  - metric_name: "previous_year_cumulative_total"
+    sql_logic: |
+      LAG(cumulative_running_total, 1, 0) OVER (PARTITION BY month ORDER BY year)

@@ -17,13 +17,20 @@ synonyms:
 - nl_term: number of orders
   db_target: COUNT(order_id)
   type: column
+- nl_term: month name
+  db_target: CASE STRFTIME('%m', order_delivered_customer_date) WHEN '01' THEN 'January'
+    WHEN '02' THEN 'February' WHEN '03' THEN 'March' WHEN '04' THEN 'April' WHEN '05'
+    THEN 'May' WHEN '06' THEN 'June' WHEN '07' THEN 'July' WHEN '08' THEN 'August'
+    WHEN '09' THEN 'September' WHEN '10' THEN 'October' WHEN '11' THEN 'November'
+    WHEN '12' THEN 'December' END
+  type: column
 biz_logic:
 - metric_name: DeliveredOrders
   sql_logic: SELECT order_id, order_delivered_customer_date FROM olist_orders WHERE
     order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
 - metric_name: Annual Order Count Pivot
   sql_logic: COUNT(CASE WHEN STRFTIME('%Y', order_delivered_customer_date) = 'YYYY'
-    THEN order_id END)
+    THEN order_id ELSE NULL END)
 - metric_name: Month Name from Date
   sql_logic: CASE STRFTIME('%m', date_column) WHEN '01' THEN 'January' WHEN '02' THEN
     'February' WHEN '03' THEN 'March' WHEN '04' THEN 'April' WHEN '05' THEN 'May'

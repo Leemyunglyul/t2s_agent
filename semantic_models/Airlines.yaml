@@ -1,0 +1,21 @@
+descriptions:
+  - table: "airports_data"
+    column: "city"
+    meaning: |
+      A JSONB column with city names in multiple languages. Access the English name using `city ->> 'en'`.
+  - table: "airports_data"
+    column: "coordinates"
+    meaning: |
+      A string-based 'point' column storing '(longitude,latitude)'. Requires string parsing to extract numeric values.
+relations: []
+synonyms: []
+biz_logic:
+  - metric_name: "longitude_from_point_string"
+    sql_logic: |
+      CAST(SUBSTR(coordinates, 2, INSTR(coordinates, ',') - 2) AS REAL)
+  - metric_name: "latitude_from_point_string"
+    sql_logic: |
+      CAST(SUBSTR(coordinates, INSTR(coordinates, ',') + 1, LENGTH(coordinates) - (INSTR(coordinates, ',') + 1) - 1) AS REAL)
+  - metric_name: "haversine_distance_km"
+    sql_logic: |
+      (6371 * 2 * ASIN(SQRT(POWER(SIN(((lat2 - lat1) * PI() / 180.0) / 2), 2) + COS(lat1 * PI() / 180.0) * COS(lat2 * PI() / 180.0) * POWER(SIN(((lon2 - lon1) * PI() / 180.0) / 2), 2))))
