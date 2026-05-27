@@ -1,0 +1,627 @@
+databases:
+- IPL
+descriptions:
+- table: player
+  column: player_id
+  meaning: Unique identifier for a cricket player.
+- table: player
+  column: player_name
+  meaning: Name of the cricket player.
+- table: player
+  column: dob
+  meaning: Date of birth of the player.
+- table: player
+  column: batting_hand
+  meaning: Player's dominant hand for batting (e.g., 'Right', 'Left').
+- table: player
+  column: bowling_skill
+  meaning: |-
+    Player's bowling skill type (e.g., 'Fast', 'Spin', 'Medium').
+- table: player
+  column: country_name
+  meaning: Country the player represents.
+- table: team
+  column: team_id
+  meaning: Unique identifier for a cricket team.
+- table: team
+  column: name
+  meaning: Name of the cricket team.
+- table: match
+  column: match_id
+  meaning: Unique identifier for a cricket match.
+- table: match
+  column: team_1
+  meaning: ID of the first team participating in the match.
+- table: match
+  column: team_2
+  meaning: ID of the second team participating in the match.
+- table: match
+  column: match_date
+  meaning: Date when the match was played.
+- table: match
+  column: season_id
+  meaning: Identifier for the season in which the match took place.
+- table: match
+  column: venue
+  meaning: Location or stadium where the match was played.
+- table: match
+  column: toss_winner
+  meaning: ID of the team that won the coin toss.
+- table: match
+  column: toss_decision
+  meaning: |-
+    Decision made by the toss-winning team (e.g., 'Bat', 'Bowl').
+- table: match
+  column: win_type
+  meaning: Method by which the match was won (e.g., 'runs', 'wickets').
+- table: match
+  column: win_margin
+  meaning: Margin of victory (e.g., number of runs or wickets).
+- table: match
+  column: outcome_type
+  meaning: |-
+    Overall outcome of the match (e.g., 'normal', 'tie', 'no result').
+- table: match
+  column: match_winner
+  meaning: ID of the team that won the match.
+- table: match
+  column: man_of_the_match
+  meaning: ID of the player awarded 'Man of the Match'.
+- table: player_match
+  column: match_id
+  meaning: Identifier for the match.
+- table: player_match
+  column: player_id
+  meaning: Identifier for the player.
+- table: player_match
+  column: role
+  meaning: |-
+    Player's role in the specific match (e.g., 'Captain', 'Wicketkeeper').
+- table: player_match
+  column: team_id
+  meaning: ID of the team the player represented in the match.
+- table: ball_by_ball
+  column: match_id
+  meaning: Identifier for the match.
+- table: ball_by_ball
+  column: over_id
+  meaning: Identifier for the over within an innings.
+- table: ball_by_ball
+  column: ball_id
+  meaning: Identifier for the ball within an over.
+- table: ball_by_ball
+  column: innings_no
+  meaning: Number of the innings (e.g., 1st, 2nd).
+- table: ball_by_ball
+  column: team_batting
+  meaning: ID of the team currently batting.
+- table: ball_by_ball
+  column: team_bowling
+  meaning: ID of the team currently bowling.
+- table: ball_by_ball
+  column: striker_batting_position
+  meaning: Batting order position of the striker.
+- table: ball_by_ball
+  column: striker
+  meaning: ID of the player currently batting (striker).
+- table: ball_by_ball
+  column: non_striker
+  meaning: ID of the player at the non-striker's end.
+- table: ball_by_ball
+  column: bowler
+  meaning: ID of the player currently bowling.
+- table: batsman_scored
+  column: match_id
+  meaning: Identifier for the match.
+- table: batsman_scored
+  column: over_id
+  meaning: Identifier for the over.
+- table: batsman_scored
+  column: ball_id
+  meaning: Identifier for the ball.
+- table: batsman_scored
+  column: runs_scored
+  meaning: Number of runs scored by the batsman on this ball.
+- table: batsman_scored
+  column: innings_no
+  meaning: Number of the innings.
+- table: wicket_taken
+  column: match_id
+  meaning: Identifier for the match.
+- table: wicket_taken
+  column: over_id
+  meaning: Identifier for the over.
+- table: wicket_taken
+  column: ball_id
+  meaning: Identifier for the ball.
+- table: wicket_taken
+  column: player_out
+  meaning: ID of the player who was dismissed.
+- table: wicket_taken
+  column: kind_out
+  meaning: |-
+    Type of dismissal (e.g., 'bowled', 'caught', 'lbw', 'run out').
+- table: wicket_taken
+  column: innings_no
+  meaning: Number of the innings.
+- table: extra_runs
+  column: match_id
+  meaning: Identifier for the match.
+- table: extra_runs
+  column: over_id
+  meaning: Identifier for the over.
+- table: extra_runs
+  column: ball_id
+  meaning: Identifier for the ball.
+- table: extra_runs
+  column: extra_type
+  meaning: |-
+    Type of extra run (e.g., 'wides', 'noballs', 'byes', 'legbyes').
+- table: extra_runs
+  column: extra_runs
+  meaning: Number of extra runs conceded on this ball.
+- table: extra_runs
+  column: innings_no
+  meaning: Number of the innings.
+- table: player_stats
+  column: average_runs_per_match
+  meaning: |-
+    The average number of runs scored by a player per match played in a given season.
+- table: player_stats
+  column: batting_average
+  meaning: |-
+    The average number of runs scored by a player per dismissal in a given season.
+relations:
+- table_1: player
+  column_1: player_id
+  table_2: ball_by_ball
+  column_2: bowler
+  meaning: Links a player to the balls they bowled.
+- table_1: player
+  column_1: player_id
+  table_2: player_match
+  column_2: player_id
+  meaning: Links a player to their participation in a match.
+- table_1: player
+  column_1: player_id
+  table_2: match
+  column_2: man_of_the_match
+  meaning: Links a player to being awarded Man of the Match.
+- table_1: team
+  column_1: team_id
+  table_2: match
+  column_2: team_1
+  meaning: Links a team to being the first team in a match.
+- table_1: team
+  column_1: team_id
+  table_2: match
+  column_2: team_2
+  meaning: Links a team to being the second team in a match.
+- table_1: match
+  column_1: match_id
+  table_2: ball_by_ball
+  column_2: match_id
+  meaning: Links a match to its ball-by-ball details.
+- table_1: player
+  column_1: player_id
+  table_2: ball_by_ball
+  column_2: striker
+  meaning: A player can be the striker for a ball.
+- table_1: player
+  column_1: player_id
+  table_2: ball_by_ball
+  column_2: non_striker
+  meaning: A player can be the non-striker for a ball.
+- table_1: player
+  column_1: player_id
+  table_2: wicket_taken
+  column_2: player_out
+  meaning: A player can be dismissed (out).
+- table_1: team
+  column_1: team_id
+  table_2: match
+  column_2: toss_winner
+  meaning: A team can win the toss in a match.
+- table_1: team
+  column_1: team_id
+  table_2: match
+  column_2: match_winner
+  meaning: A team can win a match.
+- table_1: team
+  column_1: team_id
+  table_2: player_match
+  column_2: team_id
+  meaning: A player plays for a team in a match.
+- table_1: team
+  column_1: team_id
+  table_2: ball_by_ball
+  column_2: team_batting
+  meaning: A team is batting during a ball.
+- table_1: team
+  column_1: team_id
+  table_2: ball_by_ball
+  column_2: team_bowling
+  meaning: A team is bowling during a ball.
+- table_1: match
+  column_1: match_id
+  table_2: player_match
+  column_2: match_id
+  meaning: A match has players participating.
+- table_1: ball_by_ball
+  column_1: match_id
+  table_2: batsman_scored
+  column_2: match_id
+  meaning: Each ball has associated runs scored by the batsman.
+- table_1: ball_by_ball
+  column_1: over_id
+  table_2: batsman_scored
+  column_2: over_id
+  meaning: Each ball has associated runs scored by the batsman.
+- table_1: ball_by_ball
+  column_1: ball_id
+  table_2: batsman_scored
+  column_2: ball_id
+  meaning: Each ball has associated runs scored by the batsman.
+- table_1: ball_by_ball
+  column_1: innings_no
+  table_2: batsman_scored
+  column_2: innings_no
+  meaning: Each ball has associated runs scored by the batsman.
+- table_1: ball_by_ball
+  column_1: match_id
+  table_2: wicket_taken
+  column_2: match_id
+  meaning: A ball can result in a wicket being taken.
+- table_1: ball_by_ball
+  column_1: over_id
+  table_2: wicket_taken
+  column_2: over_id
+  meaning: A ball can result in a wicket being taken.
+- table_1: ball_by_ball
+  column_1: ball_id
+  table_2: wicket_taken
+  column_2: ball_id
+  meaning: A ball can result in a wicket being taken.
+- table_1: ball_by_ball
+  column_1: innings_no
+  table_2: wicket_taken
+  column_2: innings_no
+  meaning: A ball can result in a wicket being taken.
+- table_1: ball_by_ball
+  column_1: match_id
+  table_2: extra_runs
+  column_2: match_id
+  meaning: A ball can have extra runs associated with it.
+- table_1: ball_by_ball
+  column_1: over_id
+  table_2: extra_runs
+  column_2: over_id
+  meaning: A ball can have extra runs associated with it.
+- table_1: ball_by_ball
+  column_1: ball_id
+  table_2: extra_runs
+  column_2: ball_id
+  meaning: A ball can have extra runs associated with it.
+- table_1: ball_by_ball
+  column_1: innings_no
+  table_2: extra_runs
+  column_2: innings_no
+  meaning: A ball can have extra runs associated with it.
+- table_1: match
+  column_1: match_id
+  table_2: batsman_scored
+  column_2: match_id
+  meaning: Runs are scored in a match.
+- table_1: match
+  column_1: match_id
+  table_2: wicket_taken
+  column_2: match_id
+  meaning: Wickets can be taken in a match.
+- table_1: match
+  column_1: match_id
+  table_2: extra_runs
+  column_2: match_id
+  meaning: Extra runs can be conceded in a match.
+- table_1: ball_by_ball
+  column_1: match_id, over_id, ball_id, innings_no
+  table_2: batsman_scored
+  column_2: match_id, over_id, ball_id, innings_no
+  meaning: Each ball bowled can result in batsman scored runs.
+- table_1: ball_by_ball
+  column_1: match_id, over_id, ball_id, innings_no
+  table_2: wicket_taken
+  column_2: match_id, over_id, ball_id, innings_no
+  meaning: Each ball bowled can result in a wicket being taken.
+- table_1: ball_by_ball
+  column_1: match_id, over_id, ball_id, innings_no
+  table_2: extra_runs
+  column_2: match_id, over_id, ball_id, innings_no
+  meaning: Each ball bowled can result in extra runs being conceded.
+synonyms:
+- nl_term: total runs scored
+  db_target: SUM(batsman_scored.runs_scored)
+  type: value
+- nl_term: strikers
+  db_target: ball_by_ball.striker
+  type: column
+- nl_term: more than 50 runs
+  db_target: runs_in_match > 50
+  type: condition
+- nl_term: average
+  db_target: AVG()
+  type: value
+- nl_term: single match
+  db_target: match_id
+  type: column
+- nl_term: player name
+  db_target: player.player_name
+  type: column
+- nl_term: runs scored
+  db_target: batsman_scored.runs_scored
+  type: column
+- nl_term: match
+  db_target: match.match_id
+  type: column
+- nl_term: team
+  db_target: team.name
+  type: column
+- nl_term: lost that match
+  db_target: match.match_winner
+  type: condition
+- nl_term: no less than 100 runs
+  db_target: total_runs >= 100
+  type: condition
+- nl_term: centurion
+  db_target: total_runs >= 100
+  type: condition
+- nl_term: season 5
+  db_target: match.season_id = 5
+  type: condition
+- nl_term: players
+  db_target: player.player_name
+  type: column
+- nl_term: average runs per match
+  db_target: average_runs_per_match
+  type: value
+- nl_term: batting averages
+  db_target: batting_average
+  type: value
+- nl_term: top 5
+  db_target: rp.rank <= 5
+  type: condition
+- nl_term: runs
+  db_target: batsman_scored.runs_scored
+  type: column
+- nl_term: extra runs
+  db_target: extra_runs.extra_runs
+  type: column
+- nl_term: over
+  db_target: ball_by_ball.over_id
+  type: column
+- nl_term: innings
+  db_target: ball_by_ball.innings_no
+  type: column
+- nl_term: bowler
+  db_target: ball_by_ball.bowler
+  type: column
+- nl_term: highest total runs
+  db_target: total_runs_in_over
+  type: value
+- nl_term: average of highest over totals
+  db_target: average_highest_over_runs
+  type: value
+- nl_term: player ID
+  db_target: player.player_id
+  type: column
+- nl_term: match ID
+  db_target: match.match_id
+  type: column
+- nl_term: partnership runs
+  db_target: total_partnership_score
+  type: value
+- nl_term: individual score
+  db_target: player_a_score
+  type: value
+- nl_term: highest number of partnership runs
+  db_target: partnership_rank = 1
+  type: condition
+- nl_term: player 1
+  db_target: player_1_id
+  type: column
+- nl_term: player 2
+  db_target: player_2_id
+  type: column
+- nl_term: player 1 score
+  db_target: player_1_score
+  type: column
+- nl_term: player 2 score
+  db_target: player_2_score
+  type: column
+- nl_term: total number of wickets taken
+  db_target: total_wickets_taken
+  type: column
+- nl_term: economy rate
+  db_target: economy_rate
+  type: column
+- nl_term: total runs conceded
+  db_target: total_runs_conceded
+  type: column
+- nl_term: total overs bowled
+  db_target: total_legal_balls_bowled / 6.0
+  type: value
+- nl_term: runs scored off the bat
+  db_target: batsman_scored.runs_scored
+  type: column
+- nl_term: extra runs like wides and no-balls
+  db_target: extra_runs.extra_type IN ('wides', 'noballs')
+  type: condition
+- nl_term: strike rate
+  db_target: strike_rate
+  type: column
+- nl_term: average number of balls bowled per wicket taken
+  db_target: total_legal_balls_bowled / total_wickets_taken
+  type: value
+- nl_term: best bowling performance
+  db_target: best_bowling_performance
+  type: column
+- nl_term: wickets-runs
+  db_target: |-
+    printf('%d-%d', bbp.wickets_taken_match, bbp.runs_conceded_match)
+  type: value
+- nl_term: |-
+    excluding run-outs and other dismissals not attributed to the bowler
+  db_target: |-
+    wt.kind_out NOT IN ('run out', 'retired hurt', 'obstructing the field')
+  type: condition
+biz_logic:
+- metric_name: average_total_career_runs_for_high_scoring_strikers
+  sql_logic: |-
+    WITH striker_runs_per_match AS
+      (SELECT bb.striker, bb.match_id, SUM(bs.runs_scored) AS runs_in_match
+       FROM ball_by_ball AS bb
+       INNER JOIN batsman_scored AS bs ON bb.match_id = bs.match_id
+       AND bb.over_id = bs.over_id
+       AND bb.ball_id = bs.ball_id
+       AND bb.innings_no = bs.innings_no
+       GROUP BY bb.striker, bb.match_id),
+         qualifying_strikers AS
+      (SELECT DISTINCT striker
+       FROM striker_runs_per_match
+       WHERE runs_in_match > 50),
+         all_strikers_career_runs AS
+      (SELECT striker, SUM(runs_in_match) AS total_career_runs
+       FROM striker_runs_per_match
+       GROUP BY striker)
+    SELECT AVG(ascr.total_career_runs)
+    FROM all_strikers_career_runs AS ascr
+    INNER JOIN qualifying_strikers AS qs ON ascr.striker = qs.striker;
+- metric_name: Players Scoring 100+ Runs in a Losing Match
+  sql_logic: |-
+    WITH PlayerMatchRuns AS
+      (SELECT bb.match_id, bb.striker AS player_id, SUM(bs.runs_scored) AS total_runs
+       FROM ball_by_ball AS bb
+       INNER JOIN batsman_scored AS bs ON bb.match_id = bs.match_id
+       AND bb.over_id = bs.over_id
+       AND bb.ball_id = bs.ball_id
+       AND bb.innings_no = bs.innings_no
+       GROUP BY bb.match_id, bb.striker),
+         LosingTeams AS
+      (SELECT match_id,
+              CASE WHEN match_winner = team_1 THEN team_2 ELSE team_1
+              END AS losing_team_id
+       FROM MATCH
+       WHERE match_winner IS NOT NULL),
+         CenturionsInLosingMatches AS
+      (SELECT pmr.player_id
+       FROM PlayerMatchRuns AS pmr
+       INNER JOIN LosingTeams AS lt ON pmr.match_id = lt.match_id
+       INNER JOIN player_match AS pm ON pmr.match_id = pm.match_id
+       AND pmr.player_id = pm.player_id
+       WHERE pmr.total_runs >= 100
+         AND pm.team_id = lt.losing_team_id)
+    SELECT DISTINCT p.player_name
+    FROM CenturionsInLosingMatches AS clm
+    INNER JOIN player AS p ON clm.player_id = p.player_id;
+- metric_name: Total Runs Scored by Player in Season
+  sql_logic: |-
+    SUM(bs.runs_scored) AS total_runs
+    FROM ball_by_ball AS bb
+    INNER JOIN batsman_scored AS bs ON bb.match_id = bs.match_id
+    AND bb.over_id = bs.over_id
+    AND bb.ball_id = bs.ball_id
+    AND bb.innings_no = bs.innings_no
+    WHERE bb.striker = [player_id]
+      AND bb.match_id IN
+        (SELECT match_id
+         FROM MATCH
+         WHERE season_id = [season_id])
+- metric_name: Matches Played by Player in Season
+  sql_logic: |-
+    COUNT(DISTINCT pm.match_id) AS matches_played
+    FROM player_match AS pm
+    WHERE pm.player_id = [player_id]
+      AND pm.match_id IN
+        (SELECT match_id
+         FROM MATCH
+         WHERE season_id = [season_id])
+- metric_name: Total Dismissals for Player in Season
+  sql_logic: |-
+    COUNT(wt.player_out) AS total_dismissals
+    FROM wicket_taken AS wt
+    WHERE wt.player_out = [player_id]
+      AND wt.match_id IN
+        (SELECT match_id
+         FROM MATCH
+         WHERE season_id = [season_id])
+- metric_name: Average Runs Per Match
+  sql_logic: |-
+    CAST(COALESCE(total_runs, 0) AS REAL) / COALESCE(matches_played,
+                                              1)
+- metric_name: Batting Average
+  sql_logic: |-
+    CASE WHEN COALESCE(total_dismissals, 0) = 0 THEN NULL ELSE CAST(COALESCE(total_runs,
+                                                                      0) AS REAL) / COALESCE(total_dismissals,
+
+                                                                                      1)
+    END
+- metric_name: Average Highest Over Runs
+  sql_logic: |-
+    WITH CTE_BallRuns AS
+      (SELECT match_id, innings_no, over_id, ball_id, runs_scored AS runs
+       FROM batsman_scored
+       UNION ALL SELECT match_id, innings_no, over_id, ball_id, extra_runs AS runs
+       FROM extra_runs),
+         CTE_OverRunsWithBowler AS
+      (SELECT br.match_id, br.innings_no, br.over_id, SUM(br.runs) AS total_runs_in_over,
+              MIN(bb.bowler) AS bowler_id
+       FROM CTE_BallRuns AS br
+       INNER JOIN ball_by_ball AS bb ON br.match_id = bb.match_id
+       AND br.innings_no = bb.innings_no
+       AND br.over_id = bb.over_id
+       AND br.ball_id = bb.ball_id
+       GROUP BY br.match_id, br.innings_no, br.over_id),
+         CTE_RankedOvers AS
+      (SELECT match_id, innings_no, over_id, total_runs_in_over, bowler_id,
+              ROW_NUMBER() OVER (PARTITION BY match_id
+                                 ORDER BY total_runs_in_over DESC) AS rn
+       FROM CTE_OverRunsWithBowler),
+         CTE_HighestOversPerMatch AS
+      (SELECT match_id, innings_no, over_id, total_runs_in_over, bowler_id
+       FROM CTE_RankedOvers
+       WHERE rn = 1)
+    SELECT AVG(total_runs_in_over) AS average_highest_over_runs
+    FROM CTE_HighestOversPerMatch;
+- metric_name: total_wickets_taken
+  sql_logic: |-
+    SUM(CASE
+            WHEN wt.kind_out IS NOT NULL
+                 AND wt.kind_out NOT IN ('run out',
+                                       'retired hurt', 'obstructing the field') THEN 1 ELSE 0
+        END)
+    GROUP BY bb.bowler
+- metric_name: total_runs_conceded
+  sql_logic: |-
+    SUM(COALESCE(bs.runs_scored, 0))
+    GROUP BY bb.bowler
+- metric_name: total_legal_balls_bowled
+  sql_logic: |-
+    SUM(CASE WHEN er.extra_type IN ('wides', 'noballs') THEN 0 ELSE 1
+        END)
+    GROUP BY bb.bowler
+- metric_name: economy_rate
+  sql_logic: |-
+    CASE WHEN total_legal_balls_bowled = 0 THEN 0.0 ELSE CAST(total_runs_conceded AS REAL) / (total_legal_balls_bowled / 6.0)
+    END
+- metric_name: strike_rate
+  sql_logic: |-
+    CASE WHEN total_wickets_taken = 0 THEN NULL ELSE CAST(total_legal_balls_bowled AS REAL) / total_wickets_taken
+    END
+- metric_name: best_bowling_performance
+  sql_logic: |-
+    SELECT bowler_id, match_id, wickets_taken_match, runs_conceded_match
+    FROM
+      (SELECT bowler_id, match_id, wickets_taken_match, runs_conceded_match,
+              ROW_NUMBER() OVER (PARTITION BY bowler_id
+                                 ORDER BY wickets_taken_match DESC, runs_conceded_match ASC) AS rn
+       FROM BowlerMatchPerformance) AS ranked_performances
+    WHERE rn = 1

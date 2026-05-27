@@ -1,0 +1,820 @@
+databases:
+- Brazilian_E_Commerce
+- chinook
+- education_business
+- delivery_center
+descriptions:
+- table: olist_customers
+  column: customer_id
+  meaning: Unique identifier for a customer
+- table: olist_customers
+  column: customer_unique_id
+  meaning: |-
+    Anonymized unique identifier for a customer, allowing tracking across multiple customer_id's if they re-register
+- table: olist_customers
+  column: customer_zip_code_prefix
+  meaning: First 5 digits of the customer's zip code
+- table: olist_customers
+  column: customer_city
+  meaning: City where the customer is located
+- table: olist_customers
+  column: customer_state
+  meaning: State where the customer is located
+- table: olist_sellers
+  column: seller_id
+  meaning: Unique identifier for a seller
+- table: olist_sellers
+  column: seller_zip_code_prefix
+  meaning: First 5 digits of the seller's zip code
+- table: olist_sellers
+  column: seller_city
+  meaning: City where the seller is located
+- table: olist_sellers
+  column: seller_state
+  meaning: State where the seller is located
+- table: olist_order_reviews
+  column: review_id
+  meaning: Unique identifier for a customer review
+- table: olist_order_reviews
+  column: order_id
+  meaning: Identifier for the order associated with the review
+- table: olist_order_reviews
+  column: review_score
+  meaning: |-
+    Rating given by the customer, typically on a scale of 1 to 5 stars
+- table: olist_order_reviews
+  column: review_comment_title
+  meaning: Title of the customer's review comment
+- table: olist_order_reviews
+  column: review_comment_message
+  meaning: Full text of the customer's review comment
+- table: olist_order_reviews
+  column: review_creation_date
+  meaning: Date when the review was created
+- table: olist_order_reviews
+  column: review_answer_timestamp
+  meaning: |-
+    Timestamp when the review was answered by the seller or system
+- table: olist_order_items
+  column: order_id
+  meaning: Identifier for the order to which the item belongs
+- table: olist_order_items
+  column: order_item_id
+  meaning: Unique identifier for a specific item within an order
+- table: olist_order_items
+  column: product_id
+  meaning: Identifier for the product being sold
+- table: olist_order_items
+  column: seller_id
+  meaning: Identifier for the seller who sold the product item
+- table: olist_order_items
+  column: shipping_limit_date
+  meaning: Date by which the item should be shipped
+- table: olist_order_items
+  column: price
+  meaning: Price of the individual item
+- table: olist_order_items
+  column: freight_value
+  meaning: Shipping cost for the individual item
+- table: olist_products
+  column: product_id
+  meaning: Unique identifier for a product
+- table: olist_products
+  column: product_category_name
+  meaning: Category name of the product in Portuguese
+- table: olist_products
+  column: product_name_lenght
+  meaning: Length of the product name in characters
+- table: olist_products
+  column: product_description_lenght
+  meaning: Length of the product description in characters
+- table: olist_products
+  column: product_photos_qty
+  meaning: Number of photos available for the product
+- table: olist_products
+  column: product_weight_g
+  meaning: Weight of the product in grams
+- table: olist_products
+  column: product_length_cm
+  meaning: Length of the product in centimeters
+- table: olist_products
+  column: product_height_cm
+  meaning: Height of the product in centimeters
+- table: olist_products
+  column: product_width_cm
+  meaning: Width of the product in centimeters
+- table: olist_geolocation
+  column: geolocation_zip_code_prefix
+  meaning: Zip code prefix for geolocation data
+- table: olist_geolocation
+  column: geolocation_lat
+  meaning: Latitude coordinate for the geolocation
+- table: olist_geolocation
+  column: geolocation_lng
+  meaning: Longitude coordinate for the geolocation
+- table: olist_geolocation
+  column: geolocation_city
+  meaning: City corresponding to the geolocation
+- table: olist_geolocation
+  column: geolocation_state
+  meaning: State corresponding to the geolocation
+- table: product_category_name_translation
+  column: product_category_name
+  meaning: Product category name in Portuguese
+- table: product_category_name_translation
+  column: product_category_name_english
+  meaning: Product category name translated to English
+- table: olist_orders
+  column: order_id
+  meaning: Unique identifier for an order
+- table: olist_orders
+  column: customer_id
+  meaning: Identifier for the customer who placed the order
+- table: olist_orders
+  column: order_status
+  meaning: |-
+    Current status of the order (e.g., 'delivered', 'shipped', 'canceled')
+- table: olist_orders
+  column: order_purchase_timestamp
+  meaning: Timestamp when the order was purchased
+- table: olist_orders
+  column: order_approved_at
+  meaning: Timestamp when the order was approved by the seller/system
+- table: olist_orders
+  column: order_delivered_carrier_date
+  meaning: Timestamp when the order was handed over to the carrier
+- table: olist_orders
+  column: order_delivered_customer_date
+  meaning: Timestamp when the order was delivered to the customer
+- table: olist_orders
+  column: order_estimated_delivery_date
+  meaning: Estimated date for customer delivery
+- table: olist_order_payments
+  column: order_id
+  meaning: Identifier for the order associated with the payment
+- table: olist_order_payments
+  column: payment_sequential
+  meaning: |-
+    Sequence number for payments within a single order (e.g., for multiple payment methods)
+- table: olist_order_payments
+  column: payment_type
+  meaning: Type of payment used (e.g., 'credit_card', 'boleto')
+- table: olist_order_payments
+  column: payment_installments
+  meaning: Number of payment installments
+- table: olist_order_payments
+  column: payment_value
+  meaning: Total value of the payment transaction
+- table: olist_products_dataset
+  column: index
+  meaning: Row index, typically an auto-generated identifier
+- table: olist_products_dataset
+  column: product_id
+  meaning: Unique identifier for a product
+- table: olist_products_dataset
+  column: product_category_name
+  meaning: Category name of the product in Portuguese
+- table: olist_products_dataset
+  column: product_name_lenght
+  meaning: Length of the product name in characters
+- table: olist_products_dataset
+  column: product_description_lenght
+  meaning: Length of the product description in characters
+- table: olist_products_dataset
+  column: product_photos_qty
+  meaning: Number of photos available for the product
+- table: olist_products_dataset
+  column: product_weight_g
+  meaning: Weight of the product in grams
+- table: olist_products_dataset
+  column: product_length_cm
+  meaning: Length of the product in centimeters
+- table: olist_products_dataset
+  column: product_height_cm
+  meaning: Height of the product in centimeters
+- table: olist_products_dataset
+  column: product_width_cm
+  meaning: Width of the product in centimeters
+- table: albums
+  column: AlbumId
+  meaning: Unique identifier for an album.
+- table: albums
+  column: Title
+  meaning: The title of the album.
+- table: albums
+  column: ArtistId
+  meaning: Foreign key linking to the artist who created the album.
+- table: artists
+  column: ArtistId
+  meaning: Unique identifier for an artist.
+- table: artists
+  column: Name
+  meaning: The name of the artist.
+- table: customers
+  column: CustomerId
+  meaning: Unique identifier for a customer.
+- table: customers
+  column: FirstName
+  meaning: The first name of the customer.
+- table: customers
+  column: LastName
+  meaning: The last name of the customer.
+- table: invoices
+  column: InvoiceId
+  meaning: Unique identifier for an invoice.
+- table: invoices
+  column: CustomerId
+  meaning: Foreign key linking to the customer who made the purchase.
+- table: invoices
+  column: InvoiceDate
+  meaning: The date when the invoice was issued.
+- table: invoices
+  column: Total
+  meaning: The total amount of the invoice.
+- table: invoice_items
+  column: InvoiceLineId
+  meaning: Unique identifier for an item within an invoice.
+- table: invoice_items
+  column: InvoiceId
+  meaning: Foreign key linking to the invoice this item belongs to.
+- table: invoice_items
+  column: TrackId
+  meaning: Foreign key linking to the track purchased.
+- table: invoice_items
+  column: UnitPrice
+  meaning: The unit price of the track at the time of purchase.
+- table: invoice_items
+  column: Quantity
+  meaning: The quantity of the track purchased.
+- table: tracks
+  column: TrackId
+  meaning: Unique identifier for a track.
+- table: tracks
+  column: Name
+  meaning: The name of the track.
+- table: tracks
+  column: AlbumId
+  meaning: Foreign key linking to the album the track belongs to.
+- table: tracks
+  column: UnitPrice
+  meaning: The standard unit price of the track.
+- table: web_orders
+  column: id
+  meaning: Unique identifier for a web order.
+- table: web_orders
+  column: account_id
+  meaning: |-
+    Foreign key linking to the customer account that placed the order.
+- table: web_orders
+  column: occurred_at
+  meaning: Timestamp when the web order was placed.
+- table: web_orders
+  column: total_amt_usd
+  meaning: Total monetary amount of the web order in USD.
+- table: web_accounts
+  column: id
+  meaning: Unique identifier for a customer account.
+- table: web_accounts
+  column: sales_rep_id
+  meaning: |-
+    Foreign key linking to the sales representative assigned to this account.
+- table: web_sales_reps
+  column: id
+  meaning: Unique identifier for a sales representative.
+- table: web_sales_reps
+  column: name
+  meaning: Name of the sales representative.
+- table: web_sales_reps
+  column: region_id
+  meaning: |-
+    Foreign key linking to the geographical region the sales representative belongs to.
+- table: web_region
+  column: id
+  meaning: Unique identifier for a geographical region.
+- table: web_region
+  column: name
+  meaning: Name of the geographical region.
+- table: channels
+  column: channel_id
+  meaning: Unique identifier for a sales channel.
+- table: channels
+  column: channel_name
+  meaning: Name of the sales channel (e.g., "Online", "App").
+- table: channels
+  column: channel_type
+  meaning: Type of the sales channel.
+- table: drivers
+  column: driver_id
+  meaning: Unique identifier for a driver.
+- table: drivers
+  column: driver_modal
+  meaning: Type of vehicle or mode of transport for the driver.
+- table: drivers
+  column: driver_type
+  meaning: |-
+    Classification of the driver (e.g., "Full-time", "Contractor").
+- table: deliveries
+  column: delivery_id
+  meaning: Unique identifier for a delivery.
+- table: deliveries
+  column: delivery_order_id
+  meaning: Foreign key linking to the orders table for the delivery.
+- table: deliveries
+  column: driver_id
+  meaning: |-
+    Foreign key linking to the drivers table for the driver assigned to the delivery.
+- table: deliveries
+  column: delivery_distance_meters
+  meaning: Distance covered for the delivery in meters.
+- table: deliveries
+  column: delivery_status
+  meaning: |-
+    Current status of the delivery (e.g., "Pending", "In Transit", "Delivered").
+- table: hubs
+  column: hub_id
+  meaning: |-
+    Unique identifier for a hub, which is an operational center for stores.
+- table: hubs
+  column: hub_name
+  meaning: Name of the hub.
+- table: hubs
+  column: hub_city
+  meaning: City where the hub is located.
+- table: hubs
+  column: hub_state
+  meaning: State where the hub is located.
+- table: hubs
+  column: hub_latitude
+  meaning: Latitude coordinate of the hub's location.
+- table: hubs
+  column: hub_longitude
+  meaning: Longitude coordinate of the hub's location.
+- table: payments
+  column: payment_id
+  meaning: Unique identifier for a payment.
+- table: payments
+  column: payment_order_id
+  meaning: Foreign key linking to the orders table for the payment.
+- table: payments
+  column: payment_amount
+  meaning: Total amount of the payment.
+- table: payments
+  column: payment_fee
+  meaning: Fee associated with the payment.
+- table: payments
+  column: payment_method
+  meaning: Method used for the payment (e.g., "Credit Card", "Cash").
+- table: payments
+  column: payment_status
+  meaning: Current status of the payment (e.g., "Paid", "Refunded").
+- table: stores
+  column: store_id
+  meaning: Unique identifier for a store.
+- table: stores
+  column: hub_id
+  meaning: |-
+    Foreign key linking to the hubs table, indicating which hub the store belongs to.
+- table: stores
+  column: store_name
+  meaning: Name of the store.
+- table: stores
+  column: store_segment
+  meaning: Business segment or category of the store.
+- table: stores
+  column: store_plan_price
+  meaning: Price of the store's subscription plan.
+- table: stores
+  column: store_latitude
+  meaning: Latitude coordinate of the store's location.
+- table: stores
+  column: store_longitude
+  meaning: Longitude coordinate of the store's location.
+- table: orders
+  column: order_id
+  meaning: Unique identifier for an order.
+- table: orders
+  column: store_id
+  meaning: |-
+    Foreign key linking to the stores table, indicating which store received the order.
+- table: orders
+  column: channel_id
+  meaning: |-
+    Foreign key linking to the channels table, indicating the sales channel for the order.
+- table: orders
+  column: payment_order_id
+  meaning: |-
+    Foreign key linking to the payments table for the payment associated with this order.
+- table: orders
+  column: delivery_order_id
+  meaning: |-
+    Foreign key linking to the deliveries table for the delivery associated with this order.
+- table: orders
+  column: order_status
+  meaning: |-
+    Current status of the order (e.g., "PENDING", "FINISHED", "CANCELLED").
+- table: orders
+  column: order_amount
+  meaning: Total monetary amount of the order.
+- table: orders
+  column: order_delivery_fee
+  meaning: Fee charged for the delivery of the order.
+- table: orders
+  column: order_delivery_cost
+  meaning: Cost incurred for the delivery of the order.
+- table: orders
+  column: order_created_hour
+  meaning: Hour when the order was created.
+- table: orders
+  column: order_created_minute
+  meaning: Minute when the order was created.
+- table: orders
+  column: order_created_day
+  meaning: Day of the month when the order was created.
+- table: orders
+  column: order_created_month
+  meaning: Month when the order was created.
+- table: orders
+  column: order_created_year
+  meaning: Year when the order was created.
+- table: orders
+  column: order_moment_created
+  meaning: Timestamp when the order was created.
+- table: orders
+  column: order_moment_accepted
+  meaning: Timestamp when the order was accepted by the store.
+- table: orders
+  column: order_moment_ready
+  meaning: Timestamp when the order was ready for pickup/delivery.
+- table: orders
+  column: order_moment_collected
+  meaning: Timestamp when the order was collected by the driver.
+- table: orders
+  column: order_moment_in_expedition
+  meaning: Timestamp when the order started its expedition.
+- table: orders
+  column: order_moment_delivering
+  meaning: Timestamp when the order was out for delivery.
+- table: orders
+  column: order_moment_delivered
+  meaning: Timestamp when the order was delivered to the customer.
+- table: orders
+  column: order_moment_finished
+  meaning: Timestamp when the order was marked as finished.
+- table: orders
+  column: order_metric_collected_time
+  meaning: Time taken for order collection.
+- table: orders
+  column: order_metric_paused_time
+  meaning: Time the order was paused.
+- table: orders
+  column: order_metric_production_time
+  meaning: Time taken for order production.
+- table: orders
+  column: order_metric_walking_time
+  meaning: Time spent walking for the order.
+- table: orders
+  column: order_metric_expediton_speed_time
+  meaning: Speed time during expedition.
+- table: orders
+  column: order_metric_transit_time
+  meaning: Time spent in transit.
+- table: orders
+  column: order_metric_cycle_time
+  meaning: Total cycle time of the order.
+relations:
+- table_1: olist_orders
+  column_1: order_id
+  table_2: olist_order_items
+  column_2: order_id
+  meaning: An order can contain one or more order items
+- table_1: olist_order_items
+  column_1: seller_id
+  table_2: olist_sellers
+  column_2: seller_id
+  meaning: Each order item is associated with a specific seller
+- table_1: olist_orders
+  column_1: customer_id
+  table_2: olist_customers
+  column_2: customer_id
+  meaning: An order is placed by a specific customer
+- table_1: olist_order_items
+  column_1: order_id
+  table_2: olist_order_reviews
+  column_2: order_id
+  meaning: An order can receive one or more reviews
+- table_1: artists
+  column_1: ArtistId
+  table_2: albums
+  column_2: ArtistId
+  meaning: An artist can have multiple albums.
+- table_1: albums
+  column_1: AlbumId
+  table_2: tracks
+  column_2: AlbumId
+  meaning: An album can contain multiple tracks.
+- table_1: tracks
+  column_1: TrackId
+  table_2: invoice_items
+  column_2: TrackId
+  meaning: A track can be included in multiple invoice items.
+- table_1: invoices
+  column_1: InvoiceId
+  table_2: invoice_items
+  column_2: InvoiceId
+  meaning: An invoice can have multiple items.
+- table_1: customers
+  column_1: CustomerId
+  table_2: invoices
+  column_2: CustomerId
+  meaning: A customer can have multiple invoices.
+- table_1: web_orders
+  column_1: account_id
+  table_2: web_accounts
+  column_2: id
+  meaning: An order is placed by a customer account.
+- table_1: web_accounts
+  column_1: sales_rep_id
+  table_2: web_sales_reps
+  column_2: id
+  meaning: A customer account is managed by a sales representative.
+- table_1: web_sales_reps
+  column_1: region_id
+  table_2: web_region
+  column_2: id
+  meaning: A sales representative is assigned to a specific region.
+- table_1: orders
+  column_1: store_id
+  table_2: stores
+  column_2: store_id
+  meaning: An order is placed at a specific store.
+- table_1: stores
+  column_1: hub_id
+  table_2: hubs
+  column_2: hub_id
+  meaning: A store belongs to a specific hub.
+- table_1: orders
+  column_1: channel_id
+  table_2: channels
+  column_2: channel_id
+  meaning: An order is placed through a specific sales channel.
+- table_1: orders
+  column_1: payment_order_id
+  table_2: payments
+  column_2: payment_order_id
+  meaning: An order has an associated payment record.
+- table_1: orders
+  column_1: delivery_order_id
+  table_2: deliveries
+  column_2: delivery_order_id
+  meaning: An order has an associated delivery record.
+- table_1: deliveries
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: A delivery is assigned to a specific driver.
+synonyms:
+- nl_term: sellers
+  db_target: olist_sellers.seller_id
+  type: column
+- nl_term: delivered orders
+  db_target: olist_orders.order_status = 'delivered'
+  type: condition
+- nl_term: distinct customer unique IDs
+  db_target: olist_customers.customer_unique_id
+  type: column
+- nl_term: profit
+  db_target: olist_order_items.price - olist_order_items.freight_value
+  type: value
+- nl_term: distinct orders
+  db_target: olist_orders.order_id
+  type: column
+- nl_term: 5-star ratings
+  db_target: olist_order_reviews.review_score = 5
+  type: condition
+- nl_term: seller ID
+  db_target: olist_sellers.seller_id
+  type: column
+- nl_term: artist
+  db_target: artists.Name
+  type: column
+- nl_term: album
+  db_target: albums.Title
+  type: column
+- nl_term: track
+  db_target: tracks.Name
+  type: column
+- nl_term: customer
+  db_target: customers.FirstName, customers.LastName
+  type: column
+- nl_term: sales
+  db_target: invoice_items.UnitPrice * invoice_items.Quantity
+  type: value
+- nl_term: spending
+  db_target: invoice_items.UnitPrice * invoice_items.Quantity
+  type: value
+- nl_term: top-selling artist
+  db_target: TopSellingArtists
+  type: value
+- nl_term: lowest-selling artist
+  db_target: LowestSellingArtists
+  type: value
+- nl_term: average spending
+  db_target: AVG(CustomerTotalSpent)
+  type: value
+- nl_term: absolute difference
+  db_target: ABS(...)
+  type: value
+- nl_term: web sales report
+  db_target: web_orders, web_accounts, web_sales_reps, web_region
+  type: value
+- nl_term: each region
+  db_target: web_region.name
+  type: column
+- nl_term: number of orders
+  db_target: COUNT(web_orders.id)
+  type: column
+- nl_term: total sales amount
+  db_target: SUM(web_orders.total_amt_usd)
+  type: column
+- nl_term: sales representatives
+  db_target: web_sales_reps.name
+  type: column
+- nl_term: highest total sales amount
+  db_target: MAX(total_rep_sales)
+  type: value
+- nl_term: hubs
+  db_target: hubs.hub_name
+  type: column
+- nl_term: finished orders
+  db_target: orders.order_status = 'FINISHED'
+  type: condition
+- nl_term: February
+  db_target: orders.order_created_month = 2
+  type: condition
+- nl_term: March
+  db_target: orders.order_created_month = 3
+  type: condition
+- nl_term: more than a 20% increase
+  db_target: Percentage_Increase > 20
+  type: condition
+biz_logic:
+- metric_name: Distinct Customers Count
+  sql_logic: |-
+    WITH delivered_orders AS
+      (SELECT o.order_id, o.customer_id, oi.seller_id
+       FROM olist_orders AS o
+       JOIN olist_order_items AS oi ON o.order_id = oi.order_id
+       WHERE o.order_status = 'delivered')
+    SELECT T1.seller_id, COUNT(DISTINCT T2.customer_unique_id) AS distinct_customers_count
+    FROM delivered_orders AS T1
+    JOIN olist_customers AS T2 ON T1.customer_id = T2.customer_id
+    GROUP BY T1.seller_id
+- metric_name: Total Profit
+  sql_logic: |-
+    WITH delivered_orders AS
+      (SELECT o.order_id, oi.seller_id, oi.price, oi.freight_value
+       FROM olist_orders AS o
+       JOIN olist_order_items AS oi ON o.order_id = oi.order_id
+       WHERE o.order_status = 'delivered')
+    SELECT seller_id, SUM(price - freight_value) AS total_profit
+    FROM delivered_orders
+    GROUP BY seller_id
+- metric_name: Distinct Orders Count
+  sql_logic: |-
+    WITH delivered_orders AS
+      (SELECT o.order_id, oi.seller_id
+       FROM olist_orders AS o
+       JOIN olist_order_items AS oi ON o.order_id = oi.order_id
+       WHERE o.order_status = 'delivered')
+    SELECT seller_id, COUNT(DISTINCT order_id) AS distinct_orders_count
+    FROM delivered_orders
+    GROUP BY seller_id
+- metric_name: Five Star Ratings Count
+  sql_logic: |-
+    WITH delivered_orders AS
+      (SELECT o.order_id, oi.seller_id
+       FROM olist_orders AS o
+       JOIN olist_order_items AS oi ON o.order_id = oi.order_id
+       WHERE o.order_status = 'delivered')
+    SELECT T1.seller_id, COUNT(DISTINCT T1.order_id) AS five_star_ratings_count
+    FROM delivered_orders AS T1
+    JOIN olist_order_reviews AS T2 ON T1.order_id = T2.order_id
+    WHERE T2.review_score = 5
+    GROUP BY T1.seller_id
+- metric_name: ArtistTotalSales
+  sql_logic: |-
+    WITH ArtistTotalSales AS
+      (SELECT A.ArtistId, A.Name AS ArtistName, SUM(II.UnitPrice * II.Quantity) AS TotalSales
+       FROM artists AS A
+       INNER JOIN albums AS AL ON A.ArtistId = AL.ArtistId
+       INNER JOIN tracks AS T ON AL.AlbumId = T.AlbumId
+       INNER JOIN invoice_items AS II ON T.TrackId = II.TrackId
+       GROUP BY A.ArtistId, A.Name)
+- metric_name: RankedArtists
+  sql_logic: |-
+    WITH RankedArtists AS
+      (SELECT ArtistId, ArtistName, TotalSales,
+              DENSE_RANK() OVER (
+                                 ORDER BY TotalSales DESC, ArtistName ASC) AS SalesRankDesc,
+              DENSE_RANK() OVER (
+                                 ORDER BY TotalSales ASC, ArtistName ASC) AS SalesRankAsc
+       FROM ArtistTotalSales)
+- metric_name: TopSellingArtists
+  sql_logic: |-
+    WITH TopSellingArtists AS
+      (SELECT ArtistId, ArtistName
+       FROM RankedArtists
+       WHERE SalesRankDesc = 1)
+- metric_name: LowestSellingArtists
+  sql_logic: |-
+    WITH LowestSellingArtists AS
+      (SELECT ArtistId, ArtistName
+       FROM RankedArtists
+       WHERE SalesRankAsc = 1)
+- metric_name: CustomerArtistSpending
+  sql_logic: |-
+    WITH CustomerArtistSpending AS
+      (SELECT C.CustomerId, A.ArtistId, A.Name AS ArtistName,
+              SUM(II.UnitPrice * II.Quantity) AS CustomerTotalSpent
+       FROM customers AS C
+       INNER JOIN invoices AS I ON C.CustomerId = I.CustomerId
+       INNER JOIN invoice_items AS II ON I.InvoiceId = II.InvoiceId
+       INNER JOIN tracks AS T ON II.TrackId = T.TrackId
+       INNER JOIN albums AS AL ON T.AlbumId = AL.AlbumId
+       INNER JOIN artists AS A ON AL.ArtistId = A.ArtistId
+       GROUP BY C.CustomerId, A.ArtistId, A.Name)
+- metric_name: AverageSpendingTopArtists
+  sql_logic: |-
+    WITH AvgSpendingTopArtist AS
+      (SELECT AVG(CustomerTotalSpent) AS AvgTopArtistSpending
+       FROM CustomerArtistSpending
+       WHERE ArtistId IN
+           (SELECT ArtistId
+            FROM TopSellingArtists))
+- metric_name: AverageSpendingLowestArtists
+  sql_logic: |-
+    WITH AvgSpendingLowestArtist AS
+      (SELECT AVG(CustomerTotalSpent) AS AvgLowestArtistSpending
+       FROM CustomerArtistSpending
+       WHERE ArtistId IN
+           (SELECT ArtistId
+            FROM LowestSellingArtists))
+- metric_name: AbsoluteDifferenceAvgSpending
+  sql_logic: |-
+    SELECT
+      (SELECT GROUP_CONCAT(ArtistName, ', ')
+       FROM TopSellingArtists) AS TopSellingArtistNames,
+
+      (SELECT GROUP_CONCAT(ArtistName, ', ')
+       FROM LowestSellingArtists) AS LowestSellingArtistNames,
+
+      (SELECT AvgTopArtistSpending
+       FROM AvgSpendingTopArtist) AS AverageSpendingTopArtists,
+
+      (SELECT AvgLowestArtistSpending
+       FROM AvgSpendingLowestArtist) AS AverageSpendingLowestArtists,
+           ABS(
+                 (SELECT AvgTopArtistSpending
+                  FROM AvgSpendingTopArtist) -
+                 (SELECT AvgLowestArtistSpending
+                  FROM AvgSpendingLowestArtist)) AS AbsoluteDifference
+- metric_name: Regional Sales Representative Total Sales
+  sql_logic: SUM(wo.total_amt_usd)
+- metric_name: Sales Representative Rank within Region
+  sql_logic: |-
+    DENSE_RANK() OVER (PARTITION BY region_id
+                       ORDER BY total_rep_sales DESC)
+- metric_name: Top Sales Representatives Names (by Region)
+  sql_logic: GROUP_CONCAT(sales_rep_name)
+- metric_name: Top Sales Representatives Sales Amount (by Region)
+  sql_logic: MAX(total_rep_sales)
+- metric_name: Total Orders per Region
+  sql_logic: COUNT(wo.id)
+- metric_name: Total Sales Amount per Region
+  sql_logic: SUM(wo.total_amt_usd)
+- metric_name: Hub_Finished_Orders_Percentage_Increase_Feb_to_Mar
+  sql_logic: |-
+    WITH MonthlyOrders AS
+      (SELECT h.hub_id, h.hub_name, o.order_created_month, COUNT(o.order_id) AS TotalOrders
+       FROM orders AS o
+       INNER JOIN stores AS s ON o.store_id = s.store_id
+       INNER JOIN hubs AS h ON s.hub_id = h.hub_id
+       WHERE o.order_status = 'FINISHED'
+         AND o.order_created_month IN (2, 3)
+       GROUP BY h.hub_id, h.hub_name, o.order_created_month),
+         PivotedOrders AS
+      (SELECT hub_id, hub_name,
+              SUM(CASE WHEN order_created_month = 2 THEN TotalOrders ELSE 0
+                  END) AS February_Orders,
+              SUM(CASE WHEN order_created_month = 3 THEN TotalOrders ELSE 0
+                  END) AS March_Orders
+       FROM MonthlyOrders
+       GROUP BY hub_id, hub_name),
+         CalculatedIncrease AS
+      (SELECT hub_id, hub_name, February_Orders, March_Orders,
+              (CAST(March_Orders AS DECIMAL) - February_Orders) * 100.0 / February_Orders AS Percentage_Increase
+       FROM PivotedOrders)
+    SELECT hub_name, February_Orders, March_Orders, Percentage_Increase
+    FROM CalculatedIncrease
+    WHERE February_Orders > 0
+      AND Percentage_Increase > 20

@@ -1,0 +1,128 @@
+databases:
+- oracle_sql
+descriptions:
+- table: packaging
+  column: id
+  meaning: Unique identifier for a packaging unit or component.
+- table: packaging
+  column: name
+  meaning: Name of the packaging unit or component.
+- table: packaging_relations
+  column: packaging_id
+  meaning: |-
+    Identifier of the outer packaging unit that contains other items.
+- table: packaging_relations
+  column: contains_id
+  meaning: |-
+    Identifier of the inner packaging unit or component contained within 'packaging_id'.
+- table: packaging_relations
+  column: qty
+  meaning: |-
+    The quantity of 'contains_id' found within one 'packaging_id'.
+relations:
+- table_1: packaging
+  column_1: id
+  table_2: packaging_relations
+  column_2: packaging_id
+  meaning: A packaging unit can contain other packaging units.
+- table_1: packaging
+  column_1: id
+  table_2: packaging_relations
+  column_2: contains_id
+  meaning: |-
+    A packaging unit can be contained within another packaging unit.
+synonyms:
+- nl_term: final packaging combinations
+  db_target: TopLevelPackages
+  type: value
+- nl_term: leaf-level items
+  db_target: LeafItems
+  type: value
+- nl_term: nested packaging relationships
+  db_target: packaging_relations
+  type: column
+- nl_term: total quantity across all final packaging combinations
+  db_target: TotalLeafQuantityPerPackage.total_leaf_quantity
+  type: column
+- nl_term: average total quantity
+  db_target: AVG(COALESCE(TLQP.total_leaf_quantity, 1.0))
+  type: column
+- nl_term: top-level packaging containers
+  db_target: packaging.id
+  type: condition
+- nl_term: item
+  db_target: packaging.id
+  type: condition
+- nl_term: total quantity accumulated across all nested levels
+  db_target: total_accumulated_qty
+  type: value
+biz_logic:
+- metric_name: average_leaf_item_quantity_per_package
+  sql_logic: |-
+    WITH LeafItems AS
+      (SELECT id AS leaf_id
+       FROM packaging
+       WHERE id NOT IN
+           (SELECT packaging_id
+            FROM packaging_relations)),
+         TopLevelPackages AS
+      (SELECT id AS root_package_id
+       FROM packaging
+       WHERE id NOT IN
+           (SELECT contains_id
+            FROM packaging_relations)),
+         PackageHierarchy AS
+      (SELECT T.root_package_id, T.root_package_id AS current_item_id, 1 AS cumulative_qty
+       FROM TopLevelPackages AS T
+       UNION ALL SELECT PH.root_package_id, PR.contains_id AS current_item_id,
+                        PH.cumulative_qty * PR.qty AS cumulative_qty
+       FROM PackageHierarchy AS PH
+       JOIN packaging_relations AS PR ON PH.current_item_id = PR.packaging_id),
+         LeafQuantities AS
+      (SELECT PH.root_package_id, PH.cumulative_qty
+       FROM PackageHierarchy AS PH
+       JOIN LeafItems AS LI ON PH.current_item_id = LI.leaf_id),
+         TotalLeafQuantityPerPackage AS
+      (SELECT root_package_id, SUM(cumulative_qty) AS total_leaf_quantity
+       FROM LeafQuantities
+       GROUP BY root_package_id)
+    SELECT AVG(COALESCE(TLQP.total_leaf_quantity, 1.0))
+    FROM TopLevelPackages AS T
+    LEFT JOIN TotalLeafQuantityPerPackage AS TLQP ON T.root_package_id = TLQP.root_package_id
+- metric_name: Top Level Containers
+  sql_logic: |-
+    WITH TopLevelContainers AS
+      (SELECT p.id
+       FROM packaging AS p
+       LEFT JOIN packaging_relations AS pr ON p.id = pr.contains_id
+       WHERE pr.contains_id IS NULL)
+- metric_name: Packaging Hierarchy with Accumulated Quantity
+  sql_logic: |-
+    WITH RECURSIVE PackagingHierarchy AS
+      (SELECT tlc.id AS top_level_id, tlc.id AS item_id, 1 AS accumulated_qty
+       FROM TopLevelContainers AS tlc
+       UNION ALL SELECT ph.top_level_id, pr.contains_id AS item_id,
+                        ph.accumulated_qty * pr.qty AS accumulated_qty
+       FROM PackagingHierarchy AS ph
+       INNER JOIN packaging_relations AS pr ON ph.item_id = pr.packaging_id)
+- metric_name: Base Items (Items not containing others)
+  sql_logic: |-
+    WITH BaseItems AS
+      (SELECT p.id
+       FROM packaging AS p
+       LEFT JOIN packaging_relations AS pr ON p.id = pr.packaging_id
+       WHERE pr.packaging_id IS NULL)
+- metric_name: Total Accumulated Quantity for Base Items
+  sql_logic: |-
+    WITH AccumulatedQuantities AS
+      (SELECT ph.top_level_id, ph.item_id, SUM(ph.accumulated_qty) AS total_accumulated_qty
+       FROM PackagingHierarchy AS ph
+       INNER JOIN BaseItems AS bi ON ph.item_id = bi.id
+       GROUP BY ph.top_level_id, ph.item_id)
+- metric_name: Top-Level Containers with High Accumulated Quantity
+  sql_logic: |-
+    SELECT pc.name AS container_name, pi.name AS item_name, aq.total_accumulated_qty
+    FROM AccumulatedQuantities AS aq
+    INNER JOIN packaging AS pc ON aq.top_level_id = pc.id
+    INNER JOIN packaging AS pi ON aq.item_id = pi.id
+    WHERE aq.total_accumulated_qty > 500;

@@ -1,0 +1,218 @@
+databases:
+- WWE
+descriptions:
+- table: Promotions
+  column: id
+  meaning: Unique identifier for a wrestling promotion.
+- table: Promotions
+  column: name
+  meaning: Name of the wrestling promotion.
+- table: Tables
+  column: id
+  meaning: |-
+    Unique identifier for a web page table, likely containing event data.
+- table: Tables
+  column: html
+  meaning: HTML content of the table.
+- table: Tables
+  column: url
+  meaning: URL where the table is found.
+- table: Cards
+  column: id
+  meaning: |-
+    Unique identifier for a wrestling event card (a collection of matches).
+- table: Cards
+  column: table_id
+  meaning: |-
+    Foreign key referencing the Tables table, indicating the source table.
+- table: Cards
+  column: location_id
+  meaning: |-
+    Foreign key referencing the Locations table, indicating the event location.
+- table: Cards
+  column: promotion_id
+  meaning: |-
+    Foreign key referencing the Promotions table, indicating the organizing promotion.
+- table: Cards
+  column: event_date
+  meaning: The date of the event card.
+- table: Cards
+  column: event_id
+  meaning: |-
+    Foreign key referencing the Events table, indicating the specific event.
+- table: Cards
+  column: url
+  meaning: URL for the event card details.
+- table: Cards
+  column: info_html
+  meaning: HTML content containing general information about the card.
+- table: Cards
+  column: match_html
+  meaning: HTML content specifically for the matches on the card.
+- table: Locations
+  column: id
+  meaning: Unique identifier for a location.
+- table: Locations
+  column: name
+  meaning: Name of the location.
+- table: Events
+  column: id
+  meaning: Unique identifier for an event.
+- table: Events
+  column: name
+  meaning: Name of the event.
+- table: Matches
+  column: id
+  meaning: Unique identifier for a wrestling match.
+- table: Matches
+  column: card_id
+  meaning: |-
+    Foreign key referencing the Cards table, indicating the event card.
+- table: Matches
+  column: winner_id
+  meaning: |-
+    Foreign key referencing the Wrestlers table, ID of the winning wrestler.
+- table: Matches
+  column: win_type
+  meaning: The type of victory (e.g., pinfall, submission).
+- table: Matches
+  column: loser_id
+  meaning: |-
+    Foreign key referencing the Wrestlers table, ID of the losing wrestler.
+- table: Matches
+  column: match_type_id
+  meaning: |-
+    Foreign key referencing the Match_Types table, indicating the match type.
+- table: Matches
+  column: duration
+  meaning: The duration of the match, typically in 'MM:SS' format.
+- table: Matches
+  column: title_id
+  meaning: |-
+    Foreign key referencing the Belts table, ID of the championship belt contested.
+- table: Matches
+  column: title_change
+  meaning: |-
+    A flag (0 or 1) indicating whether the title changed hands during the match.
+- table: Belts
+  column: id
+  meaning: Unique identifier for a championship belt/title.
+- table: Belts
+  column: name
+  meaning: Name of the championship belt/title.
+- table: Wrestlers
+  column: id
+  meaning: Unique identifier for a wrestler.
+- table: Wrestlers
+  column: name
+  meaning: Name of the wrestler.
+- table: Match_Types
+  column: id
+  meaning: Unique identifier for a match type.
+- table: Match_Types
+  column: name
+  meaning: Name of the match type (e.g., Singles Match).
+relations:
+- table_1: Cards
+  column_1: table_id
+  table_2: Tables
+  column_2: id
+  meaning: An event card is associated with a specific web table.
+- table_1: Cards
+  column_1: location_id
+  table_2: Locations
+  column_2: id
+  meaning: An event card takes place at a specific location.
+- table_1: Cards
+  column_1: promotion_id
+  table_2: Promotions
+  column_2: id
+  meaning: An event card is organized by a specific promotion.
+- table_1: Cards
+  column_1: event_id
+  table_2: Events
+  column_2: id
+  meaning: An event card is part of a larger event.
+- table_1: Matches
+  column_1: card_id
+  table_2: Cards
+  column_2: id
+  meaning: A match is part of an event card.
+- table_1: Matches
+  column_1: winner_id
+  table_2: Wrestlers
+  column_2: id
+  meaning: The winner of a match is a wrestler.
+- table_1: Matches
+  column_1: loser_id
+  table_2: Wrestlers
+  column_2: id
+  meaning: The loser of a match is a wrestler.
+- table_1: Matches
+  column_1: match_type_id
+  table_2: Match_Types
+  column_2: id
+  meaning: A match has a specific type.
+- table_1: Matches
+  column_1: title_id
+  table_2: Belts
+  column_2: id
+  meaning: A match can be contested for a specific championship belt.
+synonyms:
+- nl_term: NXT title
+  db_target: Belts.name
+  type: condition
+- nl_term: shortest match
+  db_target: Matches.duration
+  type: column
+- nl_term: excluding titles with title change
+  db_target: Matches.title_change
+  type: condition
+- nl_term: wrestlers involved
+  db_target: Wrestlers.name
+  type: column
+- nl_term: duration
+  db_target: Matches.duration
+  type: column
+- nl_term: title
+  db_target: Belts.name
+  type: column
+- nl_term: winner
+  db_target: Wrestlers.name
+  type: column
+- nl_term: loser
+  db_target: Wrestlers.name
+  type: column
+biz_logic:
+- metric_name: match_duration_in_seconds
+  sql_logic: |-
+    CAST(SUBSTR(M.duration, 1, INSTR(M.duration, ':') - 1) AS INTEGER) * 60 + CAST(SUBSTR(M.duration,
+
+                                                                                     INSTR(M.duration,
+
+                                                                                       ':') + 1) AS INTEGER)
+- metric_name: shortest_match_wrestlers_for_nxt_title_no_change
+  sql_logic: |-
+    WITH NXTMatchesWithDuration AS
+      (SELECT M.id, M.winner_id, M.loser_id, M.title_id,
+              CAST(SUBSTR(M.duration, 1, INSTR(M.duration,
+                                           ':') - 1) AS INTEGER) * 60 + CAST(SUBSTR(M.duration,
+
+                                                                               INSTR(M.duration,
+                                                                                 ':') + 1) AS INTEGER) AS duration_in_seconds
+       FROM Matches AS M
+       INNER JOIN Belts AS B ON M.title_id = B.id
+       WHERE B.name LIKE '%NXT%'
+         AND M.title_change = 0
+         AND M.duration IS NOT NULL
+         AND M.duration != ''
+         AND INSTR(M.duration, ':') > 0),
+         ShortestNXTMatch AS
+      (SELECT id, winner_id, loser_id, duration_in_seconds
+       FROM NXTMatchesWithDuration
+       ORDER BY duration_in_seconds ASC
+       LIMIT 1)
+    SELECT W_Winner.name AS "Winner Name", W_Loser.name AS "Loser Name"
+    FROM ShortestNXTMatch AS SNM
+    INNER JOIN Wrestlers AS W_Winner ON SNM.winner_id = W_Winner.id
+    INNER JOIN Wrestlers AS W_Loser ON SNM.loser_id = W_Loser.id;

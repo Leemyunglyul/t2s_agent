@@ -1,0 +1,328 @@
+databases:
+- city_legislation
+descriptions:
+- table: legislators_terms
+  column: id_bioguide
+  meaning: |-
+    Unique identifier for a legislator, linking to their terms of service.
+- table: legislators_terms
+  column: term_start
+  meaning: The start date of a legislator's term in office.
+- table: legislators_terms
+  column: term_end
+  meaning: The end date of a legislator's term in office.
+- table: legislators
+  column: id_bioguide
+  meaning: |-
+    Unique identifier for a legislator, linking to their personal details.
+- table: legislators
+  column: full_name
+  meaning: The full name of the legislator.
+- table: legislators
+  column: gender
+  meaning: The gender of the legislator (e.g., 'M' for male).
+- table: legislators_terms
+  column: state
+  meaning: |-
+    The state represented by the legislator during a specific term.
+relations:
+- table_1: legislators_terms
+  column_1: id_bioguide
+  table_2: legislators
+  column_2: id_bioguide
+  meaning: |-
+    Links a legislator's term details to their personal information.
+- table_1: legislators
+  column_1: id_bioguide
+  table_2: legislators_terms
+  column_2: id_bioguide
+  meaning: |-
+    A legislator can serve multiple terms, so 'legislators_terms' records each term for a legislator identified by 'id_bioguide'.
+synonyms:
+- nl_term: annual retention rate
+  db_target: retention_rate
+  type: column
+- nl_term: legislators who began their first term
+  db_target: CohortLegislators
+  type: value
+- nl_term: between January 1, 1917 and December 31, 1999
+  db_target: first_term_start_date BETWEEN '1917-01-01' AND '1999-12-31'
+  type: condition
+- nl_term: proportion of this cohort still in office
+  db_target: retained_count / cohort_size
+  type: value
+- nl_term: December 31st for each of the first 20 years
+  db_target: retention_check_date
+  type: column
+- nl_term: first 20 years
+  db_target: period_number
+  type: column
+- nl_term: male legislators
+  db_target: legislators.gender = 'M'
+  type: condition
+- nl_term: Louisiana
+  db_target: legislators_terms.state = 'LA'
+  type: condition
+- nl_term: distinct legislators
+  db_target: COUNT(DISTINCT id_bioguide)
+  type: value
+- nl_term: actively serving
+  db_target: current_year || '-12-31' BETWEEN term_start AND term_end
+  type: condition
+- nl_term: first term
+  db_target: MIN(term_start)
+  type: value
+- nl_term: years elapsed since their first term
+  db_target: years_elapsed
+  type: column
+- nl_term: more than 30 years
+  db_target: years_elapsed > 30
+  type: condition
+- nl_term: less than 50 years
+  db_target: years_elapsed < 50
+  type: condition
+- nl_term: female legislator
+  db_target: legislators.gender = 'F'
+  type: condition
+- nl_term: state abbreviation
+  db_target: legislators_terms.state
+  type: column
+- nl_term: terms included December 31st
+  db_target: |-
+    term_end >= DATE(strftime('%Y', term_start) || '-12-31') AND term_start <= DATE(strftime('%Y', term_end) || '-12-31')
+  type: condition
+- nl_term: retention rate
+  db_target: retained_at_X
+  type: column
+- nl_term: first term start date
+  db_target: global_first_term_start
+  type: column
+- nl_term: state abbreviations
+  db_target: state
+  type: column
+- nl_term: male
+  db_target: gender = 'M'
+  type: condition
+- nl_term: female
+  db_target: gender = 'F'
+  type: condition
+- nl_term: 0 years
+  db_target: retained_at_0
+  type: column
+- nl_term: 2 years
+  db_target: retained_at_2
+  type: column
+- nl_term: 4 years
+  db_target: retained_at_4
+  type: column
+- nl_term: 6 years
+  db_target: retained_at_6
+  type: column
+- nl_term: 8 years
+  db_target: retained_at_8
+  type: column
+- nl_term: 10 years
+  db_target: retained_at_10
+  type: column
+- nl_term: legislator
+  db_target: legislators
+  type: table
+biz_logic:
+- metric_name: Cohort Legislators
+  sql_logic: |-
+    WITH FirstTermStarts AS
+      (SELECT id_bioguide, MIN(term_start) AS first_term_start_date
+       FROM legislators_terms
+       GROUP BY id_bioguide),
+         CohortLegislators AS
+      (SELECT id_bioguide, first_term_start_date,
+              CAST(strftime('%Y', first_term_start_date) AS INTEGER) AS first_term_start_year
+       FROM FirstTermStarts
+       WHERE first_term_start_date BETWEEN '1917-01-01' AND '1999-12-31')
+- metric_name: Cohort Size
+  sql_logic: |-
+    WITH CohortSize AS
+      (SELECT COUNT(DISTINCT id_bioguide) AS cohort_size
+       FROM CohortLegislators)
+- metric_name: Retention Check Periods
+  sql_logic: |-
+    WITH Periods(period_number) AS
+      (SELECT 1
+       UNION ALL SELECT period_number + 1
+       FROM Periods
+       WHERE period_number < 20),
+         LegislatorPeriods AS
+      (SELECT cl.id_bioguide, p.period_number, cl.first_term_start_year,
+              (cl.first_term_start_year + p.period_number - 1) AS target_year,
+              printf('%d-12-31', (cl.first_term_start_year + p.period_number - 1)) AS retention_check_date
+       FROM CohortLegislators AS cl
+       CROSS JOIN Periods AS p)
+- metric_name: Retained Legislators Count
+  sql_logic: |-
+    WITH RetainedLegislators AS
+      (SELECT DISTINCT lp.id_bioguide, lp.period_number
+       FROM LegislatorPeriods AS lp
+       INNER JOIN legislators_terms AS lt ON lp.id_bioguide = lt.id_bioguide
+       WHERE lt.term_start <= lp.retention_check_date
+         AND lt.term_end >= lp.retention_check_date),
+         AnnualRetentionCounts AS
+      (SELECT period_number, COUNT(DISTINCT id_bioguide) AS retained_count
+       FROM RetainedLegislators
+       GROUP BY period_number)
+- metric_name: Annual Retention Rate
+  sql_logic: |-
+    SELECT p.period_number, COALESCE(arc.retained_count, 0) AS retained_count, cs.cohort_size,
+           CAST(COALESCE(arc.retained_count, 0) AS REAL) * 1.0 / cs.cohort_size AS retention_rate
+    FROM Periods AS p
+    LEFT JOIN AnnualRetentionCounts AS arc ON p.period_number = arc.period_number
+    CROSS JOIN CohortSize AS cs
+    ORDER BY p.period_number
+- metric_name: male_la_legislator_ids
+  sql_logic: |-
+    SELECT DISTINCT T1.id_bioguide
+    FROM legislators AS T1
+    INNER JOIN legislators_terms AS T2 ON T1.id_bioguide = T2.id_bioguide
+    WHERE T1.gender = 'M'
+      AND T2.state = 'LA'
+- metric_name: legislator_first_term_date
+  sql_logic: |-
+    SELECT T1.id_bioguide, MIN(T1.term_start) AS first_term_date
+    FROM legislators_terms AS T1
+    WHERE T1.id_bioguide IN
+        (SELECT id_bioguide
+         FROM MaleLALegislatorIDs)
+    GROUP BY T1.id_bioguide
+- metric_name: all_legislative_years
+  sql_logic: |-
+    SELECT DISTINCT CAST(STRFTIME('%Y', term_start) AS INTEGER) AS YEAR
+    FROM legislators_terms
+    UNION
+    SELECT DISTINCT CAST(STRFTIME('%Y', term_end) AS INTEGER) AS YEAR
+    FROM legislators_terms
+- metric_name: active_legislator_years_in_la
+  sql_logic: |-
+    SELECT DISTINCT T1.id_bioguide, T1.first_term_date, T2.year AS current_year
+    FROM GlobalFirstTerms AS T1
+    CROSS JOIN AllPossibleYears AS T2
+    INNER JOIN legislators_terms AS T3 ON T1.id_bioguide = T3.id_bioguide
+    WHERE T3.state = 'LA'
+      AND T2.year || '-12-31' >= T3.term_start
+      AND T2.year || '-12-31' <= T3.term_end
+- metric_name: legislator_tenure_years_elapsed
+  sql_logic: |-
+    SELECT id_bioguide,
+           CAST(current_year AS INTEGER) - CAST(STRFTIME('%Y',
+                                                  first_term_date) AS INTEGER) AS years_elapsed
+    FROM ActiveYearsInLA
+- metric_name: distinct_legislators_by_tenure_range
+  sql_logic: |-
+    SELECT years_elapsed, COUNT(DISTINCT id_bioguide) AS distinct_legislator_count
+    FROM TenureCalculation
+    WHERE years_elapsed > 30
+      AND years_elapsed < 50
+    GROUP BY years_elapsed
+    ORDER BY years_elapsed
+- metric_name: female_legislator_count_with_dec31_term_by_first_state
+  sql_logic: |-
+    WITH FemaleTermsRanked AS
+      (SELECT l.id_bioguide, lt.state, lt.term_start, lt.term_end,
+              ROW_NUMBER() OVER (PARTITION BY l.id_bioguide
+                                 ORDER BY lt.term_start ASC) AS rn
+       FROM legislators AS l
+       JOIN legislators_terms AS lt ON l.id_bioguide = lt.id_bioguide
+       WHERE l.gender = 'F'),
+         FirstTermStates AS
+      (SELECT id_bioguide, state
+       FROM FemaleTermsRanked
+       WHERE rn = 1),
+         YearSpanLegislators AS
+      (SELECT DISTINCT id_bioguide
+       FROM FemaleTermsRanked
+       WHERE term_end >= DATE(strftime('%Y', term_start) || '-12-31')
+         AND term_start <= DATE(strftime('%Y', term_end) || '-12-31'))
+    SELECT T1.state, COUNT(T1.id_bioguide) AS female_legislator_count
+    FROM FirstTermStates AS T1
+    JOIN YearSpanLegislators AS T2 ON T1.id_bioguide = T2.id_bioguide
+    GROUP BY T1.state
+    ORDER BY female_legislator_count DESC
+    LIMIT 1
+- metric_name: legislator_first_term_start
+  sql_logic: |-
+    SELECT id_bioguide, MIN(term_start) AS global_first_term_start
+    FROM legislators_terms
+    GROUP BY id_bioguide
+- metric_name: legislator_retention_status_at_intervals
+  sql_logic: |-
+    SELECT lt_context.id_bioguide, l.gender, lt_context.state,
+           MAX(CASE
+                   WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y',
+                                                          gft.global_first_term_start,
+                                                          '+0 years') || '-12-31')
+                        AND lt_all_terms.term_end >= DATE(STRFTIME('%Y',
+
+                                                            gft.global_first_term_start, '+0 years') || '-12-31') THEN 1 ELSE 0
+               END) AS retained_at_0,
+           MAX(CASE
+                   WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y',
+                                                          gft.global_first_term_start,
+                                                          '+2 years') || '-12-31')
+                        AND lt_all_terms.term_end >= DATE(STRFTIME('%Y',
+
+                                                            gft.global_first_term_start, '+2 years') || '-12-31') THEN 1 ELSE 0
+               END) AS retained_at_2,
+           MAX(CASE
+                   WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y',
+                                                          gft.global_first_term_start,
+                                                          '+4 years') || '-12-31')
+                        AND lt_all_terms.term_end >= DATE(STRFTIME('%Y',
+
+                                                            gft.global_first_term_start, '+4 years') || '-12-31') THEN 1 ELSE 0
+               END) AS retained_at_4,
+           MAX(CASE
+                   WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y',
+                                                          gft.global_first_term_start,
+                                                          '+6 years') || '-12-31')
+                        AND lt_all_terms.term_end >= DATE(STRFTIME('%Y',
+
+                                                            gft.global_first_term_start, '+6 years') || '-12-31') THEN 1 ELSE 0
+               END) AS retained_at_6,
+           MAX(CASE
+                   WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y',
+                                                          gft.global_first_term_start,
+                                                          '+8 years') || '-12-31')
+                        AND lt_all_terms.term_end >= DATE(STRFTIME('%Y',
+
+                                                            gft.global_first_term_start, '+8 years') || '-12-31') THEN 1 ELSE 0
+               END) AS retained_at_8,
+           MAX(CASE
+                   WHEN lt_all_terms.term_start <= DATE(STRFTIME('%Y',
+                                                          gft.global_first_term_start,
+                                                          '+10 years') || '-12-31')
+                        AND lt_all_terms.term_end >= DATE(STRFTIME('%Y',
+
+                                                            gft.global_first_term_start, '+10 years') || '-12-31') THEN 1 ELSE 0
+               END) AS retained_at_10
+    FROM
+      (SELECT DISTINCT id_bioguide, state
+       FROM legislators_terms) AS lt_context
+    INNER JOIN GlobalFirstTerm AS gft ON lt_context.id_bioguide = gft.id_bioguide
+    INNER JOIN legislators AS l ON lt_context.id_bioguide = l.id_bioguide
+    INNER JOIN legislators_terms AS lt_all_terms ON lt_context.id_bioguide = lt_all_terms.id_bioguide
+    GROUP BY lt_context.id_bioguide, l.gender, lt_context.state
+- metric_name: gender_cohort_non_zero_retention
+  sql_logic: |-
+    SELECT state, gender
+    FROM LegislatorRetentionStatus
+    GROUP BY state, gender
+    HAVING SUM(retained_at_0) > 0
+    AND SUM(retained_at_2) > 0
+    AND SUM(retained_at_4) > 0
+    AND SUM(retained_at_6) > 0
+    AND SUM(retained_at_8) > 0
+    AND SUM(retained_at_10) > 0
+- metric_name: states_with_both_gender_non_zero_retention
+  sql_logic: |-
+    SELECT state
+    FROM GenderCohortRetention
+    GROUP BY state
+    HAVING COUNT(gender) = 2

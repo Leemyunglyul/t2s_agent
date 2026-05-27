@@ -1,0 +1,221 @@
+databases:
+- EntertainmentAgency
+descriptions:
+- table: Agents
+  column: AgentID
+  meaning: |-
+    Unique identifier for an agent who manages entertainers or engagements.
+- table: Agents
+  column: AgtFirstName
+  meaning: First name of the agent.
+- table: Agents
+  column: AgtLastName
+  meaning: Last name of the agent.
+- table: Agents
+  column: Salary
+  meaning: Annual salary of the agent.
+- table: Agents
+  column: CommissionRate
+  meaning: Commission rate earned by the agent on engagements.
+- table: Customers
+  column: CustomerID
+  meaning: Unique identifier for a customer who books entertainers.
+- table: Customers
+  column: CustFirstName
+  meaning: First name of the customer.
+- table: Customers
+  column: CustLastName
+  meaning: Last name of the customer.
+- table: Engagements
+  column: EngagementNumber
+  meaning: |-
+    Unique identifier for an entertainment booking or engagement.
+- table: Engagements
+  column: StartDate
+  meaning: The start date of the engagement.
+- table: Engagements
+  column: EndDate
+  meaning: The end date of the engagement.
+- table: Engagements
+  column: ContractPrice
+  meaning: The agreed-upon price for the engagement contract.
+- table: Engagements
+  column: CustomerID
+  meaning: |-
+    Foreign key linking to the customer who booked the engagement.
+- table: Engagements
+  column: AgentID
+  meaning: Foreign key linking to the agent managing the engagement.
+- table: Engagements
+  column: EntertainerID
+  meaning: |-
+    Foreign key linking to the entertainer performing in the engagement.
+- table: Entertainer_Members
+  column: EntertainerID
+  meaning: Foreign key linking to the entertainer group.
+- table: Entertainer_Members
+  column: MemberID
+  meaning: |-
+    Foreign key linking to an individual member of the entertainer group.
+- table: Entertainer_Styles
+  column: EntertainerID
+  meaning: Foreign key linking to the entertainer.
+- table: Entertainer_Styles
+  column: StyleID
+  meaning: |-
+    Foreign key linking to a musical style the entertainer performs.
+- table: Entertainer_Styles
+  column: StyleStrength
+  meaning: |-
+    A numerical ranking indicating the entertainer's proficiency or primary focus for a given musical style (e.g., 1 for primary, 2 for secondary).
+- table: Entertainers
+  column: EntertainerID
+  meaning: Unique identifier for an entertainer or entertainment group.
+- table: Entertainers
+  column: EntStageName
+  meaning: The stage name of the entertainer or entertainment group.
+- table: Members
+  column: MemberID
+  meaning: |-
+    Unique identifier for an individual member of an entertainer group.
+- table: Members
+  column: MbrFirstName
+  meaning: First name of the member.
+- table: Members
+  column: MbrLastName
+  meaning: Last name of the member.
+- table: Musical_Preferences
+  column: CustomerID
+  meaning: Foreign key linking to the customer.
+- table: Musical_Preferences
+  column: StyleID
+  meaning: Foreign key linking to a musical style the customer prefers.
+- table: Musical_Preferences
+  column: PreferenceSeq
+  meaning: |-
+    A numerical ranking indicating the customer's preference order for a given musical style (e.g., 1 for most preferred, 2 for second most preferred).
+- table: Musical_Styles
+  column: StyleID
+  meaning: Unique identifier for a musical style.
+- table: Musical_Styles
+  column: StyleName
+  meaning: The name of the musical style (e.g., 'Jazz', 'Rock').
+relations:
+- table_1: Engagements
+  column_1: AgentID
+  table_2: Agents
+  column_2: AgentID
+  meaning: An engagement is managed by an agent.
+- table_1: Engagements
+  column_1: CustomerID
+  table_2: Customers
+  column_2: CustomerID
+  meaning: An engagement is booked by a customer.
+- table_1: Engagements
+  column_1: EntertainerID
+  table_2: Entertainers
+  column_2: EntertainerID
+  meaning: An engagement features an entertainer.
+- table_1: Entertainer_Members
+  column_1: EntertainerID
+  table_2: Entertainers
+  column_2: EntertainerID
+  meaning: An entertainer group consists of members.
+- table_1: Entertainer_Members
+  column_1: MemberID
+  table_2: Members
+  column_2: MemberID
+  meaning: An entertainer member is an individual person.
+- table_1: Entertainer_Styles
+  column_1: EntertainerID
+  table_2: Entertainers
+  column_2: EntertainerID
+  meaning: |-
+    An entertainer is associated with one or more musical styles.
+- table_1: Entertainer_Styles
+  column_1: StyleID
+  table_2: Musical_Styles
+  column_2: StyleID
+  meaning: |-
+    An entertainer's style is defined in the list of musical styles.
+- table_1: Musical_Preferences
+  column_1: CustomerID
+  table_2: Customers
+  column_2: CustomerID
+  meaning: A customer has one or more musical style preferences.
+- table_1: Musical_Preferences
+  column_1: StyleID
+  table_2: Musical_Styles
+  column_2: StyleID
+  meaning: A customer's preference is for a specific musical style.
+synonyms:
+- nl_term: entertainer’s stage name
+  db_target: Entertainers.EntStageName
+  type: column
+- nl_term: customer’s last name
+  db_target: Customers.CustLastName
+  type: column
+- nl_term: style strengths
+  db_target: Entertainer_Styles.StyleStrength
+  type: column
+- nl_term: style preferences
+  db_target: Musical_Preferences.PreferenceSeq
+  type: column
+- nl_term: first style strength
+  db_target: Entertainer_Styles.StyleStrength = 1
+  type: condition
+- nl_term: second style strength
+  db_target: Entertainer_Styles.StyleStrength = 2
+  type: condition
+- nl_term: first style preference
+  db_target: Musical_Preferences.PreferenceSeq = 1
+  type: condition
+- nl_term: second style preference
+  db_target: Musical_Preferences.PreferenceSeq = 2
+  type: condition
+- nl_term: up to three style strengths
+  db_target: COUNT(Entertainer_Styles.StyleID) <= 3
+  type: condition
+- nl_term: up to three style preferences
+  db_target: COUNT(Musical_Preferences.StyleID) <= 3
+  type: condition
+biz_logic:
+- metric_name: Entertainer Top 2 Styles
+  sql_logic: |-
+    WITH EntertainerStylesPivoted AS
+      (SELECT EntertainerID, COUNT(StyleID) AS StyleCount,
+              MAX(CASE WHEN StyleStrength = 1 THEN StyleID
+                  END) AS Style1, MAX(CASE WHEN StyleStrength = 2 THEN StyleID
+                                      END) AS Style2
+       FROM Entertainer_Styles
+       GROUP BY EntertainerID
+       HAVING COUNT(StyleID) <= 3
+       AND MAX(CASE WHEN StyleStrength = 1 THEN StyleID
+               END) IS NOT NULL
+       AND MAX(CASE WHEN StyleStrength = 2 THEN StyleID
+               END) IS NOT NULL)
+- metric_name: Customer Top 2 Preferences
+  sql_logic: |-
+    WITH CustomerPreferencesPivoted AS
+      (SELECT CustomerID, COUNT(StyleID) AS PrefCount,
+              MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID
+                  END) AS Pref1, MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID
+                                     END) AS Pref2
+       FROM Musical_Preferences
+       GROUP BY CustomerID
+       HAVING COUNT(StyleID) <= 3
+       AND MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID
+               END) IS NOT NULL
+       AND MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID
+               END) IS NOT NULL)
+- metric_name: Matching Entertainer Customer Pairs by Top 2 Styles
+  sql_logic: |-
+    SELECT E.EntStageName, C.CustLastName
+    FROM Entertainers AS E
+    INNER JOIN EntertainerStylesPivoted AS ESP ON E.EntertainerID = ESP.EntertainerID
+    INNER JOIN Customers AS C ON 1 = 1
+    INNER JOIN CustomerPreferencesPivoted AS CPP ON C.CustomerID = CPP.CustomerID
+    WHERE (ESP.Style1 = CPP.Pref1
+           AND ESP.Style2 = CPP.Pref2)
+      OR (ESP.Style1 = CPP.Pref2
+          AND ESP.Style2 = CPP.Pref1)

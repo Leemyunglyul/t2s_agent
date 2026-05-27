@@ -1,0 +1,365 @@
+databases:
+- imdb_movies
+- sqlite-sakila
+- Pagila
+descriptions:
+- table: movies
+  column: id
+  meaning: Unique identifier for a movie
+- table: movies
+  column: title
+  meaning: Title of the movie
+- table: movies
+  column: year
+  meaning: Release year of the movie
+- table: movies
+  column: date_published
+  meaning: Date the movie was published
+- table: movies
+  column: duration
+  meaning: Running time of the movie in minutes
+- table: movies
+  column: country
+  meaning: Country of origin for the movie
+- table: movies
+  column: worlwide_gross_income
+  meaning: Worldwide gross income of the movie
+- table: movies
+  column: languages
+  meaning: Languages the movie is available in
+- table: movies
+  column: production_company
+  meaning: Company that produced the movie
+- table: genre
+  column: movie_id
+  meaning: Foreign key linking to the movies table
+- table: genre
+  column: genre
+  meaning: The genre of the movie
+- table: director_mapping
+  column: movie_id
+  meaning: Foreign key linking to the movies table
+- table: director_mapping
+  column: name_id
+  meaning: |-
+    Foreign key linking to the names table, representing a director
+- table: role_mapping
+  column: movie_id
+  meaning: Foreign key linking to the movies table
+- table: role_mapping
+  column: name_id
+  meaning: |-
+    Foreign key linking to the names table, representing an actor or crew member
+- table: role_mapping
+  column: category
+  meaning: Category of the role (e.g., 'actor', 'actress')
+- table: names
+  column: id
+  meaning: Unique identifier for a person (actor, director, etc.)
+- table: names
+  column: name
+  meaning: Name of the person
+- table: names
+  column: height
+  meaning: Height of the person
+- table: names
+  column: date_of_birth
+  meaning: Date of birth of the person
+- table: names
+  column: known_for_movies
+  meaning: Movies the person is known for
+- table: ratings
+  column: movie_id
+  meaning: Foreign key linking to the movies table
+- table: ratings
+  column: avg_rating
+  meaning: Average rating of the movie
+- table: ratings
+  column: total_votes
+  meaning: Total number of votes received for the movie's rating
+- table: ratings
+  column: median_rating
+  meaning: Median rating of the movie
+- table: rental
+  column: rental_date
+  meaning: The date and time when a film rental transaction occurred.
+- table: rental
+  column: rental_id
+  meaning: A unique identifier for each film rental transaction.
+- table: staff
+  column: staff_id
+  meaning: |-
+    A unique identifier for each staff member working at a store.
+- table: staff
+  column: store_id
+  meaning: |-
+    The identifier of the store where the staff member is employed.
+- table: store
+  column: store_id
+  meaning: A unique identifier for each rental store location.
+- table: derived
+  column: rental_year
+  meaning: |-
+    The year extracted from the rental_date of a rental transaction.
+- table: derived
+  column: rental_month
+  meaning: |-
+    The month extracted from the rental_date of a rental transaction.
+- table: derived
+  column: total_rentals
+  meaning: |-
+    The total count of rental orders for a given period and store.
+- table: actor
+  column: actor_id
+  meaning: Unique identifier for an actor.
+- table: actor
+  column: first_name
+  meaning: First name of the actor.
+- table: actor
+  column: last_name
+  meaning: Last name of the actor.
+- table: category
+  column: category_id
+  meaning: Unique identifier for a film category.
+- table: category
+  column: name
+  meaning: Name of the film category.
+- table: city
+  column: city_id
+  meaning: Unique identifier for a city.
+- table: city
+  column: city
+  meaning: Name of the city.
+- table: customer
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: film
+  column: film_id
+  meaning: Unique identifier for a film.
+- table: film
+  column: title
+  meaning: Title of the film.
+- table: film
+  column: description
+  meaning: Description of the film.
+- table: film
+  column: rental_duration
+  meaning: The number of days a film can be rented.
+- table: inventory
+  column: inventory_id
+  meaning: Unique identifier for a film inventory item.
+- table: rental
+  column: return_date
+  meaning: Date and time when the film was returned.
+relations:
+- table_1: movies
+  column_1: id
+  table_2: genre
+  column_2: movie_id
+  meaning: A movie can have multiple genres
+- table_1: movies
+  column_1: id
+  table_2: director_mapping
+  column_2: movie_id
+  meaning: |-
+    A movie can have multiple directors, and a director can direct multiple movies
+- table_1: movies
+  column_1: id
+  table_2: role_mapping
+  column_2: movie_id
+  meaning: A movie can have multiple roles/actors
+- table_1: movies
+  column_1: id
+  table_2: ratings
+  column_2: movie_id
+  meaning: A movie has one set of ratings
+- table_1: names
+  column_1: id
+  table_2: director_mapping
+  column_2: name_id
+  meaning: A person can be a director for multiple movies
+- table_1: names
+  column_1: id
+  table_2: role_mapping
+  column_2: name_id
+  meaning: A person can have multiple roles in different movies
+- table_1: rental
+  column_1: staff_id
+  table_2: staff
+  column_2: staff_id
+  meaning: |-
+    A rental transaction is processed by a specific staff member.
+- table_1: staff
+  column_1: store_id
+  table_2: store
+  column_2: store_id
+  meaning: |-
+    Each staff member is associated with a particular store location.
+- table_1: rental
+  column_1: customer_id
+  table_2: customer
+  column_2: customer_id
+  meaning: A customer can have multiple rentals.
+- table_1: customer
+  column_1: address_id
+  table_2: address
+  column_2: address_id
+  meaning: A customer lives at an address.
+- table_1: address
+  column_1: city_id
+  table_2: city
+  column_2: city_id
+  meaning: An address is located in a city.
+- table_1: rental
+  column_1: inventory_id
+  table_2: inventory
+  column_2: inventory_id
+  meaning: A rental is for a specific inventory item.
+- table_1: inventory
+  column_1: film_id
+  table_2: film
+  column_2: film_id
+  meaning: An inventory item is a copy of a film.
+- table_1: film
+  column_1: film_id
+  table_2: film_category
+  column_2: film_id
+  meaning: A film can belong to one or more categories.
+- table_1: film_category
+  column_1: category_id
+  table_2: category
+  column_2: category_id
+  meaning: A film category groups films.
+synonyms:
+- nl_term: top three genres
+  db_target: CTE_Top3Genres.genre
+  type: value
+- nl_term: most movies rated above 8
+  db_target: ratings.avg_rating > 8
+  type: condition
+- nl_term: top four directors
+  db_target: CTE_DirectorMovieCounts.name
+  type: value
+- nl_term: movie counts
+  db_target: movie_count
+  type: column
+- nl_term: rated above 8
+  db_target: avg_rating > 8
+  type: condition
+- nl_term: director
+  db_target: names.name
+  type: column
+- nl_term: genre
+  db_target: genre.genre
+  type: column
+- nl_term: rental orders
+  db_target: COUNT(rental.rental_id)
+  type: value
+- nl_term: store
+  db_target: store.store_id
+  type: column
+- nl_term: year
+  db_target: STRFTIME('%Y', rental.rental_date)
+  type: value
+- nl_term: month
+  db_target: STRFTIME('%m', rental.rental_date)
+  type: value
+- nl_term: total rentals
+  db_target: total_rentals
+  type: value
+- nl_term: film category
+  db_target: category.name
+  type: column
+- nl_term: total rental hours
+  db_target: SUM(film.rental_duration * 24)
+  type: value
+- nl_term: city's name starts with "A"
+  db_target: city.city LIKE 'A%'
+  type: condition
+- nl_term: city's name contains a hyphen
+  db_target: city.city LIKE '%-%'
+  type: condition
+biz_logic:
+- metric_name: HighRatedMovies
+  sql_logic: |-
+    SELECT movie_id
+    FROM ratings
+    WHERE avg_rating > 8
+- metric_name: GenreMovieCounts
+  sql_logic: |-
+    SELECT T2.genre, COUNT(DISTINCT T1.movie_id) AS movie_count
+    FROM CTE_HighRatedMovies AS T1
+    INNER JOIN genre AS T2 ON T1.movie_id = T2.movie_id
+    GROUP BY T2.genre
+- metric_name: Top3Genres
+  sql_logic: |-
+    SELECT genre
+    FROM CTE_GenreMovieCounts
+    ORDER BY movie_count DESC
+    LIMIT 3
+- metric_name: HighRatedMoviesInTopGenres
+  sql_logic: |-
+    SELECT T1.movie_id, T2.genre
+    FROM CTE_HighRatedMovies AS T1
+    INNER JOIN genre AS T2 ON T1.movie_id = T2.movie_id
+    WHERE T2.genre IN
+        (SELECT genre
+         FROM CTE_Top3Genres)
+- metric_name: DirectorMovieCounts
+  sql_logic: |-
+    SELECT T3.name, COUNT(DISTINCT T1.movie_id) AS movie_count
+    FROM CTE_HighRatedMoviesInTopGenres AS T1
+    INNER JOIN director_mapping AS T2 ON T1.movie_id = T2.movie_id
+    INNER JOIN NAMES AS T3 ON T2.name_id = T3.id
+    GROUP BY T3.name
+- metric_name: Top4Directors
+  sql_logic: |-
+    SELECT name, movie_count
+    FROM CTE_DirectorMovieCounts
+    ORDER BY movie_count DESC
+    LIMIT 4
+- metric_name: MonthlyStoreRentals
+  sql_logic: |-
+    WITH MonthlyStoreRentals AS
+      (SELECT T2.store_id, STRFTIME('%Y', T1.rental_date) AS rental_year,
+              STRFTIME('%m', T1.rental_date) AS rental_month, COUNT(T1.rental_id) AS total_rentals
+       FROM rental AS T1
+       INNER JOIN staff AS T2 ON T1.staff_id = T2.staff_id
+       GROUP BY T2.store_id, rental_year, rental_month)
+- metric_name: RankedRentals
+  sql_logic: |-
+    WITH RankedRentals AS
+      (SELECT store_id, rental_year, rental_month, total_rentals,
+              DENSE_RANK() OVER (PARTITION BY store_id
+                                 ORDER BY total_rentals DESC) AS rank_num
+       FROM MonthlyStoreRentals)
+- metric_name: HighestRentalMonthPerStore
+  sql_logic: |-
+    SELECT store_id, rental_year, rental_month, total_rentals
+    FROM RankedRentals
+    WHERE rank_num = 1
+- metric_name: film_category_highest_rental_hours_in_filtered_cities
+  sql_logic: |-
+    WITH FilteredCities AS
+      (SELECT city_id
+       FROM city
+       WHERE city LIKE 'A%'
+         OR city LIKE '%-%'),
+         RentalDetails AS
+      (SELECT r.customer_id, f.rental_duration, fc.category_id
+       FROM rental AS r
+       JOIN inventory AS i ON r.inventory_id = i.inventory_id
+       JOIN film AS f ON i.film_id = f.film_id
+       JOIN film_category AS fc ON f.film_id = fc.film_id),
+         CustomerAddressCity AS
+      (SELECT c.customer_id, a.city_id
+       FROM customer AS c
+       JOIN address AS a ON c.address_id = a.address_id)
+    SELECT cat.name
+    FROM RentalDetails AS rd
+    JOIN CustomerAddressCity AS cac ON rd.customer_id = cac.customer_id
+    JOIN FilteredCities AS fc ON cac.city_id = fc.city_id
+    JOIN category AS cat ON rd.category_id = cat.category_id
+    GROUP BY cat.name
+    ORDER BY SUM(rd.rental_duration * 24) DESC
+    LIMIT 1

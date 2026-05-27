@@ -1,0 +1,423 @@
+databases:
+- northwind
+- delivery_center
+- oracle_sql
+descriptions:
+- table: employees
+  column: employeeid
+  meaning: Unique identifier for an employee.
+- table: orders
+  column: orderid
+  meaning: Unique identifier for an order.
+- table: orders
+  column: employeeid
+  meaning: |-
+    Foreign key linking an order to the employee who processed it.
+- table: orders
+  column: orderdate
+  meaning: The date the order was placed.
+- table: orders
+  column: requireddate
+  meaning: The date by which the order was required to be shipped.
+- table: orders
+  column: shippeddate
+  meaning: The actual date the order was shipped.
+- table: channels
+  column: channel_id
+  meaning: Unique identifier for the sales or order channel.
+- table: channels
+  column: channel_name
+  meaning: Name of the sales or order channel (e.g., 'App', 'Website').
+- table: channels
+  column: channel_type
+  meaning: Type or category of the sales or order channel.
+- table: drivers
+  column: driver_id
+  meaning: Unique identifier for a delivery driver.
+- table: drivers
+  column: driver_modal
+  meaning: |-
+    Mode of transport used by the driver (e.g., 'Car', 'Motorcycle').
+- table: drivers
+  column: driver_type
+  meaning: |-
+    Type or classification of the driver (e.g., 'Full-time', 'Contractor').
+- table: deliveries
+  column: delivery_id
+  meaning: Unique identifier for a specific delivery event.
+- table: deliveries
+  column: delivery_order_id
+  meaning: |-
+    Foreign key linking to the associated order in the 'orders' table.
+- table: deliveries
+  column: driver_id
+  meaning: Foreign key linking to the driver assigned to this delivery.
+- table: deliveries
+  column: delivery_distance_meters
+  meaning: Distance covered for the delivery in meters.
+- table: deliveries
+  column: delivery_status
+  meaning: |-
+    Current status of the delivery (e.g., 'Pending', 'Delivered', 'Cancelled').
+- table: hubs
+  column: hub_id
+  meaning: |-
+    Unique identifier for a logistics hub or distribution center.
+- table: hubs
+  column: hub_name
+  meaning: Name of the logistics hub.
+- table: hubs
+  column: hub_city
+  meaning: City where the hub is located.
+- table: hubs
+  column: hub_state
+  meaning: State where the hub is located.
+- table: hubs
+  column: hub_latitude
+  meaning: Geographical latitude of the hub.
+- table: hubs
+  column: hub_longitude
+  meaning: Geographical longitude of the hub.
+- table: payments
+  column: payment_id
+  meaning: Unique identifier for a payment transaction.
+- table: payments
+  column: payment_order_id
+  meaning: |-
+    Foreign key linking to the associated order in the 'orders' table.
+- table: payments
+  column: payment_amount
+  meaning: Total amount of the payment.
+- table: payments
+  column: payment_fee
+  meaning: Fees associated with the payment transaction.
+- table: payments
+  column: payment_method
+  meaning: Method used for the payment (e.g., 'Credit Card', 'Cash').
+- table: payments
+  column: payment_status
+  meaning: Current status of the payment (e.g., 'Completed', 'Failed').
+- table: stores
+  column: store_id
+  meaning: Unique identifier for a store or merchant.
+- table: stores
+  column: hub_id
+  meaning: Foreign key linking to the hub associated with this store.
+- table: stores
+  column: store_name
+  meaning: Name of the store.
+- table: stores
+  column: store_segment
+  meaning: Business segment or category of the store.
+- table: stores
+  column: store_plan_price
+  meaning: Pricing plan or subscription cost for the store.
+- table: stores
+  column: store_latitude
+  meaning: Geographical latitude of the store.
+- table: stores
+  column: store_longitude
+  meaning: Geographical longitude of the store.
+- table: orders
+  column: order_id
+  meaning: Unique identifier for an order.
+- table: orders
+  column: store_id
+  meaning: Foreign key linking to the store where the order was placed.
+- table: orders
+  column: channel_id
+  meaning: |-
+    Foreign key linking to the channel through which the order was placed.
+- table: orders
+  column: payment_order_id
+  meaning: |-
+    Identifier for the payment associated with this order, likely linking to payments.payment_order_id.
+- table: orders
+  column: delivery_order_id
+  meaning: |-
+    Identifier for the delivery associated with this order, likely linking to deliveries.delivery_order_id.
+- table: orders
+  column: order_status
+  meaning: |-
+    Current status of the order (e.g., 'Pending', 'Completed', 'Cancelled').
+- table: orders
+  column: order_amount
+  meaning: Total monetary amount of the order.
+- table: orders
+  column: order_delivery_fee
+  meaning: Fee charged to the customer for delivery.
+- table: orders
+  column: order_delivery_cost
+  meaning: Actual cost incurred for the delivery.
+- table: orders
+  column: order_created_hour
+  meaning: Hour when the order was created.
+- table: orders
+  column: order_created_minute
+  meaning: Minute when the order was created.
+- table: orders
+  column: order_created_day
+  meaning: Day of the month when the order was created.
+- table: orders
+  column: order_created_month
+  meaning: Month when the order was created.
+- table: orders
+  column: order_created_year
+  meaning: Year when the order was created.
+- table: orders
+  column: order_moment_created
+  meaning: Timestamp when the order was created.
+- table: orders
+  column: order_moment_accepted
+  meaning: Timestamp when the order was accepted by the store/system.
+- table: orders
+  column: order_moment_ready
+  meaning: Timestamp when the order was ready for pickup/delivery.
+- table: orders
+  column: order_moment_collected
+  meaning: Timestamp when the order was collected by the driver.
+- table: orders
+  column: order_moment_in_expedition
+  meaning: |-
+    Timestamp when the order began its expedition/delivery journey.
+- table: orders
+  column: order_moment_delivering
+  meaning: Timestamp when the order was actively being delivered.
+- table: orders
+  column: order_moment_delivered
+  meaning: Timestamp when the order was successfully delivered.
+- table: orders
+  column: order_moment_finished
+  meaning: Timestamp when the order process was fully completed.
+- table: orders
+  column: order_metric_collected_time
+  meaning: Time metric related to collection.
+- table: orders
+  column: order_metric_paused_time
+  meaning: Time metric related to pauses in order processing/delivery.
+- table: orders
+  column: order_metric_production_time
+  meaning: Time metric related to order production.
+- table: orders
+  column: order_metric_walking_time
+  meaning: Time metric related to walking during delivery.
+- table: orders
+  column: order_metric_expediton_speed_time
+  meaning: Time metric related to expedition speed.
+- table: orders
+  column: order_metric_transit_time
+  meaning: Time metric related to transit duration.
+- table: orders
+  column: order_metric_cycle_time
+  meaning: Total cycle time for the order.
+- table: picking_line
+  column: qty
+  meaning: |-
+    The quantity of a specific product picked for an order line within a picking list.
+- table: products
+  column: name
+  meaning: The name of the product.
+- table: picking_list
+  column: created
+  meaning: |-
+    The timestamp when the picking list was created, indicating the order of picking operations.
+- table: picking_line
+  column: order_id
+  meaning: |-
+    The unique identifier of the customer order associated with the picking line.
+relations:
+- table_1: employees
+  column_1: employeeid
+  table_2: orders
+  column_2: employeeid
+  meaning: An employee can process multiple orders.
+- table_1: deliveries
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: A delivery is performed by a driver.
+- table_1: deliveries
+  column_1: delivery_order_id
+  table_2: orders
+  column_2: order_id
+  meaning: A delivery is associated with a specific order.
+- table_1: orders
+  column_1: store_id
+  table_2: stores
+  column_2: store_id
+  meaning: An order is placed at a store.
+- table_1: orders
+  column_1: channel_id
+  table_2: channels
+  column_2: channel_id
+  meaning: An order is received through a channel.
+- table_1: orders
+  column_1: payment_order_id
+  table_2: payments
+  column_2: payment_order_id
+  meaning: An order has an associated payment record.
+- table_1: stores
+  column_1: hub_id
+  table_2: hubs
+  column_2: hub_id
+  meaning: A store belongs to a logistics hub.
+- table_1: picking_line
+  column_1: product_id
+  table_2: products
+  column_2: id
+  meaning: |-
+    Links a picked item in a picking line to its product details.
+- table_1: picking_line
+  column_1: picklist_id
+  table_2: picking_list
+  column_2: id
+  meaning: |-
+    Connects a specific picked item to the overall picking list it belongs to.
+synonyms:
+- nl_term: late order
+  db_target: T2.shippeddate >= T2.requireddate
+  type: condition
+- nl_term: total orders
+  db_target: COUNT(T2.orderid)
+  type: column
+- nl_term: late orders count
+  db_target: |-
+    SUM(CASE WHEN T2.shippeddate >= T2.requireddate THEN 1 ELSE 0 END)
+  type: column
+- nl_term: late-order percentage
+  db_target: |-
+    CAST(SUM(CASE WHEN T2.shippeddate >= T2.requireddate THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(T2.orderid)
+  type: column
+- nl_term: employees with more than 50 total orders
+  db_target: total_orders > 50
+  type: condition
+- nl_term: highest percentage of late orders
+  db_target: DENSE_RANK() OVER (ORDER BY late_order_percentage DESC)
+  type: condition
+- nl_term: delivery drivers
+  db_target: drivers
+  type: table
+- nl_term: daily deliveries
+  db_target: daily_delivery_count
+  type: value
+- nl_term: average number of daily deliveries
+  db_target: average_daily_deliveries
+  type: value
+- nl_term: highest
+  db_target: ORDER BY ... DESC
+  type: condition
+- nl_term: '5'
+  db_target: LIMIT 5
+  type: condition
+- nl_term: products picked
+  db_target: products.name
+  type: column
+- nl_term: average number of units picked
+  db_target: AVG(picking_line.qty)
+  type: value
+- nl_term: order 421
+  db_target: picking_line.order_id = 421
+  type: condition
+- nl_term: FIFO
+  db_target: ORDER BY MIN(picking_list.created)
+  type: condition
+biz_logic:
+- metric_name: Total Orders Handled by Employee
+  sql_logic: |-
+    SELECT T1.employeeid, COUNT(T2.orderid) AS total_orders
+    FROM employees AS T1
+    INNER JOIN orders AS T2 ON T1.employeeid = T2.employeeid
+    GROUP BY T1.employeeid
+- metric_name: Late Orders Count by Employee
+  sql_logic: |-
+    SELECT T1.employeeid,
+           SUM(CASE WHEN T2.shippeddate >= T2.requireddate THEN 1 ELSE 0
+               END) AS late_orders_count
+    FROM employees AS T1
+    INNER JOIN orders AS T2 ON T1.employeeid = T2.employeeid
+    GROUP BY T1.employeeid
+- metric_name: Late Order Percentage by Employee
+  sql_logic: |-
+    WITH EmployeeOrderStats AS
+      (SELECT T1.employeeid, COUNT(T2.orderid) AS total_orders,
+              SUM(CASE WHEN T2.shippeddate >= T2.requireddate THEN 1 ELSE 0
+                  END) AS late_orders_count
+       FROM employees AS T1
+       INNER JOIN orders AS T2 ON T1.employeeid = T2.employeeid
+       GROUP BY T1.employeeid)
+    SELECT employeeid,
+           CAST(late_orders_count AS REAL) * 100.0 / total_orders AS late_order_percentage
+    FROM EmployeeOrderStats
+- metric_name: Top 3 Employees by Late Order Percentage (Min 50 Orders)
+  sql_logic: |-
+    WITH EmployeeOrderStats AS
+      (SELECT T1.employeeid, COUNT(T2.orderid) AS total_orders,
+              SUM(CASE WHEN T2.shippeddate >= T2.requireddate THEN 1 ELSE 0
+                  END) AS late_orders_count,
+              CAST(SUM(CASE WHEN T2.shippeddate >= T2.requireddate THEN 1 ELSE 0
+                       END) AS REAL) * 100.0 / COUNT(T2.orderid) AS late_order_percentage
+       FROM employees AS T1
+       INNER JOIN orders AS T2 ON T1.employeeid = T2.employeeid
+       GROUP BY T1.employeeid),
+         RankedEmployees AS
+      (SELECT employeeid, late_orders_count, late_order_percentage,
+              DENSE_RANK() OVER (
+                                 ORDER BY late_order_percentage DESC) AS rank_num
+       FROM EmployeeOrderStats
+       WHERE total_orders > 50)
+    SELECT employeeid, late_orders_count, late_order_percentage
+    FROM RankedEmployees
+    WHERE rank_num <= 3
+    ORDER BY late_order_percentage DESC
+- metric_name: daily_delivery_count
+  sql_logic: |-
+    SELECT del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day,
+           COUNT(DISTINCT del.delivery_id) AS daily_delivery_count
+    FROM deliveries AS del
+    INNER JOIN orders AS o ON del.delivery_order_id = o.order_id
+    WHERE del.driver_id IS NOT NULL
+    GROUP BY del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day
+- metric_name: average_daily_deliveries
+  sql_logic: |-
+    WITH CTE_DailyDeliveries AS
+      (SELECT del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day,
+              COUNT(DISTINCT del.delivery_id) AS daily_delivery_count
+       FROM deliveries AS del
+       INNER JOIN orders AS o ON del.delivery_order_id = o.order_id
+       WHERE del.driver_id IS NOT NULL
+       GROUP BY del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day)
+    SELECT driver_id, AVG(daily_delivery_count) AS average_daily_deliveries
+    FROM CTE_DailyDeliveries
+    GROUP BY driver_id
+- metric_name: top_5_drivers_by_average_daily_deliveries
+  sql_logic: |-
+    WITH CTE_DailyDeliveries AS
+      (SELECT del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day,
+              COUNT(DISTINCT del.delivery_id) AS daily_delivery_count
+       FROM deliveries AS del
+       INNER JOIN orders AS o ON del.delivery_order_id = o.order_id
+       WHERE del.driver_id IS NOT NULL
+       GROUP BY del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day),
+         CTE_AverageDailyDeliveries AS
+      (SELECT driver_id, AVG(daily_delivery_count) AS average_daily_deliveries
+       FROM CTE_DailyDeliveries
+       GROUP BY driver_id),
+         CTE_RankedDrivers AS
+      (SELECT driver_id, average_daily_deliveries,
+              DENSE_RANK() OVER (
+                                 ORDER BY average_daily_deliveries DESC) AS rank
+       FROM CTE_AverageDailyDeliveries)
+    SELECT d.driver_id, d.driver_modal, d.driver_type, r.average_daily_deliveries
+    FROM drivers AS d
+    INNER JOIN CTE_RankedDrivers AS r ON d.driver_id = r.driver_id
+    WHERE r.rank <= 5
+    ORDER BY r.average_daily_deliveries DESC
+- metric_name: average_picked_quantity_fifo_by_product
+  sql_logic: |-
+    SELECT P.name, AVG(PL.qty)
+    FROM picking_line AS PL
+    INNER JOIN products AS P ON PL.product_id = P.id
+    INNER JOIN picking_list AS PKL ON PL.picklist_id = PKL.id
+    WHERE PL.order_id = 421
+    GROUP BY P.id
+    ORDER BY MIN(PKL.created)

@@ -1,0 +1,465 @@
+databases:
+- modern_data
+descriptions:
+- table: pizza_names
+  column: pizza_id
+  meaning: Unique identifier for a type of pizza.
+- table: pizza_names
+  column: pizza_name
+  meaning: The name of the pizza type.
+- table: pizza_customer_orders
+  column: order_id
+  meaning: Unique identifier for a customer's order.
+- table: pizza_customer_orders
+  column: customer_id
+  meaning: Unique identifier for the customer who placed the order.
+- table: pizza_customer_orders
+  column: pizza_id
+  meaning: |-
+    Identifier for the specific pizza type ordered by the customer.
+- table: pizza_customer_orders
+  column: exclusions
+  meaning: |-
+    A comma-separated string of topping IDs that the customer wishes to exclude from their pizza.
+- table: pizza_customer_orders
+  column: extras
+  meaning: |-
+    A comma-separated string of topping IDs that the customer wishes to add as extra toppings to their pizza.
+- table: pizza_customer_orders
+  column: order_time
+  meaning: The timestamp when the customer's order was placed.
+- table: pizza_toppings
+  column: topping_id
+  meaning: Unique identifier for a specific pizza topping.
+- table: pizza_toppings
+  column: topping_name
+  meaning: The name of the pizza topping.
+- table: pizza_recipes
+  column: pizza_id
+  meaning: |-
+    Identifier for the pizza type, linking to its standard recipe.
+- table: pizza_recipes
+  column: toppings
+  meaning: |-
+    A comma-separated string of topping IDs that constitute the standard recipe for a pizza type.
+- table: pizza_clean_runner_orders
+  column: order_id
+  meaning: |-
+    Unique identifier for a customer's pizza order, as handled by a runner.
+- table: pizza_clean_runner_orders
+  column: runner_id
+  meaning: |-
+    Unique identifier for the delivery runner assigned to the order.
+- table: pizza_clean_runner_orders
+  column: pickup_time
+  meaning: The timestamp when the runner picked up the order.
+- table: pizza_clean_runner_orders
+  column: distance
+  meaning: The distance covered by the runner for the delivery.
+- table: pizza_clean_runner_orders
+  column: duration
+  meaning: The duration of the delivery by the runner.
+- table: pizza_clean_runner_orders
+  column: cancellation
+  meaning: |-
+    Indicates if the order was cancelled by the runner or customer. NULL means the order was successfully delivered.
+- table: pizza_clean_customer_orders
+  column: order_id
+  meaning: Cleaned unique identifier for a customer's pizza order.
+- table: pizza_clean_customer_orders
+  column: customer_id
+  meaning: |-
+    Cleaned unique identifier for the customer who placed the order.
+- table: pizza_clean_customer_orders
+  column: pizza_id
+  meaning: |-
+    Cleaned identifier for the pizza type ordered by the customer.
+- table: pizza_clean_customer_orders
+  column: exclusions
+  meaning: |-
+    Cleaned comma-separated string of topping IDs excluded by the customer.
+- table: pizza_clean_customer_orders
+  column: extras
+  meaning: |-
+    Cleaned comma-separated string of topping IDs added as extras by the customer.
+- table: pizza_clean_customer_orders
+  column: order_time
+  meaning: Cleaned timestamp when the order was placed.
+- table: pizza_runners
+  column: runner_id
+  meaning: Unique identifier for a pizza delivery runner.
+- table: pizza_runners
+  column: registration_date
+  meaning: The date when the runner registered.
+- table: pizza_get_extras
+  column: order_id
+  meaning: |-
+    Foreign key linking to 'pizza_clean_customer_orders', identifying the order to which extras were added.
+- table: pizza_get_extras
+  column: extras_count
+  meaning: The number of extra toppings added to a specific order item.
+relations:
+- table_1: pizza_customer_orders
+  column_1: pizza_id
+  table_2: pizza_names
+  column_2: pizza_id
+  meaning: Links a customer's ordered pizza to its name.
+- table_1: pizza_customer_orders
+  column_1: pizza_id
+  table_2: pizza_recipes
+  column_2: pizza_id
+  meaning: Links a customer's ordered pizza to its standard recipe.
+- table_1: pizza_recipes
+  column_1: toppings
+  table_2: pizza_toppings
+  column_2: topping_id
+  meaning: |-
+    The topping IDs within the 'toppings' string of a pizza recipe refer to 'topping_id' in the 'pizza_toppings' table.
+- table_1: pizza_customer_orders
+  column_1: exclusions
+  table_2: pizza_toppings
+  column_2: topping_id
+  meaning: |-
+    The topping IDs within the 'exclusions' string of a customer order refer to 'topping_id' in the 'pizza_toppings' table.
+- table_1: pizza_customer_orders
+  column_1: extras
+  table_2: pizza_toppings
+  column_2: topping_id
+  meaning: |-
+    The topping IDs within the 'extras' string of a customer order refer to 'topping_id' in the 'pizza_toppings' table.
+- table_1: pizza_clean_runner_orders
+  column_1: order_id
+  table_2: pizza_clean_customer_orders
+  column_2: order_id
+  meaning: |-
+    A delivery runner's order record corresponds to a customer's pizza order.
+- table_1: pizza_clean_customer_orders
+  column_1: pizza_id
+  table_2: pizza_names
+  column_2: pizza_id
+  meaning: A customer's ordered pizza refers to a specific pizza type.
+- table_1: pizza_clean_customer_orders
+  column_1: pizza_id
+  table_2: pizza_recipes
+  column_2: pizza_id
+  meaning: |-
+    A customer's ordered pizza refers to a specific pizza recipe.
+- table_1: pizza_clean_customer_orders
+  column_1: exclusions
+  table_2: pizza_toppings
+  column_2: topping_id
+  meaning: |-
+    The 'exclusions' column in pizza_clean_customer_orders contains comma-separated topping IDs that refer to individual toppings in pizza_toppings.
+- table_1: pizza_clean_customer_orders
+  column_1: extras
+  table_2: pizza_toppings
+  column_2: topping_id
+  meaning: |-
+    The 'extras' column in pizza_clean_customer_orders contains comma-separated topping IDs that refer to individual toppings in pizza_toppings.
+- table_1: pizza_clean_runner_orders
+  column_1: runner_id
+  table_2: pizza_runners
+  column_2: runner_id
+  meaning: A runner's order record refers to a specific runner.
+- table_1: pizza_get_extras
+  column_1: order_id
+  table_2: pizza_clean_customer_orders
+  column_2: order_id
+  meaning: |-
+    Extra toppings are associated with a specific customer order.
+synonyms:
+- nl_term: pizza order
+  db_target: pizza_customer_orders
+  type: table
+- nl_term: row ID
+  db_target: customer_orders_with_row_id.row_id
+  type: column
+- nl_term: customer ID
+  db_target: pizza_customer_orders.customer_id
+  type: column
+- nl_term: pizza name
+  db_target: pizza_names.pizza_name
+  type: column
+- nl_term: final set of ingredients
+  db_target: final_set_of_ingredients
+  type: column
+- nl_term: standard toppings
+  db_target: pizza_recipes.toppings
+  type: column
+- nl_term: excluded toppings
+  db_target: pizza_customer_orders.exclusions
+  type: column
+- nl_term: extra toppings
+  db_target: pizza_customer_orders.extras
+  type: column
+- nl_term: topping
+  db_target: pizza_toppings.topping_name
+  type: column
+- nl_term: Meatlovers
+  db_target: pizza_names.pizza_name
+  type: value
+- nl_term: pizza_id 1
+  db_target: pizza_names.pizza_id
+  type: value
+- nl_term: pizza_id 2
+  db_target: pizza_names.pizza_id
+  type: value
+- nl_term: customer pizza order information
+  db_target: pizza_clean_customer_orders
+  type: table
+- nl_term: ingredient
+  db_target: pizza_toppings.topping_name
+  type: column
+- nl_term: quantity
+  db_target: total_quantity_used
+  type: column
+- nl_term: delivered
+  db_target: pizza_clean_runner_orders.cancellation IS NULL
+  type: condition
+- nl_term: name
+  db_target: pizza_toppings.topping_name
+  type: column
+- nl_term: toppings
+  db_target: pizza_toppings
+  type: table
+- nl_term: total income
+  db_target: total_earnings
+  type: value
+- nl_term: total earnings
+  db_target: total_earnings
+  type: value
+- nl_term: Meat Lovers pizzas
+  db_target: pizza_names.pizza_name = 'Meatlovers'
+  type: condition
+- nl_term: Vegetarian pizzas
+  db_target: pizza_names.pizza_name = 'Vegetarian'
+  type: condition
+- nl_term: $12
+  db_target: '12'
+  type: value
+- nl_term: $10
+  db_target: '10'
+  type: value
+- nl_term: extra toppings charged at $1 each
+  db_target: pizza_get_extras.extras_count
+  type: column
+- nl_term: canceled orders
+  db_target: pizza_clean_runner_orders.cancellation IS NOT NULL
+  type: condition
+- nl_term: filtered out
+  db_target: pizza_clean_runner_orders.cancellation IS NULL
+  type: condition
+biz_logic:
+- metric_name: final_set_of_ingredients
+  sql_logic: |-
+    WITH RECURSIVE -- Step 1: customer_orders_with_row_id CTE
+    customer_orders_with_row_id AS
+      (SELECT order_id, customer_id, pizza_id, order_time,
+              NULLIF(TRIM(exclusions), 'None') AS exclusions_cleaned, NULLIF(TRIM(extras),
+                                                                        'None') AS extras_cleaned,
+              ROW_NUMBER() OVER (
+                                 ORDER BY order_id, order_time) AS row_id
+       FROM pizza_customer_orders), -- Step 2: orders_with_effective_pizza_id CTE
+    orders_with_effective_pizza_id AS
+      (SELECT co.row_id, co.order_id, co.customer_id, co.order_time, co.exclusions_cleaned,
+              co.extras_cleaned, pn.pizza_name,
+              CASE WHEN pn.pizza_name = 'Meatlovers' THEN 1 ELSE 2
+              END AS effective_pizza_id
+       FROM customer_orders_with_row_id AS co
+       JOIN pizza_names AS pn ON co.pizza_id = pn.pizza_id), -- Step 3: base_toppings_split CTE (Recursive)
+    base_toppings_split(row_id, topping_id, remaining_toppings) AS
+      (SELECT owe.row_id,
+              CAST(SUBSTR(pr.toppings, 1, INSTR(pr.toppings || ',',
+                                            ',') - 1) AS INTEGER),
+              SUBSTR(pr.toppings || ',', INSTR(pr.toppings || ',',
+                                           ',') + 1)
+       FROM orders_with_effective_pizza_id AS owe
+       JOIN pizza_recipes AS pr ON owe.effective_pizza_id = pr.pizza_id
+       WHERE pr.toppings IS NOT NULL
+         AND pr.toppings != ''
+       UNION ALL SELECT row_id,
+                        CAST(SUBSTR(remaining_toppings,
+                               1, INSTR(remaining_toppings, ',') - 1) AS INTEGER),
+                        SUBSTR(remaining_toppings,
+                          INSTR(remaining_toppings, ',') + 1)
+       FROM base_toppings_split
+       WHERE remaining_toppings != ''), -- Step 4: excluded_toppings_split CTE (Recursive)
+    excluded_toppings_split(row_id, topping_id, remaining_toppings) AS
+      (SELECT row_id,
+              CAST(SUBSTR(exclusions_cleaned,
+                     1, INSTR(exclusions_cleaned || ',', ',') - 1) AS INTEGER),
+              SUBSTR(exclusions_cleaned || ',', INSTR(exclusions_cleaned || ',',
+                                                  ',') + 1)
+       FROM orders_with_effective_pizza_id
+       WHERE exclusions_cleaned IS NOT NULL
+         AND exclusions_cleaned != ''
+       UNION ALL SELECT row_id,
+                        CAST(SUBSTR(remaining_toppings,
+                               1, INSTR(remaining_toppings, ',') - 1) AS INTEGER),
+                        SUBSTR(remaining_toppings,
+                          INSTR(remaining_toppings, ',') + 1)
+       FROM excluded_toppings_split
+       WHERE remaining_toppings != ''), -- Step 5: extra_toppings_split CTE (Recursive)
+    extra_toppings_split(row_id, topping_id, remaining_toppings) AS
+      (SELECT row_id,
+              CAST(SUBSTR(extras_cleaned, 1, INSTR(extras_cleaned || ',',
+                                               ',') - 1) AS INTEGER),
+              SUBSTR(extras_cleaned || ',', INSTR(extras_cleaned || ',',
+                                              ',') + 1)
+       FROM orders_with_effective_pizza_id
+       WHERE extras_cleaned IS NOT NULL
+         AND extras_cleaned != ''
+       UNION ALL SELECT row_id,
+                        CAST(SUBSTR(remaining_toppings,
+                               1, INSTR(remaining_toppings, ',') - 1) AS INTEGER),
+                        SUBSTR(remaining_toppings,
+                          INSTR(remaining_toppings, ',') + 1)
+       FROM extra_toppings_split
+       WHERE remaining_toppings != ''), -- Step 6: all_potential_toppings CTE
+    all_potential_toppings AS
+      (SELECT row_id, topping_id
+       FROM base_toppings_split
+       UNION ALL SELECT row_id, topping_id
+       FROM extra_toppings_split), -- Step 7: final_toppings_before_count CTE
+    final_toppings_before_count AS
+      (SELECT apt.row_id, apt.topping_id
+       FROM all_potential_toppings AS apt
+       LEFT JOIN excluded_toppings_split AS ets ON apt.row_id = ets.row_id
+       AND apt.topping_id = ets.topping_id
+       WHERE ets.topping_id IS NULL), -- Step 8: final_toppings_counted CTE
+    final_toppings_counted AS
+      (SELECT row_id, topping_id, COUNT(topping_id) AS topping_count
+       FROM final_toppings_before_count
+       GROUP BY row_id, topping_id), -- Step 9: formatted_ingredients CTE
+    formatted_ingredients AS
+      (SELECT ftc.row_id,
+              CASE WHEN ftc.topping_count > 1 THEN '2x ' || pt.topping_name ELSE pt.topping_name
+              END AS formatted_topping_name,
+              CASE WHEN ftc.topping_count > 1 THEN 0 ELSE 1
+              END AS sort_key, pt.topping_name
+       FROM final_toppings_counted AS ftc
+       JOIN pizza_toppings AS pt ON ftc.topping_id = pt.topping_id), -- Step 10: aggregated_ingredients CTE
+    aggregated_ingredients AS
+      (SELECT T.row_id,
+              GROUP_CONCAT(T.formatted_topping_name, ', ') AS final_ingredients_string
+       FROM
+         (SELECT row_id, formatted_topping_name, sort_key, topping_name
+          FROM formatted_ingredients
+          ORDER BY row_id, sort_key, topping_name) AS T
+       GROUP BY T.row_id) -- Step 11: Final Result Query
+
+    SELECT owe.row_id, owe.order_id, owe.customer_id, owe.pizza_name,
+           owe.pizza_name || ': ' || COALESCE(ai.final_ingredients_string,
+                                       '') AS final_set_of_ingredients
+    FROM orders_with_effective_pizza_id AS owe
+    LEFT JOIN aggregated_ingredients AS ai ON owe.row_id = ai.row_id
+    ORDER BY owe.row_id ASC;
+- metric_name: total_quantity_of_ingredients_used_in_delivered_pizzas
+  sql_logic: |-
+    WITH DeliveredOrders AS
+      (SELECT order_id
+       FROM pizza_clean_runner_orders
+       WHERE cancellation IS NULL),
+         PizzaDetails AS
+      (SELECT d.order_id, pcco.pizza_id, pr.toppings, pcco.exclusions, pcco.extras
+       FROM DeliveredOrders AS d
+       INNER JOIN pizza_clean_customer_orders AS pcco ON d.order_id = pcco.order_id
+       INNER JOIN pizza_recipes AS pr ON pcco.pizza_id = pr.pizza_id),
+         BaseToppings AS
+      (WITH RECURSIVE SplitBaseToppings(order_id,
+                        pizza_id, topping_id_str, rest) AS
+         (SELECT pd.order_id, pd.pizza_id, '', pd.toppings || ','
+          FROM PizzaDetails AS pd
+          UNION ALL SELECT sbt.order_id, sbt.pizza_id,
+                           TRIM(SUBSTR(sbt.rest,
+                                  1, INSTR(sbt.rest, ',') - 1)),
+                           SUBSTR(sbt.rest,
+
+                             INSTR(sbt.rest, ',') + 1)
+          FROM SplitBaseToppings AS sbt
+          WHERE sbt.rest <> '') SELECT order_id, pizza_id,
+                                       CAST(topping_id_str AS INTEGER) AS topping_id, 1 AS quantity
+       FROM SplitBaseToppings
+       WHERE topping_id_str <> ''),
+         ExtraToppings AS
+      (WITH RECURSIVE SplitExtraToppings(order_id,
+                        pizza_id, topping_id_str, rest) AS
+         (SELECT pd.order_id, pd.pizza_id, '',
+                 CASE
+                     WHEN pd.extras IS NOT NULL
+                          AND TRIM(pd.extras) <> '' THEN pd.extras || ',' ELSE ''
+                 END
+          FROM PizzaDetails AS pd
+          WHERE pd.extras IS NOT NULL
+            AND TRIM(pd.extras) <> ''
+          UNION ALL SELECT seto.order_id, seto.pizza_id,
+                           TRIM(SUBSTR(seto.rest,
+                                  1, INSTR(seto.rest, ',') - 1)),
+                           SUBSTR(seto.rest,
+
+                             INSTR(seto.rest, ',') + 1)
+          FROM SplitExtraToppings AS seto
+          WHERE seto.rest <> '') SELECT order_id, pizza_id,
+                                        CAST(topping_id_str AS INTEGER) AS topping_id, 1 AS quantity
+       FROM SplitExtraToppings
+       WHERE topping_id_str <> ''),
+         ExcludedToppings AS
+      (WITH RECURSIVE SplitExcludedToppings(order_id,
+                        pizza_id, topping_id_str, rest) AS
+         (SELECT pd.order_id, pd.pizza_id, '',
+                 CASE
+                     WHEN pd.exclusions IS NOT NULL
+                          AND TRIM(pd.exclusions) <> '' THEN pd.exclusions || ',' ELSE ''
+                 END
+          FROM PizzaDetails AS pd
+          WHERE pd.exclusions IS NOT NULL
+            AND TRIM(pd.exclusions) <> ''
+          UNION ALL SELECT seto.order_id, seto.pizza_id,
+                           TRIM(SUBSTR(seto.rest,
+                                  1, INSTR(seto.rest, ',') - 1)),
+                           SUBSTR(seto.rest,
+
+                             INSTR(seto.rest, ',') + 1)
+          FROM SplitExcludedToppings AS seto
+          WHERE seto.rest <> '') SELECT order_id, pizza_id,
+                                        CAST(topping_id_str AS INTEGER) AS topping_id, -1 AS quantity
+       FROM SplitExcludedToppings
+       WHERE topping_id_str <> ''),
+         AllToppingChanges AS
+      (SELECT order_id, pizza_id, topping_id, quantity
+       FROM BaseToppings
+       UNION ALL SELECT order_id, pizza_id, topping_id, quantity
+       FROM ExtraToppings
+       UNION ALL SELECT order_id, pizza_id, topping_id, quantity
+       FROM ExcludedToppings),
+         NetToppingsPerPizza AS
+      (SELECT order_id, pizza_id, topping_id, SUM(quantity) AS total_quantity
+       FROM AllToppingChanges
+       GROUP BY order_id, pizza_id, topping_id)
+    SELECT pt.topping_name, SUM(ntpp.total_quantity) AS total_quantity_used
+    FROM NetToppingsPerPizza AS ntpp
+    INNER JOIN pizza_toppings AS pt ON ntpp.topping_id = pt.topping_id
+    GROUP BY pt.topping_name
+    ORDER BY total_quantity_used DESC, pt.topping_name;
+- metric_name: total_earnings
+  sql_logic: |-
+    WITH BasePizzaRevenuePerOrder AS
+      (SELECT pcco.order_id,
+              SUM(CASE WHEN pn.pizza_name = 'Meatlovers' THEN 12 WHEN pn.pizza_name = 'Vegetarian' THEN 10 ELSE 0
+                  END) AS total_base_pizza_revenue
+       FROM pizza_clean_customer_orders AS pcco
+       INNER JOIN pizza_names AS pn ON pcco.pizza_id = pn.pizza_id
+       GROUP BY pcco.order_id),
+         ExtrasRevenuePerOrder AS
+      (SELECT order_id, SUM(extras_count) AS total_extras_revenue
+       FROM pizza_get_extras
+       GROUP BY order_id),
+         SuccessfulOrdersCombinedRevenue AS
+      (SELECT bprpo.total_base_pizza_revenue + COALESCE(erpo.total_extras_revenue,
+                                                 0) AS order_total_revenue
+       FROM pizza_clean_runner_orders AS pcro
+       INNER JOIN BasePizzaRevenuePerOrder AS bprpo ON pcro.order_id = bprpo.order_id
+       LEFT JOIN ExtrasRevenuePerOrder AS erpo ON pcro.order_id = erpo.order_id
+       WHERE pcro.cancellation IS NULL)
+    SELECT SUM(order_total_revenue) AS total_earnings
+    FROM SuccessfulOrdersCombinedRevenue;

@@ -1,0 +1,470 @@
+databases:
+- EU_soccer
+descriptions:
+- table: Player_Attributes
+  column: overall_rating
+  meaning: |-
+    The player's overall rating at a specific date, reflecting their general skill level.
+- table: Player_Attributes
+  column: potential
+  meaning: |-
+    The player's potential rating, indicating their possible future skill level.
+- table: Player_Attributes
+  column: preferred_foot
+  meaning: |-
+    The player's preferred foot for playing (e.g., 'left', 'right').
+- table: Player_Attributes
+  column: attacking_work_rate
+  meaning: |-
+    The player's work rate in attacking phases (e.g., 'high', 'medium', 'low').
+- table: Player_Attributes
+  column: defensive_work_rate
+  meaning: |-
+    The player's work rate in defensive phases (e.g., 'high', 'medium', 'low').
+- table: Player_Attributes
+  column: crossing
+  meaning: Player's skill rating for crossing the ball.
+- table: Player_Attributes
+  column: finishing
+  meaning: Player's skill rating for scoring goals.
+- table: Player_Attributes
+  column: heading_accuracy
+  meaning: Player's skill rating for heading the ball accurately.
+- table: Player
+  column: player_name
+  meaning: The full name of the football player.
+- table: Player
+  column: birthday
+  meaning: The player's date of birth.
+- table: Player
+  column: height
+  meaning: The player's height, typically in centimeters.
+- table: Player
+  column: weight
+  meaning: The player's weight, typically in kilograms.
+- table: Match
+  column: season
+  meaning: |-
+    The football season (e.g., '2008/2009') in which the match took place.
+- table: Match
+  column: home_team_goal
+  meaning: |-
+    The total number of goals scored by the home team in the match.
+- table: Match
+  column: away_team_goal
+  meaning: |-
+    The total number of goals scored by the away team in the match.
+- table: Match
+  column: home_player_1
+  meaning: |-
+    The player_api_id of the first home team player in the match lineup.
+- table: Match
+  column: B365H
+  meaning: Betting odds for the home team to win from bookmaker Bet365.
+- table: League
+  column: name
+  meaning: The official name of the football league.
+- table: Country
+  column: name
+  meaning: The name of the country where the league or match is held.
+- table: Team
+  column: team_long_name
+  meaning: The full, official name of the football team.
+- table: Team
+  column: team_short_name
+  meaning: The abbreviated or short name of the football team.
+- table: Team_Attributes
+  column: buildUpPlaySpeed
+  meaning: |-
+    An attribute describing the team's speed in building up play.
+- table: Team_Attributes
+  column: defencePressure
+  meaning: |-
+    An attribute describing the team's defensive pressure tactic.
+- table: Player_Attributes
+  column: id
+  meaning: Primary key for player attributes record
+- table: Player_Attributes
+  column: player_fifa_api_id
+  meaning: Foreign key to Player table (FIFA ID)
+- table: Player_Attributes
+  column: player_api_id
+  meaning: Foreign key to Player table (API ID)
+- table: Player_Attributes
+  column: date
+  meaning: Date when the attributes were recorded
+- table: Player_Attributes
+  column: short_passing
+  meaning: Player's short passing skill rating.
+- table: Player_Attributes
+  column: volleys
+  meaning: Player's volleys skill rating.
+- table: Player_Attributes
+  column: dribbling
+  meaning: Player's dribbling skill rating.
+- table: Player_Attributes
+  column: curve
+  meaning: Player's curve skill rating.
+- table: Player_Attributes
+  column: free_kick_accuracy
+  meaning: Player's free kick accuracy skill rating.
+- table: Player_Attributes
+  column: long_passing
+  meaning: Player's long passing skill rating.
+- table: Player_Attributes
+  column: ball_control
+  meaning: Player's ball control skill rating.
+- table: Player_Attributes
+  column: acceleration
+  meaning: Player's acceleration skill rating.
+- table: Player_Attributes
+  column: sprint_speed
+  meaning: Player's sprint speed skill rating.
+- table: Player_Attributes
+  column: agility
+  meaning: Player's agility skill rating.
+- table: Player_Attributes
+  column: reactions
+  meaning: Player's reactions skill rating.
+- table: Player_Attributes
+  column: balance
+  meaning: Player's balance skill rating.
+- table: Player_Attributes
+  column: shot_power
+  meaning: Player's shot power skill rating.
+- table: Player_Attributes
+  column: jumping
+  meaning: Player's jumping skill rating.
+- table: Player_Attributes
+  column: stamina
+  meaning: Player's stamina skill rating.
+- table: Player_Attributes
+  column: strength
+  meaning: Player's strength skill rating.
+- table: Player_Attributes
+  column: long_shots
+  meaning: Player's long shots skill rating.
+- table: Player_Attributes
+  column: aggression
+  meaning: Player's aggression skill rating.
+- table: Player_Attributes
+  column: interceptions
+  meaning: Player's interceptions skill rating.
+- table: Player_Attributes
+  column: positioning
+  meaning: Player's positioning skill rating.
+- table: Player_Attributes
+  column: vision
+  meaning: Player's vision skill rating.
+- table: Player_Attributes
+  column: penalties
+  meaning: Player's penalties skill rating.
+- table: Player_Attributes
+  column: marking
+  meaning: Player's marking skill rating.
+- table: Player_Attributes
+  column: standing_tackle
+  meaning: Player's standing tackle skill rating.
+- table: Player_Attributes
+  column: sliding_tackle
+  meaning: Player's sliding tackle skill rating.
+- table: Player_Attributes
+  column: gk_diving
+  meaning: Goalkeeper's diving skill rating.
+- table: Player_Attributes
+  column: gk_handling
+  meaning: Goalkeeper's handling skill rating.
+- table: Player_Attributes
+  column: gk_kicking
+  meaning: Goalkeeper's kicking skill rating.
+- table: Player_Attributes
+  column: gk_positioning
+  meaning: Goalkeeper's positioning skill rating.
+- table: Player_Attributes
+  column: gk_reflexes
+  meaning: Goalkeeper's reflexes skill rating.
+- table: Player
+  column: id
+  meaning: Unique identifier for the player record.
+- table: Player
+  column: player_api_id
+  meaning: Unique API identifier for the player.
+- table: Player
+  column: player_fifa_api_id
+  meaning: Unique FIFA API identifier for the player.
+- table: Match
+  column: id
+  meaning: Unique identifier for the match record.
+- table: Match
+  column: country_id
+  meaning: |-
+    Foreign key referencing the country where the match was played.
+- table: Match
+  column: league_id
+  meaning: Foreign key referencing the league the match belongs to.
+- table: Match
+  column: stage
+  meaning: Stage or matchday number within the league season.
+- table: Match
+  column: date
+  meaning: Date when the match was played.
+- table: Match
+  column: match_api_id
+  meaning: Unique API identifier for the match.
+- table: Match
+  column: home_team_api_id
+  meaning: Foreign key referencing the API ID of the home team.
+- table: Match
+  column: away_team_api_id
+  meaning: Foreign key referencing the API ID of the away team.
+- table: Match
+  column: away_player_1
+  meaning: |-
+    Foreign key referencing the API ID of the 1st away team player.
+- table: Match
+  column: B365D
+  meaning: Betting odds for a draw from Bet365.
+- table: Match
+  column: B365A
+  meaning: Betting odds for an away win from Bet365.
+- table: League
+  column: id
+  meaning: Unique identifier for the league record.
+- table: League
+  column: country_id
+  meaning: Foreign key referencing the country the league is in.
+- table: Country
+  column: id
+  meaning: Unique identifier for the country record.
+- table: Team
+  column: id
+  meaning: Unique identifier for the team record.
+- table: Team
+  column: team_api_id
+  meaning: Unique API identifier for the team.
+- table: Team
+  column: team_fifa_api_id
+  meaning: Unique FIFA API identifier for the team.
+- table: Team_Attributes
+  column: id
+  meaning: Unique identifier for the team attribute record.
+- table: Team_Attributes
+  column: team_fifa_api_id
+  meaning: |-
+    Foreign key referencing the team's FIFA API ID in the Team table.
+- table: Team_Attributes
+  column: team_api_id
+  meaning: Foreign key referencing the team's API ID in the Team table.
+- table: Team_Attributes
+  column: date
+  meaning: Date when the team attributes were recorded.
+- table: Team_Attributes
+  column: buildUpPlaySpeedClass
+  meaning: |-
+    Classification of team's build up play speed (e.g., 'Fast', 'Normal').
+- table: Team_Attributes
+  column: defencePressureClass
+  meaning: |-
+    Classification of team's defensive pressure (e.g., 'High', 'Medium').
+relations:
+- table_1: Player_Attributes
+  column_1: player_api_id
+  table_2: Player
+  column_2: player_api_id
+  meaning: |-
+    Links player attributes to the corresponding player's general information.
+- table_1: Match
+  column_1: home_team_api_id
+  table_2: Team
+  column_2: team_api_id
+  meaning: Identifies the home team participating in a specific match.
+- table_1: Match
+  column_1: away_team_api_id
+  table_2: Team
+  column_2: team_api_id
+  meaning: Identifies the away team participating in a specific match.
+- table_1: Match
+  column_1: league_id
+  table_2: League
+  column_2: id
+  meaning: Associates a match with the league it belongs to.
+- table_1: League
+  column_1: country_id
+  table_2: Country
+  column_2: id
+  meaning: Links a football league to its geographical country.
+- table_1: Team_Attributes
+  column_1: team_api_id
+  table_2: Team
+  column_2: team_api_id
+  meaning: |-
+    Links team tactical attributes to the corresponding team's general information.
+- table_1: Match
+  column_1: home_player_1
+  table_2: Player
+  column_2: player_api_id
+  meaning: |-
+    Links the first home player in a match to their player details. (Applies similarly for home_player_2 through home_player_11 and away_player_1 through away_player_11).
+- table_1: Player_Attributes
+  column_1: player_fifa_api_id
+  table_2: Player
+  column_2: player_fifa_api_id
+  meaning: |-
+    Player attributes are linked to player information via FIFA API ID.
+- table_1: Match
+  column_1: country_id
+  table_2: Country
+  column_2: id
+  meaning: A match is played in a specific country.
+- table_1: Match
+  column_1: away_player_1
+  table_2: Player
+  column_2: player_api_id
+  meaning: |-
+    Away team players in a match are linked to player information.
+- table_1: Team_Attributes
+  column_1: team_fifa_api_id
+  table_2: Team
+  column_2: team_fifa_api_id
+  meaning: |-
+    Team attributes are linked to team information via FIFA API ID.
+synonyms:
+- nl_term: season goals
+  db_target: home_team_goal, away_team_goal
+  type: column
+- nl_term: team
+  db_target: team_api_id
+  type: column
+- nl_term: median
+  db_target: MEDIAN
+  type: value
+- nl_term: highest season goals
+  db_target: max_goals
+  type: value
+- nl_term: top 10 teams
+  db_target: RT.rank_num <= 10
+  type: condition
+- nl_term: most wins
+  db_target: number_of_wins
+  type: column
+- nl_term: wins
+  db_target: number_of_wins
+  type: column
+- nl_term: league
+  db_target: League
+  type: table
+- nl_term: champion team
+  db_target: Team.team_long_name
+  type: column
+- nl_term: season
+  db_target: Match.season
+  type: column
+- nl_term: country
+  db_target: Country.name
+  type: column
+- nl_term: total points
+  db_target: total_points
+  type: value
+- nl_term: win
+  db_target: home_team_goal > away_team_goal
+  type: condition
+- nl_term: tie
+  db_target: home_team_goal = away_team_goal
+  type: condition
+- nl_term: loss
+  db_target: home_team_goal < away_team_goal
+  type: condition
+- nl_term: 3 points
+  db_target: '3'
+  type: value
+- nl_term: 1 point
+  db_target: '1'
+  type: value
+- nl_term: 0 points
+  db_target: '0'
+  type: value
+biz_logic:
+- metric_name: median_highest_season_goals
+  sql_logic: |-
+    WITH TeamGoals AS
+      (SELECT home_team_api_id AS team_id, season, home_team_goal AS goals
+       FROM MATCH
+       UNION ALL SELECT away_team_api_id AS team_id, season, away_team_goal AS goals
+       FROM MATCH),
+         TeamSeasonTotals AS
+      (SELECT team_id, season, SUM(goals) AS total_season_goals
+       FROM TeamGoals
+       GROUP BY team_id, season),
+         HighestSeasonGoals AS
+      (SELECT team_id, MAX(total_season_goals) AS max_goals
+       FROM TeamSeasonTotals
+       GROUP BY team_id),
+         RankedGoals AS
+      (SELECT max_goals,
+              ROW_NUMBER() OVER (
+                                 ORDER BY max_goals) AS rn, COUNT(*) OVER () AS total_count
+       FROM HighestSeasonGoals)
+    SELECT AVG(max_goals) AS median_highest_season_goals
+    FROM RankedGoals
+    WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
+- metric_name: top_10_teams_by_wins
+  sql_logic: |-
+    WITH home_wins AS
+      (SELECT home_team_api_id AS team_id
+       FROM MATCH
+       WHERE home_team_goal > away_team_goal),
+         away_wins AS
+      (SELECT away_team_api_id AS team_id
+       FROM MATCH
+       WHERE away_team_goal > home_team_goal),
+         all_wins AS
+      (SELECT team_id
+       FROM home_wins
+       UNION ALL SELECT team_id
+       FROM away_wins),
+         team_win_counts AS
+      (SELECT team_id, COUNT(*) AS number_of_wins
+       FROM all_wins
+       GROUP BY team_id),
+         ranked_teams AS
+      (SELECT team_id, number_of_wins,
+              DENSE_RANK() OVER (
+                                 ORDER BY number_of_wins DESC) AS rank_num
+       FROM team_win_counts)
+    SELECT T.team_long_name, RT.number_of_wins
+    FROM ranked_teams AS RT
+    JOIN Team AS T ON RT.team_id = T.team_api_id
+    WHERE RT.rank_num <= 10
+    ORDER BY RT.number_of_wins DESC, T.team_long_name ASC
+- metric_name: Champion Team and Points per Season and League
+  sql_logic: |-
+    WITH CTE_TeamMatchPoints AS
+      (-- Points for home teams
+     SELECT M.season, M.league_id, M.home_team_api_id AS team_id,
+            CASE WHEN M.home_team_goal > M.away_team_goal THEN 3 WHEN M.home_team_goal = M.away_team_goal THEN 1 ELSE 0
+            END AS points_earned
+       FROM MATCH AS M
+       UNION ALL -- Points for away teams
+     SELECT M.season, M.league_id, M.away_team_api_id AS team_id,
+            CASE WHEN M.away_team_goal > M.home_team_goal THEN 3 WHEN M.away_team_goal = M.home_team_goal THEN 1 ELSE 0
+            END AS points_earned
+       FROM MATCH AS M),
+         CTE_SeasonLeagueTeamPoints AS
+      (-- Aggregate total points for each team per season and league
+     SELECT TMP.season, TMP.league_id, TMP.team_id, SUM(TMP.points_earned) AS total_points
+       FROM CTE_TeamMatchPoints AS TMP
+       GROUP BY TMP.season, TMP.league_id, TMP.team_id),
+         CTE_RankedTeams AS
+      (-- Rank teams within each season and league by total points
+     SELECT SLTP.season, SLTP.league_id, SLTP.team_id, SLTP.total_points,
+            ROW_NUMBER() OVER (PARTITION BY SLTP.season, SLTP.league_id
+                               ORDER BY SLTP.total_points DESC) AS rank_num
+       FROM CTE_SeasonLeagueTeamPoints AS SLTP)
+    SELECT C.name AS country_name, L.name AS league_name, RT.season, T.team_long_name AS champion_team_name,
+           RT.total_points AS champion_points
+    FROM CTE_RankedTeams AS RT
+    INNER JOIN League AS L ON RT.league_id = L.id
+    INNER JOIN Country AS C ON L.country_id = C.id
+    INNER JOIN Team AS T ON RT.team_id = T.team_api_id
+    WHERE RT.rank_num = 1
+    ORDER BY C.name, L.name, RT.season;

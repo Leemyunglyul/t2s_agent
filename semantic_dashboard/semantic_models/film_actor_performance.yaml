@@ -1,0 +1,318 @@
+databases:
+- Pagila
+- Db-IMDB
+- sqlite-sakila
+descriptions:
+- table: actor
+  column: actor_id
+  meaning: Unique identifier for an actor.
+- table: actor
+  column: first_name
+  meaning: The first name of the actor.
+- table: actor
+  column: last_name
+  meaning: The last name of the actor.
+- table: film
+  column: film_id
+  meaning: Unique identifier for a film.
+- table: film
+  column: title
+  meaning: The title of the film.
+- table: film
+  column: description
+  meaning: A brief description or synopsis of the film.
+- table: film
+  column: release_year
+  meaning: The year the film was released.
+- table: film
+  column: language_id
+  meaning: Foreign key referencing the language of the film.
+- table: film
+  column: length
+  meaning: The running time of the film in minutes.
+- table: film
+  column: rating
+  meaning: The MPAA rating of the film (e.g., G, PG, R).
+- table: language
+  column: language_id
+  meaning: Unique identifier for a language.
+- table: language
+  column: name
+  meaning: The name of the language (e.g., 'English', 'French').
+- table: category
+  column: category_id
+  meaning: Unique identifier for a film category or genre.
+- table: category
+  column: name
+  meaning: The name of the film category (e.g., 'Children', 'Action').
+- table: film_actor
+  column: actor_id
+  meaning: Foreign key referencing the actor involved in the film.
+- table: film_actor
+  column: film_id
+  meaning: Foreign key referencing the film the actor starred in.
+- table: film_category
+  column: film_id
+  meaning: Foreign key referencing the film belonging to a category.
+- table: film_category
+  column: category_id
+  meaning: Foreign key referencing the category the film belongs to.
+- table: Movie
+  column: MID
+  meaning: Unique identifier for a movie.
+- table: Movie
+  column: title
+  meaning: The official title of the movie.
+- table: Movie
+  column: year
+  meaning: The release year of the movie.
+- table: Movie
+  column: rating
+  meaning: The average rating given to the movie.
+- table: Movie
+  column: num_votes
+  meaning: The total number of votes received for the movie's rating.
+- table: Person
+  column: PID
+  meaning: |-
+    Unique identifier for a person, who can be an actor, director, or producer.
+- table: Person
+  column: Name
+  meaning: The full name of the person.
+- table: Person
+  column: Gender
+  meaning: The gender of the person.
+- table: M_Cast
+  column: MID
+  meaning: |-
+    Foreign key referencing the Movie table's MID, indicating the movie an actor was cast in.
+- table: M_Cast
+  column: PID
+  meaning: |-
+    Foreign key referencing the Person table's PID, indicating the actor.
+- table: M_Director
+  column: MID
+  meaning: |-
+    Foreign key referencing the Movie table's MID, indicating the movie directed.
+- table: M_Director
+  column: PID
+  meaning: |-
+    Foreign key referencing the Person table's PID, indicating the director.
+- table: rental
+  column: rental_id
+  meaning: Unique identifier for a film rental transaction.
+- table: rental
+  column: customer_id
+  meaning: Identifier for the customer who rented the film.
+- table: inventory
+  column: inventory_id
+  meaning: |-
+    Unique identifier for a specific copy of a film in inventory.
+- table: customer
+  column: customer_id
+  meaning: Unique identifier for a customer.
+relations:
+- table_1: film
+  column_1: language_id
+  table_2: language
+  column_2: language_id
+  meaning: A film is associated with a specific language.
+- table_1: film_actor
+  column_1: actor_id
+  table_2: actor
+  column_2: actor_id
+  meaning: An actor can star in multiple films.
+- table_1: film_actor
+  column_1: film_id
+  table_2: film
+  column_2: film_id
+  meaning: A film can have multiple actors.
+- table_1: film_category
+  column_1: film_id
+  table_2: film
+  column_2: film_id
+  meaning: A film can belong to multiple categories.
+- table_1: film_category
+  column_1: category_id
+  table_2: category
+  column_2: category_id
+  meaning: A category can contain multiple films.
+- table_1: Movie
+  column_1: MID
+  table_2: M_Cast
+  column_2: MID
+  meaning: A movie can have multiple cast members.
+- table_1: Person
+  column_1: PID
+  table_2: M_Cast
+  column_2: PID
+  meaning: A person can be cast as an actor in multiple movies.
+- table_1: Movie
+  column_1: MID
+  table_2: M_Director
+  column_2: MID
+  meaning: A movie can have one or more directors.
+- table_1: Person
+  column_1: PID
+  table_2: M_Director
+  column_2: PID
+  meaning: A person can direct multiple movies.
+- table_1: actor
+  column_1: actor_id
+  table_2: film_actor
+  column_2: actor_id
+  meaning: An actor can be associated with multiple films.
+- table_1: film
+  column_1: film_id
+  table_2: inventory
+  column_2: film_id
+  meaning: A film can have multiple copies in inventory.
+- table_1: inventory
+  column_1: inventory_id
+  table_2: rental
+  column_2: inventory_id
+  meaning: An inventory item can be rented multiple times.
+- table_1: rental
+  column_1: customer_id
+  table_2: customer
+  column_2: customer_id
+  meaning: A customer can make multiple rental transactions.
+synonyms:
+- nl_term: actor's full name
+  db_target: first_name || ' ' || last_name
+  type: column
+- nl_term: English-language
+  db_target: language.name = 'English'
+  type: condition
+- nl_term: children's category
+  db_target: category.name = 'Children'
+  type: condition
+- nl_term: rated G or PG
+  db_target: film.rating IN ('G', 'PG')
+  type: condition
+- nl_term: running time of 120 minutes or less
+  db_target: film.length <= 120
+  type: condition
+- nl_term: released between 2000 and 2010
+  db_target: film.release_year BETWEEN '2000' AND '2010'
+  type: condition
+- nl_term: most frequently
+  db_target: COUNT(DISTINCT film_id) DESC
+  type: condition
+- nl_term: actor
+  db_target: M_Cast.PID
+  type: column
+- nl_term: director
+  db_target: M_Director.PID
+  type: column
+- nl_term: Yash Chopra
+  db_target: Person.Name = ' Yash Chopra'
+  type: condition
+- nl_term: films
+  db_target: Movie.MID
+  type: column
+- nl_term: number of films
+  db_target: COUNT(DISTINCT M_Cast.MID)
+  type: value
+- nl_term: top five actors
+  db_target: actor_rank <= 5
+  type: condition
+- nl_term: percentage of customers
+  db_target: percentage_of_customers_renting_from_top_actors
+  type: value
+- nl_term: widespread appeal
+  db_target: rental_count
+  type: column
+biz_logic:
+- metric_name: Most Frequent Actor in Specific Film Criteria
+  sql_logic: |-
+    WITH FilteredFilms AS
+      (SELECT T1.film_id
+       FROM film AS T1
+       INNER JOIN LANGUAGE AS T2 ON T1.language_id = T2.language_id
+       INNER JOIN film_category AS T3 ON T1.film_id = T3.film_id
+       INNER JOIN category AS T4 ON T3.category_id = T4.category_id
+       WHERE T2.name = 'English'
+         AND T4.name = 'Children'
+         AND T1.rating IN ('G', 'PG')
+         AND T1.length <= 120
+         AND T1.release_year BETWEEN '2000' AND '2010'),
+         ActorFilmCounts AS
+      (SELECT T1.actor_id, T1.first_name, T1.last_name, COUNT(DISTINCT T2.film_id) AS film_count
+       FROM actor AS T1
+       INNER JOIN film_actor AS T2 ON T1.actor_id = T2.actor_id
+       INNER JOIN FilteredFilms AS T3 ON T2.film_id = T3.film_id
+       GROUP BY T1.actor_id, T1.first_name, T1.last_name),
+         RankedActors AS
+      (SELECT actor_id, first_name, last_name, film_count,
+              DENSE_RANK() OVER (
+                                 ORDER BY film_count DESC) AS actor_rank
+       FROM ActorFilmCounts)
+    SELECT first_name || ' ' || last_name
+    FROM RankedActors
+    WHERE actor_rank = 1
+- metric_name: |-
+    Count of actors who made more films with Yash Chopra than with any other director
+  sql_logic: |-
+    WITH CTE_YashChopraPID AS
+      (SELECT PID
+       FROM Person
+       WHERE Name = ' Yash Chopra'),
+         CTE_ActorYashChopraFilms AS
+      (SELECT MC.PID AS ActorPID, COUNT(DISTINCT MC.MID) AS FilmCount
+       FROM M_Cast AS MC
+       INNER JOIN M_Director AS MD ON MC.MID = MD.MID
+       INNER JOIN CTE_YashChopraPID AS YC_PID ON MD.PID = YC_PID.PID
+       GROUP BY MC.PID),
+         CTE_ActorOtherDirectorFilms AS
+      (SELECT MC.PID AS ActorPID, MD.PID AS OtherDirectorPID, COUNT(DISTINCT MC.MID) AS FilmCount
+       FROM M_Cast AS MC
+       INNER JOIN M_Director AS MD ON MC.MID = MD.MID
+       INNER JOIN CTE_YashChopraPID AS YC_PID ON MD.PID <> YC_PID.PID
+       GROUP BY MC.PID, MD.PID),
+         CTE_ActorMaxOtherDirectorFilms AS
+      (SELECT ActorPID, MAX(FilmCount) AS MaxOtherFilmCount
+       FROM CTE_ActorOtherDirectorFilms
+       GROUP BY ActorPID),
+         CTE_ActorsMeetingCriteria AS
+      (SELECT YC.ActorPID
+       FROM CTE_ActorYashChopraFilms AS YC
+       LEFT JOIN CTE_ActorMaxOtherDirectorFilms AS OM ON YC.ActorPID = OM.ActorPID
+       WHERE YC.FilmCount > OM.MaxOtherFilmCount
+         OR OM.MaxOtherFilmCount IS NULL)
+    SELECT COUNT(DISTINCT ActorPID)
+    FROM CTE_ActorsMeetingCriteria;
+- metric_name: percentage_of_customers_renting_from_top_actors
+  sql_logic: |-
+    WITH ActorRentalCounts AS
+      (SELECT a.actor_id, a.first_name, a.last_name, COUNT(r.rental_id) AS rental_count
+       FROM actor AS a
+       INNER JOIN film_actor AS fa ON a.actor_id = fa.actor_id
+       INNER JOIN film AS f ON fa.film_id = f.film_id
+       INNER JOIN inventory AS i ON f.film_id = i.film_id
+       INNER JOIN rental AS r ON i.inventory_id = r.inventory_id
+       GROUP BY a.actor_id, a.first_name, a.last_name),
+         RankedActors AS
+      (SELECT actor_id, first_name, last_name, rental_count,
+              DENSE_RANK() OVER (
+                                 ORDER BY rental_count DESC) AS actor_rank
+       FROM ActorRentalCounts),
+         Top5Actors AS
+      (SELECT actor_id
+       FROM RankedActors
+       WHERE actor_rank <= 5),
+         CustomersRentingFromTopActors AS
+      (SELECT DISTINCT r.customer_id
+       FROM rental AS r
+       INNER JOIN inventory AS i ON r.inventory_id = i.inventory_id
+       INNER JOIN film AS f ON i.film_id = f.film_id
+       INNER JOIN film_actor AS fa ON f.film_id = fa.film_id
+       WHERE fa.actor_id IN
+           (SELECT actor_id
+            FROM Top5Actors)),
+         TotalCustomerCount AS
+      (SELECT COUNT(DISTINCT customer_id) AS total_customers
+       FROM customer)
+    SELECT (CAST(COUNT(DISTINCT crfta.customer_id) AS DECIMAL) * 100.0) / tcc.total_customers AS percentage_of_customers_renting_from_top_actors
+    FROM CustomersRentingFromTopActors AS crfta
+    CROSS JOIN TotalCustomerCount AS tcc;

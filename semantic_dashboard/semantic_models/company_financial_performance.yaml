@@ -1,0 +1,322 @@
+databases:
+- modern_data
+- AdventureWorks
+- complex_oracle
+descriptions:
+- table: companies_funding
+  column: company_id
+  meaning: Unique identifier for a company.
+- table: companies_funding
+  column: valuation
+  meaning: The estimated financial value of the company.
+- table: companies_funding
+  column: funding
+  meaning: The total amount of capital raised by the company.
+- table: companies_dates
+  column: company_id
+  meaning: Unique identifier for a company.
+- table: companies_dates
+  column: date_joined
+  meaning: |-
+    The date when the company was registered or joined the dataset.
+- table: companies_dates
+  column: year_founded
+  meaning: The year the company was established.
+- table: companies_industries
+  column: company_id
+  meaning: Unique identifier for a company.
+- table: companies_industries
+  column: industry
+  meaning: The primary business sector or industry of the company.
+- table: salesperson
+  column: businessentityid
+  meaning: Unique identifier for a salesperson.
+- table: salesorderheader
+  column: salespersonid
+  meaning: |-
+    Foreign key linking a sales order to the salesperson who handled it.
+- table: salesorderheader
+  column: orderdate
+  meaning: The date on which a sales order was placed.
+- table: salesorderheader
+  column: totaldue
+  meaning: |-
+    The total amount of a sales order, including tax and freight.
+- table: SalesPersonQuotaHistory
+  column: BusinessEntityID
+  meaning: |-
+    Identifier for the salesperson to whom a sales quota is assigned.
+- table: SalesPersonQuotaHistory
+  column: QuotaDate
+  meaning: The date associated with a specific sales quota entry.
+- table: SalesPersonQuotaHistory
+  column: SalesQuota
+  meaning: |-
+    The sales target amount for a salesperson for a given period.
+- table: countries
+  column: country_name
+  meaning: The official name of the country.
+- table: promotions
+  column: promo_total_id
+  meaning: An identifier for the overall category or type of promotion.
+- table: channels
+  column: channel_total_id
+  meaning: |-
+    An identifier for the overall category or type of sales channel.
+- table: times
+  column: calendar_year
+  meaning: The calendar year of a specific date.
+- table: sales
+  column: amount_sold
+  meaning: The monetary value of products sold in a transaction.
+- table: currency
+  column: to_us
+  meaning: |-
+    The exchange rate to convert local currency to US Dollars for a given period.
+- table: currency
+  column: year
+  meaning: The year for which the currency exchange rate is applicable.
+- table: currency
+  column: month
+  meaning: |-
+    The month for which the currency exchange rate is applicable.
+- table: times
+  column: calendar_month_number
+  meaning: |-
+    The numerical representation of the month within a calendar year (1-12).
+- table: times
+  column: calendar_month_name
+  meaning: |-
+    The full name of the month within a calendar year (e.g., 'January').
+- table: products
+  column: prod_id
+  meaning: Unique identifier for a product.
+relations:
+- table_1: companies_funding
+  column_1: company_id
+  table_2: companies_dates
+  column_2: company_id
+  meaning: Links company funding details to its founding/joining dates.
+- table_1: companies_funding
+  column_1: company_id
+  table_2: companies_industries
+  column_2: company_id
+  meaning: |-
+    Links company funding details to its industry classification.
+- table_1: companies_dates
+  column_1: company_id
+  table_2: companies_industries
+  column_2: company_id
+  meaning: |-
+    Links company founding/joining dates to its industry classification.
+- table_1: salesorderheader
+  column_1: salespersonid
+  table_2: salesperson
+  column_2: businessentityid
+  meaning: A sales order is associated with a specific salesperson.
+- table_1: SalesPersonQuotaHistory
+  column_1: BusinessEntityID
+  table_2: salesperson
+  column_2: businessentityid
+  meaning: |-
+    A sales quota history record is linked to a specific salesperson.
+- table_1: sales
+  column_1: prod_id
+  table_2: products
+  column_2: prod_id
+  meaning: |-
+    Links sales transactions to the specific products that were sold.
+- table_1: sales
+  column_1: cust_id
+  table_2: customers
+  column_2: cust_id
+  meaning: |-
+    Links sales transactions to the customer who made the purchase.
+- table_1: sales
+  column_1: time_id
+  table_2: times
+  column_2: time_id
+  meaning: |-
+    Links sales transactions to the date and time of the transaction.
+- table_1: sales
+  column_1: channel_id
+  table_2: channels
+  column_2: channel_id
+  meaning: |-
+    Links sales transactions to the channel through which the sale was made.
+- table_1: sales
+  column_1: promo_id
+  table_2: promotions
+  column_2: promo_id
+  meaning: |-
+    Links sales transactions to any promotion that was applied to the sale.
+- table_1: customers
+  column_1: country_id
+  table_2: countries
+  column_2: country_id
+  meaning: Links customers to their respective countries of residence.
+synonyms:
+- nl_term: unicorn companies
+  db_target: companies_funding.valuation
+  type: condition
+- nl_term: new unicorn companies
+  db_target: companies_dates.date_joined, companies_funding.valuation
+  type: condition
+- nl_term: top industry
+  db_target: companies_industries.industry
+  type: column
+- nl_term: per year
+  db_target: STRFTIME('%Y', companies_dates.date_joined)
+  type: column
+- nl_term: 2019 to 2021
+  db_target: STRFTIME('%Y', companies_dates.date_joined)
+  type: condition
+- nl_term: salesperson
+  db_target: salespersonid
+  type: column
+- nl_term: annual total sales
+  db_target: total_sales
+  type: column
+- nl_term: annual sales quota
+  db_target: annual_quota
+  type: column
+- nl_term: year
+  db_target: sales_year
+  type: column
+- nl_term: difference
+  db_target: difference
+  type: column
+- nl_term: France
+  db_target: countries.country_name = 'France'
+  type: condition
+- nl_term: '2021'
+  db_target: times.calendar_year = 2021
+  type: condition
+- nl_term: promo_total_id = 1
+  db_target: promotions.promo_total_id = 1
+  type: condition
+- nl_term: channel_total_id = 1
+  db_target: channels.channel_total_id = 1
+  type: condition
+- nl_term: monthly sales
+  db_target: SUM(sales.amount_sold)
+  type: metric
+- nl_term: growth rate
+  db_target: (monthly_sales_2020 * 1.0 / NULLIF(monthly_sales_2019, 0))
+  type: metric
+- nl_term: projected 2021 monthly sales
+  db_target: projected_2021_sales
+  type: metric
+- nl_term: USD
+  db_target: currency.to_us
+  type: value
+- nl_term: average projected monthly sales in USD
+  db_target: AVG(projected_usd_sales)
+  type: metric
+biz_logic:
+- metric_name: top_industry_identification
+  sql_logic: |-
+    SELECT T1.industry
+    FROM companies_industries AS T1
+    INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id
+    GROUP BY T1.industry
+    ORDER BY COUNT(DISTINCT T1.company_id) DESC
+    LIMIT 1
+- metric_name: new_unicorn_count_in_top_industry_per_year
+  sql_logic: |-
+    SELECT STRFTIME('%Y', T2.date_joined) AS joined_year, COUNT(DISTINCT T1.company_id) AS new_unicorn_count
+    FROM companies_funding AS T1
+    INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id
+    INNER JOIN companies_industries AS T3 ON T1.company_id = T3.company_id
+    WHERE T1.valuation >= 1000000000
+      AND STRFTIME('%Y', T2.date_joined) BETWEEN '2019' AND '2021'
+      AND T3.industry =
+        (SELECT industry
+         FROM TopIndustry)
+    GROUP BY joined_year
+- metric_name: average_new_unicorn_companies_per_year
+  sql_logic: |-
+    SELECT AVG(new_unicorn_count)
+    FROM NewUnicornsInTopIndustryPerYear
+- metric_name: annual_total_sales
+  sql_logic: |-
+    SELECT salespersonid, STRFTIME('%Y', orderdate) AS sales_year, SUM(totaldue)
+    FROM salesorderheader
+    WHERE salespersonid IS NOT NULL
+    GROUP BY salespersonid, sales_year
+- metric_name: annual_sales_quota
+  sql_logic: |-
+    SELECT BusinessEntityID, STRFTIME('%Y', QuotaDate) AS quota_year, SUM(SalesQuota)
+    FROM SalesPersonQuotaHistory
+    GROUP BY BusinessEntityID, quota_year
+- metric_name: sales_quota_difference
+  sql_logic: |-
+    WITH AnnualSales AS
+      (SELECT salespersonid, STRFTIME('%Y', orderdate) AS sales_year, SUM(totaldue) AS total_sales
+       FROM salesorderheader
+       WHERE salespersonid IS NOT NULL
+       GROUP BY salespersonid, sales_year),
+         AnnualQuotas AS
+      (SELECT BusinessEntityID AS salesperson_id,
+              STRFTIME('%Y', QuotaDate) AS quota_year, SUM(SalesQuota) AS annual_quota
+       FROM SalesPersonQuotaHistory
+       GROUP BY BusinessEntityID, quota_year)
+    SELECT COALESCE(ASales.total_sales, 0) - COALESCE(AQuotas.annual_quota,
+                                               0)
+    FROM AnnualSales AS ASales
+    FULL OUTER JOIN AnnualQuotas AS AQuotas ON ASales.salespersonid = AQuotas.salesperson_id
+    AND ASales.sales_year = AQuotas.quota_year
+- metric_name: france_sales_base
+  sql_logic: |-
+    SELECT s.prod_id, t.calendar_month_number, t.calendar_month_name, t.calendar_year,
+           s.amount_sold
+    FROM sales AS s
+    INNER JOIN times AS t ON s.time_id = t.time_id
+    INNER JOIN customers AS c ON s.cust_id = c.cust_id
+    INNER JOIN countries AS co ON c.country_id = co.country_id
+    INNER JOIN promotions AS p ON s.promo_id = p.promo_id
+    INNER JOIN channels AS ch ON s.channel_id = ch.channel_id
+    WHERE co.country_name = 'France'
+      AND p.promo_total_id = 1
+      AND ch.channel_total_id = 1
+      AND t.calendar_year IN (2019, 2020)
+- metric_name: monthly_sales_2019
+  sql_logic: |-
+    SELECT prod_id, calendar_month_number, calendar_month_name,
+           SUM(amount_sold) AS monthly_sales_2019
+    FROM france_sales_base
+    WHERE calendar_year = 2019
+    GROUP BY prod_id, calendar_month_number, calendar_month_name
+- metric_name: monthly_sales_2020
+  sql_logic: |-
+    SELECT prod_id, calendar_month_number, calendar_month_name,
+           SUM(amount_sold) AS monthly_sales_2020
+    FROM france_sales_base
+    WHERE calendar_year = 2020
+    GROUP BY prod_id, calendar_month_number, calendar_month_name
+- metric_name: projected_2021_sales_per_product_month
+  sql_logic: |-
+    SELECT s20.calendar_month_number, s20.calendar_month_name, s20.prod_id,
+           s20.monthly_sales_2020 * (s20.monthly_sales_2020 * 1.0 / NULLIF(s19.monthly_sales_2019,
+                                                                      0)) AS projected_2021_sales
+    FROM monthly_sales_2020 AS s20
+    LEFT JOIN monthly_sales_2019 AS s19 ON s20.prod_id = s19.prod_id
+    AND s20.calendar_month_number = s19.calendar_month_number
+- metric_name: france_2021_exchange_rate
+  sql_logic: |-
+    SELECT MONTH AS calendar_month_number, to_us
+    FROM currency
+    WHERE country = 'France'
+      AND YEAR = 2021
+- metric_name: projected_usd_sales_per_month_product
+  sql_logic: |-
+    SELECT proj.calendar_month_name, proj.calendar_month_number,
+           proj.projected_2021_sales * exch.to_us AS projected_usd_sales
+    FROM projected_2021_sales_per_product_month AS proj
+    INNER JOIN france_2021_exchange_rate AS exch ON proj.calendar_month_number = exch.calendar_month_number
+- metric_name: average_projected_monthly_sales_usd
+  sql_logic: |-
+    SELECT calendar_month_name, AVG(projected_usd_sales) AS average_projected_monthly_sales_usd
+    FROM projected_usd_sales_per_month_product
+    GROUP BY calendar_month_number, calendar_month_name
+    ORDER BY calendar_month_number

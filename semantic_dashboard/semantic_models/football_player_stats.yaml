@@ -1,0 +1,127 @@
+databases:
+- EU_soccer
+descriptions:
+- table: Player
+  column: player_api_id
+  meaning: |-
+    A unique identifier for a player, used across different tables.
+- table: Player
+  column: player_name
+  meaning: The full name of the player.
+- table: Match
+  column: home_team_goal
+  meaning: |-
+    The total number of goals scored by the home team in a match.
+- table: Match
+  column: away_team_goal
+  meaning: |-
+    The total number of goals scored by the away team in a match.
+- table: Match
+  column: home_player_1
+  meaning: |-
+    The API ID of the first home team player in the match. This pattern extends to home_player_11.
+- table: Match
+  column: away_player_1
+  meaning: |-
+    The API ID of the first away team player in the match. This pattern extends to away_player_11.
+relations:
+- table_1: Player_Attributes
+  column_1: player_api_id
+  table_2: Player
+  column_2: player_api_id
+  meaning: |-
+    Player attributes are linked to the player's general information.
+- table_1: Match
+  column_1: home_player_1
+  table_2: Player
+  column_2: player_api_id
+  meaning: |-
+    Each home player in a match is linked to their player information. This applies to home_player_1 through home_player_11.
+- table_1: Match
+  column_1: away_player_1
+  table_2: Player
+  column_2: player_api_id
+  meaning: |-
+    Each away player in a match is linked to their player information. This applies to away_player_1 through away_player_11.
+- table_1: Match
+  column_1: home_team_api_id
+  table_2: Team
+  column_2: team_api_id
+  meaning: The home team in a match is linked to its team information.
+- table_1: Match
+  column_1: away_team_api_id
+  table_2: Team
+  column_2: team_api_id
+  meaning: The away team in a match is linked to its team information.
+- table_1: Match
+  column_1: league_id
+  table_2: League
+  column_2: id
+  meaning: Each match belongs to a specific league.
+- table_1: League
+  column_1: country_id
+  table_2: Country
+  column_2: id
+  meaning: Each league is associated with a country.
+- table_1: Team_Attributes
+  column_1: team_api_id
+  table_2: Team
+  column_2: team_api_id
+  meaning: |-
+    Team attributes are linked to the team's general information.
+synonyms:
+- nl_term: winning matches
+  db_target: wins_count
+  type: column
+- nl_term: losing matches
+  db_target: losses_count
+  type: column
+- nl_term: player
+  db_target: Player.player_name
+  type: column
+- nl_term: participated
+  db_target: |-
+    Match.home_player_X IS NOT NULL OR Match.away_player_X IS NOT NULL
+  type: condition
+- nl_term: highest number of winning matches
+  db_target: MAX(wins_count)
+  type: value
+- nl_term: highest number of losing matches
+  db_target: MAX(losses_count)
+  type: value
+biz_logic:
+- metric_name: Player Wins Count
+  sql_logic: |-
+    SUM(CASE WHEN (team_type = 'home'
+                   AND home_team_goal > away_team_goal) THEN 1 WHEN (team_type = 'away'
+                                                                     AND away_team_goal > home_team_goal) THEN 1 ELSE 0
+        END)
+- metric_name: Player Losses Count
+  sql_logic: |-
+    SUM(CASE WHEN (team_type = 'home'
+                   AND home_team_goal < away_team_goal) THEN 1 WHEN (team_type = 'away'
+                                                                     AND away_team_goal < home_team_goal) THEN 1 ELSE 0
+        END)
+- metric_name: Player Match Participation (Non-Draws)
+  sql_logic: |-
+    SELECT player_api_id, home_team_goal, away_team_goal, 'home' AS team_type
+    FROM MATCH
+    WHERE home_player_X IS NOT NULL
+      AND home_team_goal != away_team_goal
+    UNION ALL
+    SELECT player_api_id, home_team_goal, away_team_goal, 'away' AS team_type
+    FROM MATCH
+    WHERE away_player_X IS NOT NULL
+      AND home_team_goal != away_team_goal
+- metric_name: Player with Most Wins
+  sql_logic: |-
+    SELECT P.player_name, CR.match_count
+    FROM CombinedRankedResults AS CR
+    INNER JOIN Player AS P ON CR.player_api_id = P.player_api_id
+    WHERE CR.category = 'most_wins'
+- metric_name: Player with Most Losses
+  sql_logic: |-
+    SELECT P.player_name, CR.match_count
+    FROM CombinedRankedResults AS CR
+    INNER JOIN Player AS P ON CR.player_api_id = P.player_api_id
+    WHERE CR.category = 'most_losses'

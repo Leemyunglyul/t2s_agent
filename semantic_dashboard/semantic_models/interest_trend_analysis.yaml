@@ -1,0 +1,533 @@
+databases:
+- bank_sales_trading
+- EntertainmentAgency
+descriptions:
+- table: interest_metrics
+  column: interest_id
+  meaning: Unique identifier for an interest category
+- table: interest_metrics
+  column: month_year
+  meaning: |-
+    The month and year for which the interest metric is recorded (MM-YYYY format)
+- table: interest_metrics
+  column: composition
+  meaning: |-
+    A numerical value representing the composition or strength of an interest for a given month and year
+- table: interest_map
+  column: id
+  meaning: |-
+    Unique identifier for an interest, serving as a foreign key to interest_metrics.interest_id
+- table: interest_map
+  column: interest_name
+  meaning: The human-readable name of the interest category
+- table: Agents
+  column: AgentID
+  meaning: Unique identifier for an agent
+- table: Agents
+  column: AgtFirstName
+  meaning: First name of the agent
+- table: Agents
+  column: AgtLastName
+  meaning: Last name of the agent
+- table: Agents
+  column: Salary
+  meaning: Annual salary of the agent
+- table: Agents
+  column: CommissionRate
+  meaning: Commission rate for the agent
+- table: Customers
+  column: CustomerID
+  meaning: Unique identifier for a customer
+- table: Customers
+  column: CustFirstName
+  meaning: First name of the customer
+- table: Customers
+  column: CustLastName
+  meaning: Last name of the customer
+- table: Engagements
+  column: EngagementNumber
+  meaning: Unique identifier for an engagement or booking
+- table: Engagements
+  column: StartDate
+  meaning: Start date of the engagement
+- table: Engagements
+  column: EndDate
+  meaning: End date of the engagement
+- table: Engagements
+  column: ContractPrice
+  meaning: Total price of the engagement contract
+- table: Engagements
+  column: CustomerID
+  meaning: Identifier of the customer who booked the engagement
+- table: Engagements
+  column: AgentID
+  meaning: Identifier of the agent who handled the engagement
+- table: Engagements
+  column: EntertainerID
+  meaning: Identifier of the entertainer performing in the engagement
+- table: Entertainer_Members
+  column: EntertainerID
+  meaning: Identifier of the entertainer group
+- table: Entertainer_Members
+  column: MemberID
+  meaning: Identifier of a member within the entertainer group
+- table: Entertainers
+  column: EntertainerID
+  meaning: Unique identifier for an entertainer or entertainer group
+- table: Entertainers
+  column: EntStageName
+  meaning: Stage name of the entertainer or group
+- table: Entertainer_Styles
+  column: EntertainerID
+  meaning: Identifier of the entertainer
+- table: Entertainer_Styles
+  column: StyleID
+  meaning: Identifier of the musical style the entertainer performs
+- table: Entertainer_Styles
+  column: StyleStrength
+  meaning: Proficiency level of the entertainer in the given style
+- table: Members
+  column: MemberID
+  meaning: |-
+    Unique identifier for an individual member of an entertainer group
+- table: Members
+  column: MbrFirstName
+  meaning: First name of the member
+- table: Members
+  column: MbrLastName
+  meaning: Last name of the member
+- table: Musical_Preferences
+  column: CustomerID
+  meaning: Identifier of the customer expressing a preference
+- table: Musical_Preferences
+  column: StyleID
+  meaning: |-
+    Identifier of the musical style for which a preference is expressed
+- table: Musical_Preferences
+  column: PreferenceSeq
+  meaning: |-
+    Ranking of the musical style preference (1=first choice, 2=second, 3=third)
+- table: Musical_Styles
+  column: StyleID
+  meaning: Unique identifier for a musical style
+- table: Musical_Styles
+  column: StyleName
+  meaning: Name of the musical style
+- table: weekly_sales
+  column: week_date
+  meaning: Date of the sales week.
+- table: weekly_sales
+  column: region
+  meaning: Geographical region of sales.
+- table: weekly_sales
+  column: platform
+  meaning: Sales platform (e.g., online, in-store).
+- table: weekly_sales
+  column: segment
+  meaning: Customer segment or product segment.
+- table: weekly_sales
+  column: customer_type
+  meaning: Type of customer (e.g., new, existing).
+- table: weekly_sales
+  column: transactions
+  meaning: Number of transactions in the week.
+- table: weekly_sales
+  column: sales
+  meaning: Total sales amount for the week.
+- table: shopping_cart_users
+  column: user_id
+  meaning: Unique identifier for a user.
+- table: shopping_cart_users
+  column: cookie_id
+  meaning: Identifier from a web cookie.
+- table: shopping_cart_users
+  column: start_date
+  meaning: Date when the user's record started.
+- table: bitcoin_members
+  column: member_id
+  meaning: Unique identifier for a Bitcoin member.
+- table: bitcoin_members
+  column: first_name
+  meaning: First name of the Bitcoin member.
+- table: bitcoin_members
+  column: region
+  meaning: Region of the Bitcoin member.
+- table: interest_metrics
+  column: _month
+  meaning: Month component of the interest metric date.
+- table: interest_metrics
+  column: _year
+  meaning: Year component of the interest metric date.
+- table: interest_metrics
+  column: index_value
+  meaning: Index value of the interest.
+- table: interest_metrics
+  column: ranking
+  meaning: Ranking of the interest.
+- table: interest_metrics
+  column: percentile_ranking
+  meaning: Percentile ranking of the interest.
+- table: customer_regions
+  column: region_id
+  meaning: Unique identifier for a region.
+- table: customer_regions
+  column: region_name
+  meaning: Name of the region.
+- table: customer_transactions
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: customer_transactions
+  column: txn_date
+  meaning: Date of the transaction.
+- table: customer_transactions
+  column: txn_type
+  meaning: Type of transaction (e.g., deposit, withdrawal).
+- table: customer_transactions
+  column: txn_amount
+  meaning: Amount of the transaction.
+- table: bitcoin_transactions
+  column: txn_id
+  meaning: Unique identifier for a Bitcoin transaction.
+- table: bitcoin_transactions
+  column: member_id
+  meaning: Identifier of the member involved in the transaction.
+- table: bitcoin_transactions
+  column: ticker
+  meaning: Cryptocurrency ticker involved in the transaction.
+- table: bitcoin_transactions
+  column: txn_date
+  meaning: Date of the Bitcoin transaction.
+- table: bitcoin_transactions
+  column: txn_type
+  meaning: Type of Bitcoin transaction (e.g., buy, sell).
+- table: bitcoin_transactions
+  column: quantity
+  meaning: Quantity of cryptocurrency transacted.
+- table: bitcoin_transactions
+  column: percentage_fee
+  meaning: Fee percentage for the transaction.
+- table: bitcoin_transactions
+  column: txn_time
+  meaning: Time of the Bitcoin transaction.
+- table: customer_nodes
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: customer_nodes
+  column: region_id
+  meaning: Identifier for the region associated with the customer node.
+- table: customer_nodes
+  column: node_id
+  meaning: Identifier for the node associated with the customer.
+- table: customer_nodes
+  column: start_date
+  meaning: Start date of the customer node association.
+- table: customer_nodes
+  column: end_date
+  meaning: End date of the customer node association.
+- table: cleaned_weekly_sales
+  column: week_date_formatted
+  meaning: Formatted week date.
+- table: cleaned_weekly_sales
+  column: week_date
+  meaning: Original week date.
+- table: cleaned_weekly_sales
+  column: region
+  meaning: Geographical region of sales.
+- table: cleaned_weekly_sales
+  column: platform
+  meaning: Sales platform.
+- table: cleaned_weekly_sales
+  column: segment
+  meaning: Customer or product segment.
+- table: cleaned_weekly_sales
+  column: customer_type
+  meaning: Type of customer.
+- table: cleaned_weekly_sales
+  column: transactions
+  meaning: Number of transactions.
+- table: cleaned_weekly_sales
+  column: sales
+  meaning: Total sales amount.
+- table: cleaned_weekly_sales
+  column: week_number
+  meaning: Week number of the year.
+- table: cleaned_weekly_sales
+  column: month_number
+  meaning: Month number of the year.
+- table: cleaned_weekly_sales
+  column: calendar_year
+  meaning: Calendar year.
+- table: cleaned_weekly_sales
+  column: age_band
+  meaning: Age demographic band.
+- table: cleaned_weekly_sales
+  column: demographic
+  meaning: General demographic information.
+- table: cleaned_weekly_sales
+  column: avg_transaction
+  meaning: Average transaction amount.
+- table: veg_txn_df
+  column: index
+  meaning: Row index.
+- table: veg_txn_df
+  column: txn_date
+  meaning: Transaction date for vegetables.
+- table: veg_txn_df
+  column: txn_time
+  meaning: Transaction time for vegetables.
+- table: veg_txn_df
+  column: item_code
+  meaning: Code for the vegetable item.
+- table: veg_txn_df
+  column: qty_sold(kg)
+  meaning: Quantity of vegetables sold in kilograms.
+- table: veg_txn_df
+  column: unit_selling_px_rmb/kg
+  meaning: Unit selling price in RMB per kilogram.
+- table: veg_txn_df
+  column: sale/return
+  meaning: Indicates if the transaction is a sale or return.
+- table: veg_txn_df
+  column: discount(%)
+  meaning: Discount percentage applied.
+- table: veg_txn_df
+  column: day_of_week
+  meaning: Day of the week for the transaction.
+- table: shopping_cart_events
+  column: visit_id
+  meaning: Unique identifier for a user visit.
+- table: shopping_cart_events
+  column: cookie_id
+  meaning: Identifier from a web cookie.
+- table: shopping_cart_events
+  column: page_id
+  meaning: Identifier for the page visited.
+- table: shopping_cart_events
+  column: event_type
+  meaning: Type of event (e.g., page view, add to cart).
+- table: shopping_cart_events
+  column: sequence_number
+  meaning: The sequential order of events within a single visit.
+- table: shopping_cart_events
+  column: event_time
+  meaning: The timestamp when the event occurred.
+- table: shopping_cart_page_hierarchy
+  column: page_id
+  meaning: A unique identifier for a page.
+- table: shopping_cart_page_hierarchy
+  column: page_name
+  meaning: The human-readable name of the page.
+- table: shopping_cart_page_hierarchy
+  column: product_category
+  meaning: The category of the product displayed on the page.
+- table: shopping_cart_page_hierarchy
+  column: product_id
+  meaning: A unique identifier for a product.
+- table: bitcoin_prices
+  column: ticker
+  meaning: The cryptocurrency ticker symbol.
+- table: bitcoin_prices
+  column: market_date
+  meaning: The date for which the price data is recorded.
+- table: bitcoin_prices
+  column: price
+  meaning: The closing price of the cryptocurrency on the market date.
+- table: bitcoin_prices
+  column: open
+  meaning: The opening price of the cryptocurrency on the market date.
+- table: bitcoin_prices
+  column: high
+  meaning: The highest price of the cryptocurrency on the market date.
+- table: bitcoin_prices
+  column: low
+  meaning: The lowest price of the cryptocurrency on the market date.
+- table: bitcoin_prices
+  column: volume
+  meaning: The trading volume of the cryptocurrency on the market date.
+- table: bitcoin_prices
+  column: change
+  meaning: The price change of the cryptocurrency on the market date.
+- table: interest_map
+  column: interest_summary
+  meaning: A brief descriptive summary of the interest.
+- table: interest_map
+  column: created_at
+  meaning: The timestamp when the interest record was created.
+- table: interest_map
+  column: last_modified
+  meaning: The timestamp when the interest record was last modified.
+- table: veg_loss_rate_df
+  column: index
+  meaning: A row index.
+- table: veg_loss_rate_df
+  column: item_code
+  meaning: A unique code for the vegetable item.
+- table: veg_loss_rate_df
+  column: item_name
+  meaning: The name of the vegetable item.
+- table: veg_loss_rate_df
+  column: loss_rate_%
+  meaning: The percentage loss rate for the vegetable item.
+- table: shopping_cart_campaign_identifier
+  column: campaign_id
+  meaning: A unique identifier for a marketing campaign.
+- table: shopping_cart_campaign_identifier
+  column: products
+  meaning: |-
+    A description or list of products associated with the campaign.
+- table: shopping_cart_campaign_identifier
+  column: campaign_name
+  meaning: The name of the marketing campaign.
+- table: shopping_cart_campaign_identifier
+  column: start_date
+  meaning: The start date of the campaign.
+- table: shopping_cart_campaign_identifier
+  column: end_date
+  meaning: The end date of the campaign.
+- table: veg_cat
+  column: index
+  meaning: A row index.
+- table: veg_cat
+  column: item_code
+  meaning: A unique code for the vegetable item.
+- table: veg_cat
+  column: item_name
+  meaning: The name of the vegetable item.
+- table: veg_cat
+  column: category_code
+  meaning: A unique code for the vegetable category.
+- table: veg_cat
+  column: category_name
+  meaning: The name of the vegetable category.
+- table: veg_whsle_df
+  column: index
+  meaning: A row index.
+- table: veg_whsle_df
+  column: whsle_date
+  meaning: The date of the wholesale transaction.
+relations:
+- table_1: interest_metrics
+  column_1: interest_id
+  table_2: interest_map
+  column_2: id
+  meaning: Links interest metrics to their descriptive names
+- table_1: Engagements
+  column_1: AgentID
+  table_2: Agents
+  column_2: AgentID
+  meaning: An agent handles an engagement
+- table_1: Engagements
+  column_1: CustomerID
+  table_2: Customers
+  column_2: CustomerID
+  meaning: A customer books an engagement
+- table_1: Engagements
+  column_1: EntertainerID
+  table_2: Entertainers
+  column_2: EntertainerID
+  meaning: An entertainer performs in an engagement
+- table_1: Entertainer_Members
+  column_1: EntertainerID
+  table_2: Entertainers
+  column_2: EntertainerID
+  meaning: An entertainer group consists of members
+- table_1: Entertainer_Members
+  column_1: MemberID
+  table_2: Members
+  column_2: MemberID
+  meaning: A member belongs to an entertainer group
+- table_1: Entertainer_Styles
+  column_1: EntertainerID
+  table_2: Entertainers
+  column_2: EntertainerID
+  meaning: An entertainer performs certain musical styles
+- table_1: Entertainer_Styles
+  column_1: StyleID
+  table_2: Musical_Styles
+  column_2: StyleID
+  meaning: An entertainer performs a specific musical style
+- table_1: Musical_Preferences
+  column_1: CustomerID
+  table_2: Customers
+  column_2: CustomerID
+  meaning: A customer expresses preferences for musical styles
+- table_1: Musical_Preferences
+  column_1: StyleID
+  table_2: Musical_Styles
+  column_2: StyleID
+  meaning: A customer expresses preference for a specific musical style
+synonyms:
+- nl_term: time
+  db_target: month_year
+  type: column
+- nl_term: interest name
+  db_target: interest_name
+  type: column
+- nl_term: composition value
+  db_target: composition
+  type: column
+- nl_term: top 10
+  db_target: top_rank <= 10
+  type: condition
+- nl_term: bottom 10
+  db_target: bottom_rank <= 10
+  type: condition
+- nl_term: first choice
+  db_target: Musical_Preferences.PreferenceSeq = 1
+  type: condition
+- nl_term: second choice
+  db_target: Musical_Preferences.PreferenceSeq = 2
+  type: condition
+- nl_term: third choice
+  db_target: Musical_Preferences.PreferenceSeq = 3
+  type: condition
+- nl_term: weighted score
+  db_target: TotalWeightedScore
+  type: value
+- nl_term: average total weighted score
+  db_target: AverageTotalWeightedScore
+  type: value
+- nl_term: absolute difference
+  db_target: AbsoluteDifference
+  type: value
+- nl_term: musical style
+  db_target: Musical_Styles.StyleName
+  type: column
+- nl_term: user rankings
+  db_target: Musical_Preferences.PreferenceSeq
+  type: column
+- nl_term: customer preferences
+  db_target: Musical_Preferences
+  type: table
+biz_logic:
+- metric_name: Top 10 and Bottom 10 Interest Categories by Peak Composition
+  sql_logic: |-
+    WITH InterestPeakComposition AS
+      (SELECT interest_id, month_year, composition
+       FROM
+         (SELECT interest_id, month_year, composition,
+                 ROW_NUMBER() OVER (PARTITION BY interest_id
+                                    ORDER BY composition DESC) AS rn
+          FROM interest_metrics) AS subquery
+       WHERE rn = 1),
+         RankedInterests AS
+      (SELECT T1.month_year, T2.interest_name, T1.composition,
+              DENSE_RANK() OVER (
+                                 ORDER BY T1.composition DESC) AS top_rank,
+              DENSE_RANK() OVER (
+                                 ORDER BY T1.composition ASC) AS bottom_rank
+       FROM InterestPeakComposition AS T1
+       INNER JOIN interest_map AS T2 ON T1.interest_id = T2.id)
+    SELECT month_year, interest_name, composition
+    FROM RankedInterests
+    WHERE top_rank <= 10
+      OR bottom_rank <= 10
+    ORDER BY composition DESC
+- metric_name: TotalWeightedScore
+  sql_logic: |-
+    SUM(CASE WHEN mp.PreferenceSeq = 1 THEN 3 WHEN mp.PreferenceSeq = 2 THEN 2 WHEN mp.PreferenceSeq = 3 THEN 1 ELSE 0
+        END)
+- metric_name: AverageTotalWeightedScore
+  sql_logic: AVG(TotalWeightedScore)
+- metric_name: AbsoluteDifference
+  sql_logic: ABS(sws.TotalWeightedScore - oas.AverageTotalWeightedScore)

@@ -1,0 +1,179 @@
+databases:
+- BowlingLeague
+descriptions:
+- table: Bowler_Scores
+  column: MatchID
+  meaning: Identifier for a specific bowling match.
+- table: Bowler_Scores
+  column: GameNumber
+  meaning: The sequence number of a game within a match.
+- table: Bowler_Scores
+  column: BowlerID
+  meaning: Unique identifier for a bowler.
+- table: Bowler_Scores
+  column: RawScore
+  meaning: The unadjusted score achieved by a bowler in a game.
+- table: Bowler_Scores
+  column: HandiCapScore
+  meaning: The bowler's score after applying their handicap.
+- table: Bowler_Scores
+  column: WonGame
+  meaning: |-
+    Boolean flag indicating if the bowler won the specific game (1 for won, 0 for lost).
+- table: Bowlers
+  column: BowlerID
+  meaning: Unique identifier for a bowler.
+- table: Bowlers
+  column: BowlerLastName
+  meaning: The last name of the bowler.
+- table: Bowlers
+  column: BowlerFirstName
+  meaning: The first name of the bowler.
+- table: Bowlers
+  column: BowlerCurrentAverage
+  meaning: The current average score of the bowler.
+- table: Bowlers
+  column: BowlerCurrentHcp
+  meaning: The current handicap of the bowler.
+- table: Match_Games
+  column: MatchID
+  meaning: Identifier for a specific bowling match.
+- table: Match_Games
+  column: GameNumber
+  meaning: The sequence number of a game within a match.
+- table: Match_Games
+  column: WinningTeamID
+  meaning: Identifier for the team that won the game.
+- table: Tournaments
+  column: TourneyID
+  meaning: Unique identifier for a tournament.
+- table: Tournaments
+  column: TourneyDate
+  meaning: The date when the tournament took place.
+- table: Tournaments
+  column: TourneyLocation
+  meaning: The physical location or venue of the tournament.
+- table: Tourney_Matches
+  column: MatchID
+  meaning: Identifier for a specific bowling match.
+- table: Tourney_Matches
+  column: TourneyID
+  meaning: Identifier for the tournament to which the match belongs.
+- table: Teams
+  column: TeamID
+  meaning: Unique identifier for a bowling team.
+- table: Teams
+  column: TeamName
+  meaning: The name of the bowling team.
+relations:
+- table_1: Bowler_Scores
+  column_1: BowlerID
+  table_2: Bowlers
+  column_2: BowlerID
+  meaning: Links bowler scores to bowler details.
+- table_1: Bowler_Scores
+  column_1: MatchID
+  table_2: Match_Games
+  column_2: MatchID
+  meaning: Links bowler scores to match games.
+- table_1: Bowler_Scores
+  column_1: GameNumber
+  table_2: Match_Games
+  column_2: GameNumber
+  meaning: Links bowler scores to match games.
+- table_1: Bowlers
+  column_1: TeamID
+  table_2: Teams
+  column_2: TeamID
+  meaning: Links bowlers to their respective teams.
+- table_1: Tourney_Matches
+  column_1: TourneyID
+  table_2: Tournaments
+  column_2: TourneyID
+  meaning: Links matches to the tournaments they are part of.
+- table_1: Tourney_Matches
+  column_1: MatchID
+  table_2: Bowler_Scores
+  column_2: MatchID
+  meaning: |-
+    Links tournament matches to individual bowler scores within those matches.
+- table_1: Tourney_Matches
+  column_1: OddLaneTeamID
+  table_2: Teams
+  column_2: TeamID
+  meaning: Links the team on the odd lane to team details.
+- table_1: Tourney_Matches
+  column_1: EvenLaneTeamID
+  table_2: Teams
+  column_2: TeamID
+  meaning: Links the team on the even lane to team details.
+synonyms:
+- nl_term: bowlers
+  db_target: Bowlers
+  type: table
+- nl_term: ID
+  db_target: BowlerID
+  type: column
+- nl_term: first name
+  db_target: BowlerFirstName
+  type: column
+- nl_term: last name
+  db_target: BowlerLastName
+  type: column
+- nl_term: match number
+  db_target: MatchID
+  type: column
+- nl_term: game number
+  db_target: GameNumber
+  type: column
+- nl_term: handicap score
+  db_target: HandiCapScore
+  type: column
+- nl_term: tournament date
+  db_target: TourneyDate
+  type: column
+- nl_term: location
+  db_target: TourneyLocation
+  type: column
+- nl_term: won games
+  db_target: WonGame = 1
+  type: condition
+- nl_term: handicap score of 190 or less
+  db_target: HandiCapScore <= 190
+  type: condition
+- nl_term: Thunderbird Lanes
+  db_target: '''Thunderbird Lanes'''
+  type: value
+- nl_term: Totem Lanes
+  db_target: '''Totem Lanes'''
+  type: value
+- nl_term: Bolero Lanes
+  db_target: '''Bolero Lanes'''
+  type: value
+- nl_term: all three venues
+  db_target: COUNT(DISTINCT TourneyLocation) = 3
+  type: condition
+biz_logic:
+- metric_name: Bowlers with Qualifying Wins Across All Specified Venues
+  sql_logic: |-
+    WITH QualifyingWins AS
+      (SELECT BS.BowlerID, BS.MatchID, BS.GameNumber, BS.HandiCapScore, T.TourneyDate,
+              T.TourneyLocation
+       FROM Bowler_Scores AS BS
+       INNER JOIN Tourney_Matches AS TM ON BS.MatchID = TM.MatchID
+       INNER JOIN Tournaments AS T ON TM.TourneyID = T.TourneyID
+       WHERE BS.WonGame = 1
+         AND BS.HandiCapScore <= 190
+         AND T.TourneyLocation IN ('Thunderbird Lanes', 'Totem Lanes', 'Bolero Lanes')),
+         EligibleBowlers AS
+      (SELECT BowlerID
+       FROM QualifyingWins
+       GROUP BY BowlerID
+       HAVING COUNT(DISTINCT TourneyLocation) = 3)
+    SELECT B.BowlerID, B.BowlerFirstName, B.BowlerLastName, QW.MatchID, QW.GameNumber,
+           QW.HandiCapScore, QW.TourneyDate, QW.TourneyLocation
+    FROM Bowlers AS B
+    INNER JOIN QualifyingWins AS QW ON B.BowlerID = QW.BowlerID
+    WHERE QW.BowlerID IN
+        (SELECT BowlerID
+         FROM EligibleBowlers)

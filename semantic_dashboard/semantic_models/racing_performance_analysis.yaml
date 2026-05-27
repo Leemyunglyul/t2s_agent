@@ -1,0 +1,694 @@
+databases:
+- f1
+descriptions:
+- table: circuits
+  column: circuit_id
+  meaning: Unique identifier for a racing circuit.
+- table: circuits
+  column: name
+  meaning: Name of the racing circuit.
+- table: circuits
+  column: location
+  meaning: Geographical location (city/region) of the circuit.
+- table: circuits
+  column: country
+  meaning: Country where the circuit is located.
+- table: constructor_results
+  column: constructor_results_id
+  meaning: Primary key for constructor race results.
+- table: constructor_results
+  column: race_id
+  meaning: |-
+    Foreign key linking to the 'races' table, indicating the race.
+- table: constructor_results
+  column: constructor_id
+  meaning: |-
+    Foreign key linking to the 'constructors' table, indicating the constructor.
+- table: constructor_results
+  column: points
+  meaning: Points earned by the constructor in a specific race.
+- table: constructor_standings
+  column: constructor_standings_id
+  meaning: Primary key for constructor season standings.
+- table: constructor_standings
+  column: points
+  meaning: |-
+    Total points accumulated by the constructor up to a specific race in a season.
+- table: constructor_standings
+  column: wins
+  meaning: |-
+    Number of wins accumulated by the constructor up to a specific race in a season.
+- table: constructors
+  column: constructor_id
+  meaning: Unique identifier for a racing constructor (team).
+- table: constructors
+  column: name
+  meaning: Name of the racing constructor.
+- table: constructors
+  column: nationality
+  meaning: Nationality of the constructor.
+- table: driver_standings
+  column: driver_standings_id
+  meaning: Primary key for driver season standings.
+- table: driver_standings
+  column: points
+  meaning: |-
+    Total points accumulated by the driver up to a specific race in a season.
+- table: driver_standings
+  column: wins
+  meaning: |-
+    Number of wins accumulated by the driver up to a specific race in a season.
+- table: drivers
+  column: driver_id
+  meaning: Unique identifier for a racing driver.
+- table: drivers
+  column: forename
+  meaning: First name of the driver.
+- table: drivers
+  column: surname
+  meaning: Last name of the driver.
+- table: drivers
+  column: full_name
+  meaning: |-
+    Full name of the driver (computed from forename and surname).
+- table: drivers
+  column: nationality
+  meaning: Nationality of the driver.
+- table: lap_times
+  column: lap
+  meaning: Lap number within a race.
+- table: lap_times
+  column: milliseconds
+  meaning: Time taken for a lap in milliseconds.
+- table: pit_stops
+  column: stop
+  meaning: Sequential number of the pit stop for a driver in a race.
+- table: pit_stops
+  column: duration
+  meaning: Duration of the pit stop.
+- table: qualifying
+  column: position
+  meaning: Qualifying position for a driver/constructor in a race.
+- table: qualifying
+  column: q1
+  meaning: Time recorded in Qualifying Session 1.
+- table: qualifying
+  column: q2
+  meaning: Time recorded in Qualifying Session 2.
+- table: qualifying
+  column: q3
+  meaning: Time recorded in Qualifying Session 3.
+- table: races
+  column: race_id
+  meaning: Unique identifier for a race event.
+- table: races
+  column: year
+  meaning: Year in which the race took place.
+- table: races
+  column: name
+  meaning: Name of the race (e.g., 'British Grand Prix').
+- table: races
+  column: date
+  meaning: Date of the race.
+- table: results
+  column: result_id
+  meaning: Primary key for individual race results.
+- table: results
+  column: grid
+  meaning: Starting grid position of the driver.
+- table: constructor_standings
+  column: race_id
+  meaning: Foreign key referencing the race table.
+- table: constructor_standings
+  column: constructor_id
+  meaning: Foreign key referencing the constructors table.
+- table: constructor_standings
+  column: position
+  meaning: Constructor's position in the standings.
+- table: results
+  column: race_id
+  meaning: Foreign key referencing the race table.
+- table: results
+  column: driver_id
+  meaning: Foreign key referencing the drivers table.
+- table: results
+  column: constructor_id
+  meaning: Foreign key referencing the constructors table.
+- table: results
+  column: points
+  meaning: Points scored by the driver in that race.
+- table: races
+  column: round
+  meaning: The round number of the race within its season.
+- table: results
+  column: position
+  meaning: Final finishing position of the driver in the race.
+- table: status
+  column: status
+  meaning: |-
+    Description of the driver's status at the end of a race (e.g., Finished, Engine, Accident).
+- table: driver_standings
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: driver_standings
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: lap_times
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: lap_times
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: pit_stops
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: pit_stops
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: qualifying
+  column: qualify_id
+  meaning: Unique identifier for qualifying results.
+- table: qualifying
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: qualifying
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: qualifying
+  column: constructor_id
+  meaning: Foreign key referencing the constructor (team).
+- table: races
+  column: circuit_id
+  meaning: Foreign key referencing the circuit where the race was held.
+- table: seasons
+  column: year
+  meaning: Year of the racing season.
+- table: status
+  column: status_id
+  meaning: Unique identifier for a race status.
+- table: sprint_results
+  column: result_id
+  meaning: Unique identifier for a sprint race result.
+- table: sprint_results
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: sprint_results
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: sprint_results
+  column: constructor_id
+  meaning: Foreign key referencing the constructor (team).
+- table: short_grand_prix_names
+  column: full_name
+  meaning: Full name of a Grand Prix.
+- table: short_grand_prix_names
+  column: short_name
+  meaning: Short name or abbreviation for a Grand Prix.
+- table: short_constructor_names
+  column: constructor_ref
+  meaning: Reference name for a constructor.
+- table: short_constructor_names
+  column: short_name
+  meaning: Short name or abbreviation for a constructor.
+- table: liveries
+  column: constructor_ref
+  meaning: Reference name for a constructor.
+- table: liveries
+  column: start_year
+  meaning: Starting year for a constructor's livery.
+- table: liveries
+  column: end_year
+  meaning: Ending year for a constructor's livery.
+- table: tdr_overrides
+  column: year
+  meaning: Year of the override.
+- table: tdr_overrides
+  column: constructor_ref
+  meaning: Reference name for the constructor.
+- table: tdr_overrides
+  column: driver_ref
+  meaning: Reference name for the driver.
+- table: team_driver_ranks
+  column: year
+  meaning: Year of the team driver rank.
+- table: team_driver_ranks
+  column: constructor_id
+  meaning: Foreign key referencing the constructor.
+- table: team_driver_ranks
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: drives
+  column: year
+  meaning: Year of the drive.
+- table: drives
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: drives
+  column: constructor_id
+  meaning: Foreign key referencing the constructor.
+- table: retirements
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: retirements
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: lap_positions
+  column: race_id
+  meaning: Foreign key referencing the race.
+- table: lap_positions
+  column: driver_id
+  meaning: Foreign key referencing the driver.
+- table: lap_positions
+  column: lap
+  meaning: Lap number.
+- table: sprint_results
+  column: points
+  meaning: Points scored by a driver in a sprint race.
+relations:
+- table_1: results
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links race results to specific race events.
+- table_1: results
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links race results to the constructor (team) involved.
+- table_1: results
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links race results to the driver involved.
+- table_1: constructor_results
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links constructor-specific race results to race events.
+- table_1: constructor_results
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links constructor-specific race results to constructors.
+- table_1: races
+  column_1: circuit_id
+  table_2: circuits
+  column_2: circuit_id
+  meaning: Links races to the circuits where they are held.
+- table_1: constructor_standings
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links constructor standings to specific race events.
+- table_1: constructor_standings
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links constructor standings to constructors.
+- table_1: driver_standings
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links driver standings to specific race events.
+- table_1: driver_standings
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links driver standings to drivers.
+- table_1: lap_times
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links lap times to specific race events.
+- table_1: lap_times
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links lap times to drivers.
+- table_1: pit_stops
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links pit stop data to specific race events.
+- table_1: pit_stops
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links pit stop data to drivers.
+- table_1: qualifying
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links qualifying results to specific race events.
+- table_1: qualifying
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links qualifying results to drivers.
+- table_1: qualifying
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links qualifying results to constructors.
+- table_1: results
+  column_1: status_id
+  table_2: status
+  column_2: status_id
+  meaning: Links race results to the status of the driver/car.
+- table_1: sprint_results
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links sprint race results to specific race events.
+- table_1: sprint_results
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links sprint race results to drivers.
+- table_1: sprint_results
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links sprint race results to constructors.
+- table_1: sprint_results
+  column_1: status_id
+  table_2: status
+  column_2: status_id
+  meaning: Links sprint race results to the status of the driver/car.
+- table_1: short_constructor_names
+  column_1: constructor_ref
+  table_2: constructors
+  column_2: constructor_ref
+  meaning: Links short constructor names to constructors.
+- table_1: liveries
+  column_1: constructor_ref
+  table_2: constructors
+  column_2: constructor_ref
+  meaning: Links constructor liveries to constructors.
+- table_1: tdr_overrides
+  column_1: constructor_ref
+  table_2: constructors
+  column_2: constructor_ref
+  meaning: Links team driver rank overrides to constructors.
+- table_1: tdr_overrides
+  column_1: driver_ref
+  table_2: drivers
+  column_2: driver_ref
+  meaning: Links team driver rank overrides to drivers.
+- table_1: team_driver_ranks
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links team driver ranks to constructors.
+- table_1: team_driver_ranks
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links team driver ranks to drivers.
+- table_1: drives
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links driver drives to drivers.
+- table_1: drives
+  column_1: constructor_id
+  table_2: constructors
+  column_2: constructor_id
+  meaning: Links driver drives to constructors.
+- table_1: retirements
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links retirements to specific race events.
+- table_1: retirements
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links retirements to drivers.
+- table_1: retirements
+  column_1: status_id
+  table_2: status
+  column_2: status_id
+  meaning: Links retirements to the status of the driver/car.
+- table_1: lap_positions
+  column_1: race_id
+  table_2: races
+  column_2: race_id
+  meaning: Links lap positions to specific race events.
+- table_1: lap_positions
+  column_1: driver_id
+  table_2: drivers
+  column_2: driver_id
+  meaning: Links lap positions to drivers.
+synonyms:
+- nl_term: Constructor Name
+  db_target: constructors.name
+  type: column
+- nl_term: Year
+  db_target: races.year
+  type: column
+- nl_term: Combined Points
+  db_target: CTE_CombinedPoints.combined_points
+  type: value
+- nl_term: best driver points
+  db_target: CTE_BestDriverPoints.best_driver_points
+  type: value
+- nl_term: team points
+  db_target: CTE_TeamPoints.team_total_points
+  type: value
+- nl_term: top 3
+  db_target: rc.rank <= 3
+  type: condition
+- nl_term: Formula 1 drivers
+  db_target: drivers
+  type: table
+- nl_term: 1950s
+  db_target: races.year BETWEEN 1950 AND 1959
+  type: condition
+- nl_term: completed a season
+  db_target: DriverSeasonRaces, DriverSeasonSummary
+  type: value
+- nl_term: same constructor
+  db_target: first_race_constructor_id = last_race_constructor_id
+  type: condition
+- nl_term: first race
+  db_target: MIN(round)
+  type: value
+- nl_term: last race
+  db_target: MAX(round)
+  type: value
+- nl_term: at least two distinct race rounds
+  db_target: distinct_rounds_count >= 2
+  type: condition
+- nl_term: drivers
+  db_target: drivers.forename, drivers.surname
+  type: column
+- nl_term: overall average first round
+  db_target: average_first_round_missed
+  type: column
+- nl_term: overall average last round
+  db_target: average_last_round_missed
+  type: column
+- nl_term: races missed
+  db_target: (next_round - current_round - 1)
+  type: value
+- nl_term: fewer than three races
+  db_target: (next_round - current_round - 1) < 3
+  type: condition
+- nl_term: switched teams
+  db_target: current_constructor_id <> next_constructor_id
+  type: condition
+- nl_term: first missed round
+  db_target: first_missed_round
+  type: column
+- nl_term: last missed round
+  db_target: last_missed_round
+  type: column
+- nl_term: Formula 1 seasons since 2001
+  db_target: races.year >= 2001
+  type: condition
+- nl_term: drivers who scored points
+  db_target: SUM(points) > 0
+  type: condition
+- nl_term: constructors
+  db_target: constructors.name
+  type: column
+- nl_term: fewest total points
+  db_target: MIN(driver_total_season_points)
+  type: value
+- nl_term: season
+  db_target: races.year
+  type: column
+- nl_term: total points
+  db_target: points
+  type: column
+- nl_term: point-scoring drivers
+  db_target: CTE_DriverSeasonPoints
+  type: value
+biz_logic:
+- metric_name: Top 3 Constructor Combined Points
+  sql_logic: |-
+    WITH CTE_DriverPoints AS
+      (SELECT r.year, res.constructor_id, res.driver_id, SUM(res.points) AS driver_total_points
+       FROM results AS res
+       INNER JOIN races AS r ON res.race_id = r.race_id
+       GROUP BY r.year, res.constructor_id, res.driver_id),
+         CTE_BestDriverPoints AS
+      (SELECT YEAR, constructor_id, MAX(driver_total_points) AS best_driver_points
+       FROM CTE_DriverPoints
+       GROUP BY YEAR, constructor_id),
+         CTE_TeamPoints AS
+      (SELECT r.year, cr.constructor_id, SUM(cr.points) AS team_total_points
+       FROM constructor_results AS cr
+       INNER JOIN races AS r ON cr.race_id = r.race_id
+       GROUP BY r.year, cr.constructor_id),
+         CTE_CombinedPoints AS
+      (SELECT bdp.year, bdp.constructor_id,
+              bdp.best_driver_points + tp.team_total_points AS combined_points
+       FROM CTE_BestDriverPoints AS bdp
+       INNER JOIN CTE_TeamPoints AS tp ON bdp.year = tp.year
+       AND bdp.constructor_id = tp.constructor_id),
+         CTE_RankedConstructors AS
+      (SELECT YEAR, constructor_id, combined_points,
+              DENSE_RANK() OVER (
+                                 ORDER BY combined_points DESC) AS rank
+       FROM CTE_CombinedPoints)
+    SELECT c.name AS "Constructor Name", rc.year AS "Year", rc.combined_points AS "Combined Points"
+    FROM CTE_RankedConstructors AS rc
+    INNER JOIN constructors AS c ON rc.constructor_id = c.constructor_id
+    WHERE rc.rank <= 3
+    ORDER BY rc.rank ASC, rc.year ASC;
+- metric_name: Drivers with Consistent Constructor in a Season (1950s)
+  sql_logic: |-
+    WITH DriverSeasonRaces AS
+      (SELECT res.driver_id, rac.year AS season_year, rac.round, res.constructor_id
+       FROM results AS res
+       INNER JOIN races AS rac ON res.race_id = rac.race_id
+       WHERE rac.year BETWEEN 1950 AND 1959),
+         DriverSeasonSummary AS
+      (SELECT driver_id, season_year, MIN(round) AS first_round_in_season,
+              MAX(round) AS last_round_in_season, COUNT(DISTINCT round) AS distinct_rounds_count
+       FROM DriverSeasonRaces
+       GROUP BY driver_id, season_year),
+         DriverSeasonConstructors AS
+      (SELECT dss.driver_id, dss.season_year, dss.distinct_rounds_count,
+              frd.constructor_id AS first_race_constructor_id, lrd.constructor_id AS last_race_constructor_id
+       FROM DriverSeasonSummary AS dss
+       INNER JOIN DriverSeasonRaces AS frd ON dss.driver_id = frd.driver_id
+       AND dss.season_year = frd.season_year
+       AND dss.first_round_in_season = frd.round
+       INNER JOIN DriverSeasonRaces AS lrd ON dss.driver_id = lrd.driver_id
+       AND dss.season_year = lrd.season_year
+       AND dss.last_round_in_season = lrd.round),
+         EligibleDriverSeasons AS
+      (SELECT driver_id
+       FROM DriverSeasonConstructors
+       WHERE first_race_constructor_id = last_race_constructor_id
+         AND distinct_rounds_count >= 2)
+    SELECT DISTINCT d.forename, d.surname
+    FROM drivers AS d
+    INNER JOIN EligibleDriverSeasons AS eds ON d.driver_id = eds.driver_id;
+- metric_name: average_first_round_missed
+  sql_logic: |-
+    WITH CTE_DriverRaces AS
+      (SELECT res.driver_id, res.constructor_id, r.year, r.round
+       FROM results AS res
+       JOIN races AS r ON res.race_id = r.race_id
+       ORDER BY res.driver_id, r.year, r.round),
+         CTE_HiatusDetails AS
+      (SELECT driver_id, YEAR, round AS current_round, constructor_id AS current_constructor_id,
+              LEAD(round, 1) OVER (PARTITION BY driver_id, YEAR
+                                   ORDER BY round) AS next_round,
+              LEAD(constructor_id, 1) OVER (PARTITION BY driver_id,
+                                         YEAR
+                                            ORDER BY round) AS next_constructor_id
+       FROM CTE_DriverRaces),
+         CTE_FilteredHiatuses AS
+      (SELECT current_round + 1 AS first_missed_round, next_round - 1 AS last_missed_round
+       FROM CTE_HiatusDetails
+       WHERE (next_round - current_round - 1) > 0
+         AND (next_round - current_round - 1) < 3
+         AND current_constructor_id <> next_constructor_id)
+    SELECT AVG(first_missed_round) AS average_first_round_missed, AVG(last_missed_round) AS average_last_round_missed
+    FROM CTE_FilteredHiatuses;
+- metric_name: average_last_round_missed
+  sql_logic: |-
+    WITH CTE_DriverRaces AS
+      (SELECT res.driver_id, res.constructor_id, r.year, r.round
+       FROM results AS res
+       JOIN races AS r ON res.race_id = r.race_id
+       ORDER BY res.driver_id, r.year, r.round),
+         CTE_HiatusDetails AS
+      (SELECT driver_id, YEAR, round AS current_round, constructor_id AS current_constructor_id,
+              LEAD(round, 1) OVER (PARTITION BY driver_id, YEAR
+                                   ORDER BY round) AS next_round,
+              LEAD(constructor_id, 1) OVER (PARTITION BY driver_id,
+                                         YEAR
+                                            ORDER BY round) AS next_constructor_id
+       FROM CTE_DriverRaces),
+         CTE_FilteredHiatuses AS
+      (SELECT current_round + 1 AS first_missed_round, next_round - 1 AS last_missed_round
+       FROM CTE_HiatusDetails
+       WHERE (next_round - current_round - 1) > 0
+         AND (next_round - current_round - 1) < 3
+         AND current_constructor_id <> next_constructor_id)
+    SELECT AVG(first_missed_round) AS average_first_round_missed, AVG(last_missed_round) AS average_last_round_missed
+    FROM CTE_FilteredHiatuses;
+- metric_name: Combined Race Points
+  sql_logic: |-
+    WITH CTE_AllRacePoints AS
+      (SELECT R.race_id, R.driver_id, R.constructor_id, R.points
+       FROM results AS R
+       UNION ALL SELECT SR.race_id, SR.driver_id, SR.constructor_id, SR.points
+       FROM sprint_results AS SR)
+- metric_name: Driver Race Constructor Points
+  sql_logic: |-
+    WITH CTE_DriverRaceConstructorPoints AS
+      (SELECT arp.race_id, arp.driver_id, arp.constructor_id, SUM(arp.points) AS total_race_points
+       FROM CTE_AllRacePoints AS arp
+       GROUP BY arp.race_id, arp.driver_id, arp.constructor_id)
+- metric_name: |-
+    Driver Total Season Points (Point-Scoring Drivers since 2001)
+  sql_logic: |-
+    WITH CTE_DriverSeasonPoints AS
+      (SELECT r.year, drcp.driver_id,
+              SUM(drcp.total_race_points) AS driver_total_season_points
+       FROM CTE_DriverRaceConstructorPoints AS drcp
+       JOIN races AS r ON drcp.race_id = r.race_id
+       WHERE r.year >= 2001
+       GROUP BY r.year, drcp.driver_id
+       HAVING SUM(drcp.total_race_points) > 0)
+- metric_name: Minimum Season Points by Any Driver
+  sql_logic: |-
+    WITH CTE_MinSeasonPoints AS
+      (SELECT YEAR, MIN(driver_total_season_points) AS min_points_in_season
+       FROM CTE_DriverSeasonPoints
+       GROUP BY YEAR)
+- metric_name: Drivers with Fewest Points in a Season
+  sql_logic: |-
+    WITH CTE_DriversWithFewestPoints AS
+      (SELECT dsp.year, dsp.driver_id, dsp.driver_total_season_points
+       FROM CTE_DriverSeasonPoints AS dsp
+       JOIN CTE_MinSeasonPoints AS msp ON dsp.year = msp.year
+       AND dsp.driver_total_season_points = msp.min_points_in_season)
+- metric_name: Constructors Associated with Fewest Point Drivers
+  sql_logic: |-
+    WITH CTE_ConstructorsForFewestPointDrivers AS
+      (SELECT DISTINCT dfp.year, drcp.constructor_id
+       FROM CTE_DriversWithFewestPoints AS dfp
+       JOIN CTE_DriverRaceConstructorPoints AS drcp ON dfp.driver_id = drcp.driver_id
+       JOIN races AS r ON drcp.race_id = r.race_id
+       AND dfp.year = r.year)
+- metric_name: Constructor Season Count for Fewest Points
+  sql_logic: |-
+    WITH CTE_ConstructorSeasonCounts AS
+      (SELECT constructor_id, COUNT(DISTINCT YEAR) AS season_count
+       FROM CTE_ConstructorsForFewestPointDrivers
+       GROUP BY constructor_id)
+- metric_name: Top 5 Constructors by Fewest Point Seasons
+  sql_logic: |-
+    SELECT c.name AS constructor_name, csc.season_count
+    FROM CTE_ConstructorSeasonCounts AS csc
+    JOIN constructors AS c ON csc.constructor_id = c.constructor_id
+    ORDER BY csc.season_count DESC, c.name ASC
+    LIMIT 5;

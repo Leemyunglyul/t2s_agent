@@ -1,0 +1,302 @@
+databases:
+- education_business
+- E_commerce
+descriptions:
+- table: hardware_dim_customer
+  column: customer_code
+  meaning: Unique identifier for a customer
+- table: hardware_dim_customer
+  column: customer
+  meaning: Name of the customer
+- table: hardware_dim_customer
+  column: platform
+  meaning: Sales platform used by the customer
+- table: hardware_dim_customer
+  column: channel
+  meaning: Sales channel for the customer
+- table: hardware_dim_customer
+  column: market
+  meaning: Market segment of the customer
+- table: hardware_dim_customer
+  column: sub_zone
+  meaning: Sub-geographical zone of the customer
+- table: hardware_dim_customer
+  column: region
+  meaning: Geographical region of the customer
+- table: hardware_fact_pre_invoice_deductions
+  column: customer_code
+  meaning: Foreign key referencing hardware_dim_customer
+- table: hardware_fact_pre_invoice_deductions
+  column: fiscal_year
+  meaning: Fiscal year when the deduction was applied
+- table: hardware_fact_pre_invoice_deductions
+  column: pre_invoice_discount_pct
+  meaning: Percentage discount applied before invoicing
+- table: hardware_dim_product
+  column: product_code
+  meaning: Unique identifier for a product
+- table: hardware_dim_product
+  column: division
+  meaning: Division to which the product belongs
+- table: hardware_dim_product
+  column: segment
+  meaning: Market segment of the product (e.g., Consumer, Enterprise)
+- table: hardware_dim_product
+  column: category
+  meaning: Category of the product
+- table: hardware_dim_product
+  column: product
+  meaning: Name of the product
+- table: hardware_dim_product
+  column: variant
+  meaning: Variant or specific model of the product
+- table: hardware_fact_gross_price
+  column: product_code
+  meaning: Foreign key referencing hardware_dim_product
+- table: hardware_fact_gross_price
+  column: fiscal_year
+  meaning: Fiscal year for which the gross price is valid
+- table: hardware_fact_gross_price
+  column: gross_price
+  meaning: Gross price of the product
+- table: hardware_fact_manufacturing_cost
+  column: product_code
+  meaning: Foreign key referencing hardware_dim_product
+- table: hardware_fact_manufacturing_cost
+  column: cost_year
+  meaning: Year for which the manufacturing cost is recorded
+- table: hardware_fact_manufacturing_cost
+  column: manufacturing_cost
+  meaning: Cost to manufacture the product
+- table: hardware_fact_sales_monthly
+  column: date
+  meaning: Date of the sales transaction
+- table: hardware_fact_sales_monthly
+  column: product_code
+  meaning: Foreign key referencing hardware_dim_product
+- table: hardware_fact_sales_monthly
+  column: customer_code
+  meaning: Foreign key referencing hardware_dim_customer
+- table: hardware_fact_sales_monthly
+  column: sold_quantity
+  meaning: Quantity of the product sold
+- table: hardware_fact_sales_monthly
+  column: fiscal_year
+  meaning: Fiscal year of the sales transaction
+- table: product_category_name_translation
+  column: product_category_name_english
+  meaning: The English translation of the product category name.
+- table: orders
+  column: order_purchase_timestamp
+  meaning: The timestamp when the customer placed the order.
+- table: order_items
+  column: price
+  meaning: The price of the product item in the order.
+- table: products
+  column: product_category_name
+  meaning: The original category name of the product.
+- table: order_items
+  column: product_id
+  meaning: Unique identifier for the product in an order item.
+- table: order_items
+  column: order_id
+  meaning: Unique identifier for the order associated with an item.
+- table: orders
+  column: customer_id
+  meaning: Unique identifier for the customer who placed the order.
+relations:
+- table_1: hardware_fact_sales_monthly
+  column_1: product_code
+  table_2: hardware_dim_product
+  column_2: product_code
+  meaning: Links sales transactions to product details
+- table_1: hardware_fact_sales_monthly
+  column_1: customer_code
+  table_2: hardware_dim_customer
+  column_2: customer_code
+  meaning: Links sales transactions to customer details
+- table_1: hardware_fact_pre_invoice_deductions
+  column_1: customer_code
+  table_2: hardware_dim_customer
+  column_2: customer_code
+  meaning: Links pre-invoice deductions to customer details
+- table_1: hardware_fact_gross_price
+  column_1: product_code
+  table_2: hardware_dim_product
+  column_2: product_code
+  meaning: Links gross prices to product details
+- table_1: hardware_fact_manufacturing_cost
+  column_1: product_code
+  table_2: hardware_dim_product
+  column_2: product_code
+  meaning: Links manufacturing costs to product details
+- table_1: orders
+  column_1: order_id
+  table_2: order_items
+  column_2: order_id
+  meaning: An order can contain multiple order items.
+- table_1: order_items
+  column_1: product_id
+  table_2: products
+  column_2: product_id
+  meaning: Each order item refers to a specific product.
+- table_1: products
+  column_1: product_category_name
+  table_2: product_category_name_translation
+  column_2: product_category_name
+  meaning: Links a product to its category name for translation.
+synonyms:
+- nl_term: hardware product segments
+  db_target: hardware_dim_product.segment
+  type: column
+- nl_term: unique product counts
+  db_target: COUNT(DISTINCT T1.product_code)
+  type: value
+- nl_term: '2020'
+  db_target: fiscal_year = 2020
+  type: condition
+- nl_term: '2021'
+  db_target: fiscal_year = 2021
+  type: condition
+- nl_term: percentage increase
+  db_target: percentage_increase
+  type: column
+- nl_term: calendar year 2021
+  db_target: STRFTIME('%Y', s.date) = '2021'
+  type: condition
+- nl_term: overall average quantity sold
+  db_target: AVG(total_quantity_sold)
+  type: column
+- nl_term: top three best-selling hardware products
+  db_target: product_rank <= 3
+  type: condition
+- nl_term: total quantity sold
+  db_target: SUM(s.sold_quantity)
+  type: column
+- nl_term: division
+  db_target: p.division
+  type: column
+- nl_term: product
+  db_target: s.product_code
+  type: column
+- nl_term: toy sales
+  db_target: |-
+    product_category_name_translation.product_category_name_english = 'toys'
+  type: condition
+- nl_term: daily sales
+  db_target: SUM(oi.price) GROUP BY DATE(o.order_purchase_timestamp)
+  type: value
+- nl_term: 5-day symmetric moving average
+  db_target: |-
+    AVG(predicted_y) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING)
+  type: value
+- nl_term: predicted sales
+  db_target: predicted_y
+  type: value
+biz_logic:
+- metric_name: segment_yearly_unique_products_count
+  sql_logic: |-
+    SELECT T2.segment, T1.fiscal_year, COUNT(DISTINCT T1.product_code)
+    FROM hardware_fact_sales_monthly AS T1
+    INNER JOIN hardware_dim_product AS T2 ON T1.product_code = T2.product_code
+    WHERE T1.fiscal_year IN (2020, 2021)
+    GROUP BY T2.segment, T1.fiscal_year
+- metric_name: unique_products_2020_by_segment
+  sql_logic: |-
+    SUM(CASE WHEN fiscal_year = 2020 THEN unique_product_count ELSE 0
+        END)
+    FROM segment_yearly_unique_products
+- metric_name: unique_products_2021_by_segment
+  sql_logic: |-
+    SUM(CASE WHEN fiscal_year = 2021 THEN unique_product_count ELSE 0
+        END)
+    FROM segment_yearly_unique_products
+- metric_name: percentage_increase_unique_products_2020_to_2021
+  sql_logic: |-
+    (CAST(unique_products_2021 AS REAL) - unique_products_2020) * 100.0 / NULLIF(unique_products_2020,
+                                                                            0)
+- metric_name: total_quantity_sold_per_product_2021
+  sql_logic: |-
+    SELECT p.division, s.product_code, SUM(s.sold_quantity) AS total_quantity_sold
+    FROM hardware_fact_sales_monthly AS s
+    INNER JOIN hardware_dim_product AS p ON s.product_code = p.product_code
+    WHERE STRFTIME('%Y', s.date) = '2021'
+    GROUP BY p.division, s.product_code
+- metric_name: ranked_products_by_sales_per_division
+  sql_logic: |-
+    WITH sales_2021_by_product_division AS
+      (SELECT p.division, s.product_code, SUM(s.sold_quantity) AS total_quantity_sold
+       FROM hardware_fact_sales_monthly AS s
+       INNER JOIN hardware_dim_product AS p ON s.product_code = p.product_code
+       WHERE STRFTIME('%Y', s.date) = '2021'
+       GROUP BY p.division, s.product_code)
+    SELECT division, product_code, total_quantity_sold,
+           DENSE_RANK() OVER (PARTITION BY division
+                              ORDER BY total_quantity_sold DESC) AS product_rank
+    FROM sales_2021_by_product_division
+- metric_name: overall_average_quantity_sold_top_3_products_per_division
+  sql_logic: |-
+    WITH sales_2021_by_product_division AS
+      (SELECT p.division, s.product_code, SUM(s.sold_quantity) AS total_quantity_sold
+       FROM hardware_fact_sales_monthly AS s
+       INNER JOIN hardware_dim_product AS p ON s.product_code = p.product_code
+       WHERE STRFTIME('%Y', s.date) = '2021'
+       GROUP BY p.division, s.product_code),
+         ranked_products AS
+      (SELECT division, product_code, total_quantity_sold,
+              DENSE_RANK() OVER (PARTITION BY division
+                                 ORDER BY total_quantity_sold DESC) AS product_rank
+       FROM sales_2021_by_product_division),
+         top_3_products_per_division AS
+      (SELECT division, product_code, total_quantity_sold
+       FROM ranked_products
+       WHERE product_rank <= 3)
+    SELECT division, AVG(total_quantity_sold) AS overall_average_quantity_sold
+    FROM top_3_products_per_division
+    GROUP BY division
+- metric_name: daily_toy_sales
+  sql_logic: |-
+    WITH daily_toy_sales AS
+      (SELECT DATE(o.order_purchase_timestamp) AS sale_date, SUM(oi.price) AS daily_sales
+       FROM orders AS o
+       INNER JOIN order_items AS oi ON o.order_id = oi.order_id
+       INNER JOIN products AS p ON oi.product_id = p.product_id
+       INNER JOIN product_category_name_translation AS pcnt ON p.product_category_name = pcnt.product_category_name
+       WHERE pcnt.product_category_name_english = 'toys'
+         AND o.order_purchase_timestamp BETWEEN '2017-01-01 00:00:00' AND '2018-08-29 23:59:59'
+       GROUP BY sale_date)
+- metric_name: regression_data_preparation
+  sql_logic: |-
+    WITH regression_data AS
+      (SELECT JULIANDAY(sale_date) - JULIANDAY('2017-01-01') AS x, daily_sales AS y
+       FROM daily_toy_sales)
+- metric_name: linear_regression_coefficients
+  sql_logic: |-
+    WITH regression_coefficients AS
+      (SELECT CAST(COUNT(*) AS REAL) AS N, SUM(x) AS sum_x, SUM(y) AS sum_y, SUM(x * y) AS sum_xy,
+              SUM(x * x) AS sum_x_squared
+       FROM regression_data)
+- metric_name: prediction_dates_generation
+  sql_logic: |-
+    WITH prediction_dates(date) AS
+      (SELECT '2018-12-03'
+       UNION ALL SELECT DATE(date, '+1 day')
+       FROM prediction_dates
+       WHERE date < '2018-12-10')
+- metric_name: predicted_sales_calculation
+  sql_logic: |-
+    WITH predicted_sales AS
+      (SELECT pd.date,
+              (rc.N * rc.sum_xy - rc.sum_x * rc.sum_y) / (rc.N * rc.sum_x_squared - rc.sum_x * rc.sum_x) * (JULIANDAY(pd.date) - JULIANDAY('2017-01-01')) + (rc.sum_y - (rc.N * rc.sum_xy - rc.sum_x * rc.sum_y) / (rc.N * rc.sum_x_squared - rc.sum_x * rc.sum_x) * rc.sum_x) / rc.N AS predicted_y
+       FROM prediction_dates AS pd, regression_coefficients AS rc)
+- metric_name: five_day_symmetric_moving_average
+  sql_logic: |-
+    WITH moving_averages AS
+      (SELECT date, AVG(predicted_y) OVER (
+                                           ORDER BY date ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING) AS five_day_sma
+       FROM predicted_sales)
+- metric_name: sum_of_moving_averages_for_period
+  sql_logic: |-
+    SELECT SUM(five_day_sma)
+    FROM moving_averages
+    WHERE date BETWEEN '2018-12-05' AND '2018-12-08';

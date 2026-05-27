@@ -1,0 +1,97 @@
+databases:
+- city_legislation
+descriptions:
+- table: job_postings_fact
+  column: job_id
+  meaning: Unique identifier for a job posting.
+- table: job_postings_fact
+  column: job_title_short
+  meaning: A concise or abbreviated title for the job posting.
+- table: job_postings_fact
+  column: job_work_from_home
+  meaning: |-
+    Indicates if the job allows remote work (1 for yes, 0 for no).
+- table: job_postings_fact
+  column: salary_year_avg
+  meaning: The average annual salary for the job posting.
+- table: skills_job_dim
+  column: job_id
+  meaning: Foreign key linking to the job_postings_fact table.
+- table: skills_job_dim
+  column: skill_id
+  meaning: Foreign key linking to the skills_dim table.
+- table: skills_dim
+  column: skill_id
+  meaning: Unique identifier for a specific skill.
+- table: skills_dim
+  column: skills
+  meaning: The name or description of the skill.
+relations:
+- table_1: job_postings_fact
+  column_1: job_id
+  table_2: skills_job_dim
+  column_2: job_id
+  meaning: A job posting can be associated with multiple skills.
+- table_1: skills_job_dim
+  column_1: skill_id
+  table_2: skills_dim
+  column_2: skill_id
+  meaning: A skill can be associated with multiple job postings.
+synonyms:
+- nl_term: Data Analyst
+  db_target: job_postings_fact.job_title_short
+  type: value
+- nl_term: remote
+  db_target: job_postings_fact.job_work_from_home = 1
+  type: condition
+- nl_term: annual average salary
+  db_target: job_postings_fact.salary_year_avg
+  type: column
+- nl_term: overall average salary
+  db_target: AVG(salary_year_avg)
+  type: value
+biz_logic:
+- metric_name: Filtered Data Analyst Jobs
+  sql_logic: |-
+    SELECT job_id, salary_year_avg
+    FROM job_postings_fact
+    WHERE job_title_short = 'Data Analyst'
+      AND job_work_from_home = 1
+      AND salary_year_avg IS NOT NULL
+- metric_name: Skills for Filtered Data Analyst Jobs
+  sql_logic: |-
+    SELECT fdaj.job_id, sjd.skill_id
+    FROM FilteredDataAnalystJobs AS fdaj
+    INNER JOIN skills_job_dim AS sjd ON fdaj.job_id = sjd.job_id
+- metric_name: Skill Demand Count for Data Analyst Jobs
+  sql_logic: |-
+    SELECT js.skill_id, COUNT(DISTINCT js.job_id) AS job_count
+    FROM JobSkills AS js
+    INNER JOIN skills_dim AS sd ON js.skill_id = sd.skill_id
+    GROUP BY js.skill_id
+- metric_name: Ranked Skills by Demand
+  sql_logic: |-
+    SELECT skill_id, job_count,
+           DENSE_RANK() OVER (
+                              ORDER BY job_count DESC) AS skill_rank
+    FROM SkillDemand
+- metric_name: Top 3 Most Demanded Skills
+  sql_logic: |-
+    SELECT skill_id
+    FROM RankedSkills
+    WHERE skill_rank <= 3
+- metric_name: Filtered Data Analyst Jobs with Top 3 Skills
+  sql_logic: |-
+    SELECT fdaj.job_id, fdaj.salary_year_avg
+    FROM FilteredDataAnalystJobs AS fdaj
+    WHERE fdaj.job_id IN
+        (SELECT js.job_id
+         FROM JobSkills AS js
+         WHERE js.skill_id IN
+             (SELECT skill_id
+              FROM Top3Skills))
+- metric_name: |-
+    Overall Average Salary for Data Analyst Jobs with Top 3 Skills
+  sql_logic: |-
+    SELECT AVG(salary_year_avg) AS overall_average_salary
+    FROM JobsWithTopSkills

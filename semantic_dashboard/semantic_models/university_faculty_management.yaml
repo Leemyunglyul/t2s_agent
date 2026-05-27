@@ -1,0 +1,72 @@
+databases:
+- education_business
+descriptions:
+- table: university_faculty
+  column: FacNo
+  meaning: Unique identifier for a faculty member.
+- table: university_faculty
+  column: FacFirstName
+  meaning: First name of the faculty member.
+- table: university_faculty
+  column: FacLastName
+  meaning: Last name of the faculty member.
+- table: university_faculty
+  column: FacRank
+  meaning: |-
+    Academic rank or position of the faculty member (e.g., Professor, Lecturer).
+- table: university_faculty
+  column: FacSalary
+  meaning: Annual salary of the faculty member.
+relations: []
+synonyms:
+- nl_term: faculty members
+  db_target: university_faculty
+  type: value
+- nl_term: salaries
+  db_target: FacSalary
+  type: column
+- nl_term: ranks
+  db_target: FacRank
+  type: column
+- nl_term: first names
+  db_target: FacFirstName
+  type: column
+- nl_term: last names
+  db_target: FacLastName
+  type: column
+- nl_term: average salary for their respective ranks
+  db_target: AVG(FacSalary) OVER (PARTITION BY FacRank)
+  type: condition
+biz_logic:
+- metric_name: Average Salary by Rank
+  sql_logic: |-
+    WITH FacultySalaryDetails AS
+      (SELECT FacNo, FacFirstName, FacLastName, FacRank, FacSalary,
+              AVG(FacSalary) OVER (PARTITION BY FacRank) AS AvgRankSalary
+       FROM university_faculty)
+    SELECT FacNo, FacFirstName, FacLastName, FacRank, FacSalary, AvgRankSalary
+    FROM FacultySalaryDetails;
+- metric_name: Salary Difference from Rank Average
+  sql_logic: |-
+    WITH FacultySalaryDetails AS
+      (SELECT FacNo, FacFirstName, FacLastName, FacRank, FacSalary,
+              AVG(FacSalary) OVER (PARTITION BY FacRank) AS AvgRankSalary
+       FROM university_faculty)
+    SELECT FacNo, FacFirstName, FacLastName, FacRank, FacSalary,
+           ABS(FacSalary - AvgRankSalary) AS SalaryDifference
+    FROM FacultySalaryDetails;
+- metric_name: Faculty Closest to Average Salary by Rank
+  sql_logic: |-
+    WITH FacultySalaryDetails AS
+      (SELECT FacNo, FacFirstName, FacLastName, FacRank, FacSalary,
+              AVG(FacSalary) OVER (PARTITION BY FacRank) AS AvgRankSalary,
+              ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank)) AS SalaryDifference
+       FROM university_faculty),
+         RankedFaculty AS
+      (SELECT FacRank, FacFirstName, FacLastName, FacSalary,
+              DENSE_RANK() OVER (PARTITION BY FacRank
+                                 ORDER BY SalaryDifference ASC) AS rank_of_closest_salary
+       FROM FacultySalaryDetails)
+    SELECT FacRank, FacFirstName, FacLastName, FacSalary
+    FROM RankedFaculty
+    WHERE rank_of_closest_salary = 1;

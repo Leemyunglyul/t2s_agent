@@ -1,0 +1,1918 @@
+databases:
+- E_commerce
+- Brazilian_E_Commerce
+- chinook
+- sqlite-sakila
+- complex_oracle
+- bank_sales_trading
+- northwind
+- log
+descriptions:
+- table: customers
+  column: customer_unique_id
+  meaning: |-
+    A unique identifier for a customer, allowing tracking across multiple orders.
+- table: orders
+  column: order_id
+  meaning: A unique identifier for each order placed.
+- table: order_payments
+  column: payment_value
+  meaning: |-
+    The total value of a specific payment transaction for an order.
+- table: orders
+  column: order_purchase_timestamp
+  meaning: The timestamp when the customer placed the order.
+- table: olist_customers
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: olist_customers
+  column: customer_unique_id
+  meaning: Unique identifier for a customer across multiple orders.
+- table: olist_customers
+  column: customer_zip_code_prefix
+  meaning: First 5 digits of the customer's zip code.
+- table: olist_customers
+  column: customer_city
+  meaning: City where the customer is located.
+- table: olist_customers
+  column: customer_state
+  meaning: State where the customer is located.
+- table: olist_sellers
+  column: seller_id
+  meaning: Unique identifier for a seller.
+- table: olist_sellers
+  column: seller_zip_code_prefix
+  meaning: First 5 digits of the seller's zip code.
+- table: olist_sellers
+  column: seller_city
+  meaning: City where the seller is located.
+- table: olist_sellers
+  column: seller_state
+  meaning: State where the seller is located.
+- table: olist_order_reviews
+  column: review_id
+  meaning: Unique identifier for an order review.
+- table: olist_order_reviews
+  column: order_id
+  meaning: Identifier for the order being reviewed.
+- table: olist_order_reviews
+  column: review_score
+  meaning: Score given in the review (e.g., 1-5 stars).
+- table: olist_order_reviews
+  column: review_comment_title
+  meaning: Title of the review comment.
+- table: olist_order_reviews
+  column: review_comment_message
+  meaning: Full text of the review comment.
+- table: olist_order_reviews
+  column: review_creation_date
+  meaning: Date when the review was created.
+- table: olist_order_reviews
+  column: review_answer_timestamp
+  meaning: Timestamp when the review was answered.
+- table: olist_order_items
+  column: order_id
+  meaning: Identifier for the order to which the item belongs.
+- table: olist_order_items
+  column: order_item_id
+  meaning: Unique identifier for an item within an order.
+- table: olist_order_items
+  column: product_id
+  meaning: Identifier for the product in the order item.
+- table: olist_order_items
+  column: seller_id
+  meaning: Identifier for the seller of the product item.
+- table: olist_order_items
+  column: shipping_limit_date
+  meaning: Date by which the item should be shipped.
+- table: olist_order_items
+  column: price
+  meaning: Price of the product item.
+- table: olist_order_items
+  column: freight_value
+  meaning: Freight value (shipping cost) for the item.
+- table: olist_products
+  column: product_id
+  meaning: Unique identifier for a product.
+- table: olist_products
+  column: product_category_name
+  meaning: Category name of the product (in Portuguese).
+- table: olist_products
+  column: product_name_lenght
+  meaning: Length of the product name.
+- table: olist_products
+  column: product_description_lenght
+  meaning: Length of the product description.
+- table: olist_products
+  column: product_photos_qty
+  meaning: Number of photos available for the product.
+- table: olist_products
+  column: product_weight_g
+  meaning: Weight of the product in grams.
+- table: olist_products
+  column: product_length_cm
+  meaning: Length of the product in centimeters.
+- table: olist_products
+  column: product_height_cm
+  meaning: Height of the product in centimeters.
+- table: olist_products
+  column: product_width_cm
+  meaning: Width of the product in centimeters.
+- table: olist_geolocation
+  column: geolocation_zip_code_prefix
+  meaning: First 5 digits of the zip code for geolocation data.
+- table: olist_geolocation
+  column: geolocation_lat
+  meaning: Latitude coordinate for the geolocation.
+- table: olist_geolocation
+  column: geolocation_lng
+  meaning: Longitude coordinate for the geolocation.
+- table: olist_geolocation
+  column: geolocation_city
+  meaning: City for the geolocation.
+- table: olist_geolocation
+  column: geolocation_state
+  meaning: State for the geolocation.
+- table: product_category_name_translation
+  column: product_category_name
+  meaning: Product category name in Portuguese.
+- table: product_category_name_translation
+  column: product_category_name_english
+  meaning: Product category name in English.
+- table: olist_orders
+  column: order_id
+  meaning: Unique identifier for an order.
+- table: olist_orders
+  column: customer_id
+  meaning: Identifier for the customer who placed the order.
+- table: olist_orders
+  column: order_status
+  meaning: |-
+    Current status of the order (e.g., 'delivered', 'shipped', 'canceled').
+- table: olist_orders
+  column: order_purchase_timestamp
+  meaning: Timestamp when the order was purchased.
+- table: olist_orders
+  column: order_approved_at
+  meaning: Timestamp when the payment for the order was approved.
+- table: olist_orders
+  column: order_delivered_carrier_date
+  meaning: Timestamp when the order was delivered to the carrier.
+- table: olist_orders
+  column: order_delivered_customer_date
+  meaning: Timestamp when the order was delivered to the customer.
+- table: olist_orders
+  column: order_estimated_delivery_date
+  meaning: Estimated delivery date for the order.
+- table: olist_order_payments
+  column: order_id
+  meaning: Identifier for the order to which the payment belongs.
+- table: olist_order_payments
+  column: payment_sequential
+  meaning: |-
+    Sequence number for payments within an order (for orders with multiple payment parts).
+- table: olist_order_payments
+  column: payment_type
+  meaning: Type of payment (e.g., 'credit_card', 'boleto').
+- table: olist_order_payments
+  column: payment_installments
+  meaning: Number of payment installments.
+- table: olist_order_payments
+  column: payment_value
+  meaning: Total value of the payment.
+- table: olist_products_dataset
+  column: product_id
+  meaning: Unique identifier for a product.
+- table: olist_products_dataset
+  column: product_category_name
+  meaning: Category name of the product (in Portuguese).
+- table: olist_products_dataset
+  column: product_name_lenght
+  meaning: Length of the product name.
+- table: olist_products_dataset
+  column: product_description_lenght
+  meaning: Length of the product description.
+- table: olist_products_dataset
+  column: product_photos_qty
+  meaning: Number of photos available for the product.
+- table: olist_products_dataset
+  column: product_weight_g
+  meaning: Weight of the product in grams.
+- table: olist_products_dataset
+  column: product_length_cm
+  meaning: Length of the product in centimeters.
+- table: olist_products_dataset
+  column: product_height_cm
+  meaning: Height of the product in centimeters.
+- table: olist_products_dataset
+  column: product_width_cm
+  meaning: Width of the product in centimeters.
+- table: albums
+  column: AlbumId
+  meaning: Unique identifier for an album.
+- table: albums
+  column: Title
+  meaning: Name of the album.
+- table: albums
+  column: ArtistId
+  meaning: Foreign key linking to the artist who created the album.
+- table: artists
+  column: ArtistId
+  meaning: Unique identifier for an artist.
+- table: artists
+  column: Name
+  meaning: Name of the artist.
+- table: customers
+  column: CustomerId
+  meaning: Unique identifier for a customer.
+- table: customers
+  column: FirstName
+  meaning: Customer's first name.
+- table: customers
+  column: LastName
+  meaning: Customer's last name.
+- table: customers
+  column: Email
+  meaning: Customer's email address.
+- table: invoices
+  column: InvoiceId
+  meaning: Unique identifier for an invoice (purchase).
+- table: invoices
+  column: CustomerId
+  meaning: Foreign key linking to the customer who made the purchase.
+- table: invoices
+  column: InvoiceDate
+  meaning: Date of the invoice.
+- table: invoices
+  column: Total
+  meaning: Total amount of the invoice.
+- table: invoice_items
+  column: InvoiceLineId
+  meaning: Unique identifier for an invoice line item.
+- table: invoice_items
+  column: InvoiceId
+  meaning: Foreign key linking to the parent invoice.
+- table: invoice_items
+  column: TrackId
+  meaning: Foreign key linking to the track purchased.
+- table: invoice_items
+  column: UnitPrice
+  meaning: Unit price of the track at the time of purchase.
+- table: invoice_items
+  column: Quantity
+  meaning: Quantity of the track purchased.
+- table: tracks
+  column: TrackId
+  meaning: Unique identifier for a track.
+- table: tracks
+  column: Name
+  meaning: Name of the track.
+- table: tracks
+  column: AlbumId
+  meaning: Foreign key linking to the album the track belongs to.
+- table: tracks
+  column: UnitPrice
+  meaning: Standard unit price of the track.
+- table: customers
+  column: Country
+  meaning: The country where the customer resides.
+- table: customer
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: customer
+  column: first_name
+  meaning: First name of the customer.
+- table: customer
+  column: last_name
+  meaning: Last name of the customer.
+- table: payment
+  column: customer_id
+  meaning: Foreign key linking to the customer who made the payment.
+- table: payment
+  column: payment_date
+  meaning: Date and time when the payment was made.
+- table: payment
+  column: amount
+  meaning: The monetary amount of the payment.
+- table: monthly_payments
+  column: payment_month
+  meaning: The year and month of a payment, derived from payment_date.
+- table: monthly_payments
+  column: monthly_amount
+  meaning: The total amount paid by a customer in a given month.
+- table: monthly_changes
+  column: monthly_change
+  meaning: |-
+    The absolute difference in total monthly payment amount for a customer compared to the previous month.
+- table: avg_monthly_volatility
+  column: avg_change
+  meaning: |-
+    The average of the monthly changes in payment amounts for a customer.
+- table: countries
+  column: country_name
+  meaning: |-
+    The name of the country where a customer resides, e.g., 'Italy'.
+- table: customers
+  column: cust_id
+  meaning: Unique identifier for each customer.
+- table: customers
+  column: country_id
+  meaning: |-
+    Foreign key linking a customer to their country of residence.
+- table: sales
+  column: cust_id
+  meaning: |-
+    Foreign key linking a sales transaction to the purchasing customer.
+- table: sales
+  column: prod_id
+  meaning: Foreign key linking a sales transaction to the product sold.
+- table: sales
+  column: time_id
+  meaning: |-
+    Foreign key linking a sales transaction to the date of the sale.
+- table: sales
+  column: channel_id
+  meaning: |-
+    Foreign key linking a sales transaction to the sales channel.
+- table: sales
+  column: promo_id
+  meaning: |-
+    Foreign key linking a sales transaction to any applied promotion.
+- table: sales
+  column: quantity_sold
+  meaning: The number of units of a product sold in a transaction.
+- table: costs
+  column: prod_id
+  meaning: Foreign key linking a cost record to a product.
+- table: costs
+  column: time_id
+  meaning: Foreign key linking a cost record to a specific date.
+- table: costs
+  column: promo_id
+  meaning: Foreign key linking a cost record to a promotion.
+- table: costs
+  column: channel_id
+  meaning: Foreign key linking a cost record to a sales channel.
+- table: costs
+  column: unit_cost
+  meaning: The cost of one unit of a product.
+- table: costs
+  column: unit_price
+  meaning: The selling price of one unit of a product.
+- table: times
+  column: time_id
+  meaning: Unique identifier for a specific date.
+- table: times
+  column: calendar_month_name
+  meaning: The name of the calendar month, e.g., 'December'.
+- table: times
+  column: calendar_year
+  meaning: The calendar year, e.g., 2021.
+- table: countries
+  column: country_id
+  meaning: Unique identifier for a country.
+- table: customers
+  column: cust_first_name
+  meaning: First name of the customer.
+- table: customers
+  column: cust_last_name
+  meaning: Last name of the customer.
+- table: customers
+  column: cust_gender
+  meaning: Gender of the customer.
+- table: customers
+  column: cust_year_of_birth
+  meaning: Year of birth of the customer.
+- table: promotions
+  column: promo_id
+  meaning: Unique identifier for a promotion.
+- table: promotions
+  column: promo_name
+  meaning: Name of the promotion.
+- table: promotions
+  column: promo_cost
+  meaning: Cost associated with the promotion.
+- table: products
+  column: prod_id
+  meaning: Unique identifier for a product.
+- table: products
+  column: prod_name
+  meaning: Name of the product.
+- table: products
+  column: prod_list_price
+  meaning: List price of the product.
+- table: products
+  column: prod_min_price
+  meaning: Minimum price of the product.
+- table: times
+  column: calendar_month_number
+  meaning: Month number within the calendar year.
+- table: channels
+  column: channel_id
+  meaning: Unique identifier for a sales channel.
+- table: channels
+  column: channel_desc
+  meaning: Description of the sales channel.
+- table: sales
+  column: amount_sold
+  meaning: Total monetary amount of the sale.
+- table: supplementary_demographics
+  column: cust_id
+  meaning: Foreign key referencing the customer for demographic data.
+- table: supplementary_demographics
+  column: education
+  meaning: Customer's education level.
+- table: supplementary_demographics
+  column: occupation
+  meaning: Customer's occupation.
+- table: currency
+  column: country
+  meaning: Name of the country for currency conversion.
+- table: currency
+  column: year
+  meaning: Year for the currency conversion rate.
+- table: currency
+  column: month
+  meaning: Month for the currency conversion rate.
+- table: currency
+  column: to_us
+  meaning: Conversion rate to US dollars.
+- table: shopping_cart_events
+  column: visit_id
+  meaning: Unique identifier for a user's visit to the e-commerce site.
+- table: shopping_cart_events
+  column: event_type
+  meaning: |-
+    Numeric code representing a specific user action (e.g., 1 for view, 2 for add to cart, 3 for purchase).
+- table: shopping_cart_page_hierarchy
+  column: page_id
+  meaning: |-
+    Unique identifier for a specific page on the e-commerce site.
+- table: shopping_cart_page_hierarchy
+  column: product_id
+  meaning: Unique identifier for a product, associated with a page.
+- table: orders
+  column: customerid
+  meaning: Unique identifier for a customer who placed an order.
+- table: orders
+  column: orderdate
+  meaning: The date when an order was placed by a customer.
+- table: order_details
+  column: unitprice
+  meaning: |-
+    The price of a single unit of a product within a specific order line item.
+- table: order_details
+  column: quantity
+  meaning: |-
+    The number of units of a product ordered in a specific order line item.
+- table: customergroupthreshold
+  column: groupname
+  meaning: |-
+    The name of a customer spending group (e.g., 'High Spender').
+- table: customergroupthreshold
+  column: rangebottom
+  meaning: The lower bound of the spending range for a customer group.
+- table: customergroupthreshold
+  column: rangetop
+  meaning: The upper bound of the spending range for a customer group.
+- table: film
+  column: rental_rate
+  meaning: The standard daily rental price for a specific film.
+- table: payment
+  column: rental_id
+  meaning: |-
+    Foreign key linking to the rental transaction this payment is for.
+- table: rental
+  column: rental_id
+  meaning: Unique identifier for a specific film rental transaction.
+- table: rental
+  column: inventory_id
+  meaning: |-
+    Foreign key linking to the specific inventory item (film copy) rented.
+- table: rental
+  column: customer_id
+  meaning: |-
+    Foreign key linking to the customer who initiated the rental.
+- table: inventory
+  column: inventory_id
+  meaning: |-
+    Unique identifier for a specific physical copy of a film available for rent.
+- table: inventory
+  column: film_id
+  meaning: |-
+    Foreign key linking to the film details for the inventory item.
+- table: film
+  column: film_id
+  meaning: Unique identifier for a movie title.
+- table: film
+  column: rating
+  meaning: |-
+    The MPAA content rating assigned to the film (e.g., G, PG, R).
+- table: cleaned_weekly_sales
+  column: week_date_formatted
+  meaning: The formatted start date of the sales week.
+- table: cleaned_weekly_sales
+  column: week_date
+  meaning: The original start date of the sales week.
+- table: cleaned_weekly_sales
+  column: region
+  meaning: Geographical region where sales occurred.
+- table: cleaned_weekly_sales
+  column: platform
+  meaning: The sales channel or platform (e.g., online, in-store).
+- table: cleaned_weekly_sales
+  column: segment
+  meaning: Customer or product segment.
+- table: cleaned_weekly_sales
+  column: customer_type
+  meaning: Classification of the customer (e.g., new, existing).
+- table: cleaned_weekly_sales
+  column: transactions
+  meaning: Total number of sales transactions in the week.
+- table: cleaned_weekly_sales
+  column: sales
+  meaning: Total sales revenue for the week.
+- table: cleaned_weekly_sales
+  column: week_number
+  meaning: The sequential week number within the calendar year.
+- table: cleaned_weekly_sales
+  column: month_number
+  meaning: The sequential month number within the calendar year.
+- table: cleaned_weekly_sales
+  column: calendar_year
+  meaning: The calendar year of the sales data.
+- table: cleaned_weekly_sales
+  column: age_band
+  meaning: Age group demographic of customers.
+- table: cleaned_weekly_sales
+  column: demographic
+  meaning: General demographic information of customers.
+- table: cleaned_weekly_sales
+  column: avg_transaction
+  meaning: Average value per transaction for the week.
+- table: weekly_sales
+  column: week_date
+  meaning: The date representing the start or end of a sales week.
+- table: weekly_sales
+  column: region
+  meaning: The geographical region where sales occurred.
+- table: weekly_sales
+  column: platform
+  meaning: The sales channel or platform (e.g., online, retail).
+- table: weekly_sales
+  column: segment
+  meaning: A market segment associated with the sales.
+- table: weekly_sales
+  column: customer_type
+  meaning: The classification of the customer making the purchase.
+- table: weekly_sales
+  column: transactions
+  meaning: The total number of sales transactions for the week.
+- table: weekly_sales
+  column: sales
+  meaning: The total sales revenue for the week.
+- table: mst_users
+  column: user_id
+  meaning: Unique identifier for a user.
+- table: activity_log
+  column: session
+  meaning: Unique identifier for a user's browsing session.
+- table: activity_log
+  column: path
+  meaning: The URL path of the web page visited during the activity.
+- table: activity_log
+  column: stamp
+  meaning: Timestamp indicating when the activity occurred.
+- table: session_page_ranks
+  column: rn_asc
+  meaning: |-
+    Rank of a page visit within a session, ordered by timestamp ascending. A value of 1 indicates the first page visited (landing page).
+- table: session_page_ranks
+  column: rn_desc
+  meaning: |-
+    Rank of a page visit within a session, ordered by timestamp descending. A value of 1 indicates the last page visited (exit page).
+- table: landing_exit_pages
+  column: session
+  meaning: |-
+    A distinct session where a page was identified as either a landing or exit page.
+- table: landing_exit_pages
+  column: path
+  meaning: |-
+    The URL path that served as a landing or exit page for a session.
+- table: customers
+  column: cust_city
+  meaning: The city where the customer resides.
+- table: times
+  column: calendar_quarter_id
+  meaning: Identifier for the calendar quarter.
+relations:
+- table_1: customers
+  column_1: customer_id
+  table_2: orders
+  column_2: customer_id
+  meaning: Links customers to their respective orders.
+- table_1: orders
+  column_1: order_id
+  table_2: order_payments
+  column_2: order_id
+  meaning: Connects orders to their payment details.
+- table_1: olist_customers
+  column_1: customer_id
+  table_2: olist_orders
+  column_2: customer_id
+  meaning: Links customers to their orders.
+- table_1: olist_orders
+  column_1: order_id
+  table_2: olist_order_items
+  column_2: order_id
+  meaning: Links orders to the items contained within them.
+- table_1: olist_orders
+  column_1: order_id
+  table_2: olist_order_reviews
+  column_2: order_id
+  meaning: Links orders to their customer reviews.
+- table_1: olist_orders
+  column_1: order_id
+  table_2: olist_order_payments
+  column_2: order_id
+  meaning: Links orders to their payment information.
+- table_1: olist_order_items
+  column_1: product_id
+  table_2: olist_products
+  column_2: product_id
+  meaning: Links order items to product details.
+- table_1: olist_order_items
+  column_1: product_id
+  table_2: olist_products_dataset
+  column_2: product_id
+  meaning: |-
+    Links order items to product details (alternative product table).
+- table_1: olist_order_items
+  column_1: seller_id
+  table_2: olist_sellers
+  column_2: seller_id
+  meaning: Links order items to the sellers who provided them.
+- table_1: olist_products
+  column_1: product_category_name
+  table_2: product_category_name_translation
+  column_2: product_category_name
+  meaning: Links product categories to their English translations.
+- table_1: olist_products_dataset
+  column_1: product_category_name
+  table_2: product_category_name_translation
+  column_2: product_category_name
+  meaning: |-
+    Links product categories to their English translations (alternative product table).
+- table_1: olist_customers
+  column_1: customer_zip_code_prefix
+  table_2: olist_geolocation
+  column_2: geolocation_zip_code_prefix
+  meaning: Links customer zip codes to geolocation data.
+- table_1: olist_sellers
+  column_1: seller_zip_code_prefix
+  table_2: olist_geolocation
+  column_2: geolocation_zip_code_prefix
+  meaning: Links seller zip codes to geolocation data.
+- table_1: olist_orders
+  column_1: customer_id
+  table_2: olist_customers
+  column_2: customer_id
+  meaning: An order is placed by a specific customer.
+- table_1: olist_order_items
+  column_1: order_id
+  table_2: olist_order_payments
+  column_2: order_id
+  meaning: Links order items to their payment details
+- table_1: albums
+  column_1: ArtistId
+  table_2: artists
+  column_2: ArtistId
+  meaning: An album is created by an artist.
+- table_1: tracks
+  column_1: AlbumId
+  table_2: albums
+  column_2: AlbumId
+  meaning: A track belongs to an album.
+- table_1: invoice_items
+  column_1: TrackId
+  table_2: tracks
+  column_2: TrackId
+  meaning: An invoice item is for a specific track.
+- table_1: invoice_items
+  column_1: InvoiceId
+  table_2: invoices
+  column_2: InvoiceId
+  meaning: An invoice item belongs to an invoice.
+- table_1: invoices
+  column_1: CustomerId
+  table_2: customers
+  column_2: CustomerId
+  meaning: An invoice is made by a customer.
+- table_1: customer
+  column_1: customer_id
+  table_2: payment
+  column_2: customer_id
+  meaning: Links a customer to their payments.
+- table_1: customer
+  column_1: customer_id
+  table_2: avg_monthly_volatility
+  column_2: customer_id
+  meaning: |-
+    Links a customer to their calculated average monthly payment volatility.
+- table_1: customers
+  column_1: country_id
+  table_2: countries
+  column_2: country_id
+  meaning: Customers are located in countries.
+- table_1: sales
+  column_1: cust_id
+  table_2: customers
+  column_2: cust_id
+  meaning: Sales transactions are made by customers.
+- table_1: sales
+  column_1: time_id
+  table_2: times
+  column_2: time_id
+  meaning: Sales transactions occur at specific times.
+- table_1: sales
+  column_1: prod_id
+  table_2: costs
+  column_2: prod_id
+  meaning: Sales transactions can be linked to product costs.
+- table_1: sales
+  column_1: time_id
+  table_2: costs
+  column_2: time_id
+  meaning: |-
+    Sales transactions can be linked to product costs on the same date.
+- table_1: sales
+  column_1: channel_id
+  table_2: costs
+  column_2: channel_id
+  meaning: |-
+    Sales transactions can be linked to product costs via the same channel.
+- table_1: sales
+  column_1: promo_id
+  table_2: costs
+  column_2: promo_id
+  meaning: |-
+    Sales transactions can be linked to product costs via the same promotion.
+- table_1: sales
+  column_1: promo_id
+  table_2: promotions
+  column_2: promo_id
+  meaning: Sales can be associated with promotions.
+- table_1: sales
+  column_1: prod_id
+  table_2: products
+  column_2: prod_id
+  meaning: Sales involve products.
+- table_1: sales
+  column_1: channel_id
+  table_2: channels
+  column_2: channel_id
+  meaning: Sales occur through specific channels.
+- table_1: costs
+  column_1: promo_id
+  table_2: promotions
+  column_2: promo_id
+  meaning: Costs can be associated with promotions.
+- table_1: costs
+  column_1: prod_id
+  table_2: products
+  column_2: prod_id
+  meaning: Costs are associated with products.
+- table_1: costs
+  column_1: time_id
+  table_2: times
+  column_2: time_id
+  meaning: Costs are recorded at specific times.
+- table_1: costs
+  column_1: channel_id
+  table_2: channels
+  column_2: channel_id
+  meaning: Costs are associated with specific channels.
+- table_1: supplementary_demographics
+  column_1: cust_id
+  table_2: customers
+  column_2: cust_id
+  meaning: Supplementary demographic data is linked to customers.
+- table_1: shopping_cart_events
+  column_1: page_id
+  table_2: shopping_cart_page_hierarchy
+  column_2: page_id
+  meaning: |-
+    Links user events to the specific page and associated product.
+- table_1: orders
+  column_1: orderid
+  table_2: order_details
+  column_2: orderid
+  meaning: Links an order to its individual product details.
+- table_1: CustomerSpending1998
+  column_1: total_spending
+  table_2: customergroupthreshold
+  column_2: rangebottom/rangetop
+  meaning: Categorizes customer spending into predefined groups.
+- table_1: payment
+  column_1: customer_id
+  table_2: customer
+  column_2: customer_id
+  meaning: A customer makes one or more payments.
+- table_1: rental
+  column_1: customer_id
+  table_2: customer
+  column_2: customer_id
+  meaning: A customer initiates one or more rentals.
+- table_1: rental
+  column_1: inventory_id
+  table_2: inventory
+  column_2: inventory_id
+  meaning: A rental is associated with a specific inventory item.
+- table_1: inventory
+  column_1: film_id
+  table_2: film
+  column_2: film_id
+  meaning: An inventory item represents a specific film.
+- table_1: payment
+  column_1: rental_id
+  table_2: rental
+  column_2: rental_id
+  meaning: A payment can be linked to a specific rental transaction.
+- table_1: weekly_sales
+  column_1: week_date
+  table_2: cleaned_weekly_sales
+  column_2: week_date
+  meaning: |-
+    The 'cleaned_weekly_sales' table is likely a processed or enriched version of 'weekly_sales', sharing common date and sales attributes.
+- table_1: weekly_sales
+  column_1: region
+  table_2: cleaned_weekly_sales
+  column_2: region
+  meaning: |-
+    The 'cleaned_weekly_sales' table is likely a processed or enriched version of 'weekly_sales', sharing common region attributes.
+- table_1: weekly_sales
+  column_1: platform
+  table_2: cleaned_weekly_sales
+  column_2: platform
+  meaning: |-
+    The 'cleaned_weekly_sales' table is likely a processed or enriched version of 'weekly_sales', sharing common platform attributes.
+- table_1: weekly_sales
+  column_1: customer_type
+  table_2: cleaned_weekly_sales
+  column_2: customer_type
+  meaning: |-
+    The 'cleaned_weekly_sales' table is likely a processed or enriched version of 'weekly_sales', sharing common customer type attributes.
+- table_1: customer_regions
+  column_1: region_name
+  table_2: cleaned_weekly_sales
+  column_2: region
+  meaning: |-
+    The 'region' column in 'cleaned_weekly_sales' likely corresponds to the 'region_name' in 'customer_regions', providing descriptive information about the sales regions.
+- table_1: mst_users
+  column_1: user_id
+  table_2: action_log
+  column_2: user_id
+  meaning: Links user master data to user actions.
+- table_1: mst_users
+  column_1: user_id
+  table_2: access_log
+  column_2: user_id
+  meaning: Links user master data to user access logs.
+- table_1: mst_users
+  column_1: user_id
+  table_2: purchase_log
+  column_2: user_id
+  meaning: Links user master data to their purchase records.
+- table_1: activity_log
+  column_1: session
+  table_2: session_page_ranks
+  column_2: session
+  meaning: |-
+    Session identifier is carried over from activity log to the CTE for ranking.
+- table_1: activity_log
+  column_1: path
+  table_2: session_page_ranks
+  column_2: path
+  meaning: |-
+    Page path is carried over from activity log to the CTE for ranking.
+- table_1: olist_order_items
+  column_1: order_id
+  table_2: olist_orders
+  column_2: order_id
+  meaning: An order item belongs to an order.
+- table_1: olist_order_payments
+  column_1: order_id
+  table_2: olist_orders
+  column_2: order_id
+  meaning: Payments are associated with an order.
+- table_1: olist_order_reviews
+  column_1: order_id
+  table_2: olist_orders
+  column_2: order_id
+  meaning: Reviews are associated with an order.
+synonyms:
+- nl_term: number of orders
+  db_target: num_orders
+  type: column
+- nl_term: average payment per order
+  db_target: avg_payment_per_order
+  type: column
+- nl_term: customer lifespan in weeks
+  db_target: customer_lifespan_weeks
+  type: column
+- nl_term: earliest purchase date
+  db_target: min_purchase_date
+  type: column
+- nl_term: latest purchase date
+  db_target: max_purchase_date
+  type: column
+- nl_term: customer
+  db_target: customers.customer_unique_id
+  type: column
+- nl_term: payment
+  db_target: order_payments.payment_value
+  type: column
+- nl_term: order
+  db_target: orders.order_id
+  type: column
+- nl_term: delivered orders
+  db_target: olist_orders.order_status = 'delivered'
+  type: condition
+- nl_term: month
+  db_target: STRFTIME('%m', olist_orders.order_delivered_customer_date)
+  type: column
+- nl_term: year
+  db_target: STRFTIME('%Y', olist_orders.order_delivered_customer_date)
+  type: column
+- nl_term: '2016'
+  db_target: '''2016'''
+  type: value
+- nl_term: '2017'
+  db_target: '''2017'''
+  type: value
+- nl_term: '2018'
+  db_target: '''2018'''
+  type: value
+- nl_term: order volume
+  db_target: COUNT(order_id)
+  type: column
+- nl_term: product category
+  db_target: product_category_name
+  type: column
+- nl_term: payment method
+  db_target: payment_type
+  type: column
+- nl_term: number of payments
+  db_target: payment_count
+  type: value
+- nl_term: most preferred payment method
+  db_target: MAX(payment_count)
+  type: value
+- nl_term: average of the total number of payments
+  db_target: AVG(max_payment_count)
+  type: value
+- nl_term: first names
+  db_target: customers.FirstName
+  type: column
+- nl_term: spent
+  db_target: SUM(invoice_items.UnitPrice * invoice_items.Quantity)
+  type: column
+- nl_term: less than $1
+  db_target: AmountSpent < 1
+  type: condition
+- nl_term: best-selling artist
+  db_target: BestSellingArtist.ArtistId
+  type: value
+- nl_term: albums
+  db_target: albums
+  type: table
+- nl_term: amounts they spent
+  db_target: AmountSpent
+  type: column
+- nl_term: sales data
+  db_target: invoices
+  type: table
+- nl_term: total sales
+  db_target: invoices.Total
+  type: column
+- nl_term: countries
+  db_target: customers.Country
+  type: column
+- nl_term: number of customers
+  db_target: COUNT(DISTINCT CustomerId)
+  type: value
+- nl_term: median value
+  db_target: AVG(total_sales)
+  type: value
+- nl_term: highest average monthly change in payment amounts
+  db_target: avg_monthly_volatility.avg_change
+  type: column
+- nl_term: customer's full name
+  db_target: customer.first_name, customer.last_name
+  type: column
+- nl_term: Italian customers
+  db_target: countries.country_name = 'Italy'
+  type: condition
+- nl_term: December 2021
+  db_target: |-
+    times.calendar_month_name = 'December' AND times.calendar_year = 2021
+  type: condition
+- nl_term: profit
+  db_target: quantity_sold * (unit_price - unit_cost)
+  type: value
+- nl_term: total monthly profits
+  db_target: total_monthly_profit
+  type: column
+- nl_term: minimum total profits
+  db_target: min_profit_in_bucket
+  type: column
+- nl_term: maximum total profits
+  db_target: max_profit_in_bucket
+  type: column
+- nl_term: ten buckets
+  db_target: bucket_number
+  type: column
+- nl_term: highest profits
+  db_target: MAX(total_profit)
+  type: value
+- nl_term: lowest profits
+  db_target: MIN(total_profit)
+  type: value
+- nl_term: sales profits
+  db_target: (amount_sold - avg_unit_cost * quantity_sold)
+  type: value
+- nl_term: ten evenly divided tiers
+  db_target: NTILE(10)
+  type: value
+- nl_term: product was viewed
+  db_target: event_type = 1
+  type: condition
+- nl_term: added to the shopping cart
+  db_target: event_type = 2
+  type: condition
+- nl_term: purchased
+  db_target: event_type = 3
+  type: condition
+- nl_term: products with a page id in (1, 2, 12, 13) are filtered out
+  db_target: sph.page_id NOT IN (1, 2, 12, 13)
+  type: condition
+- nl_term: customers who placed orders in 1998
+  db_target: orders.orderdate = '1998'
+  type: condition
+- nl_term: total amount each customer spent
+  db_target: SUM(order_details.unitprice * order_details.quantity)
+  type: column
+- nl_term: spending group
+  db_target: customergroupthreshold.groupname
+  type: column
+- nl_term: percentage of the total number of customers
+  db_target: (number_of_customers * 1.0 / total_customer_count) * 100.0
+  type: column
+- nl_term: total lifetime sales
+  db_target: total_ltv
+  type: column
+- nl_term: LTV
+  db_target: total_ltv
+  type: column
+- nl_term: first purchase
+  db_target: first_purchase_date
+  type: column
+- nl_term: 7 days
+  db_target: +7 day
+  type: value
+- nl_term: 30 days
+  db_target: +30 day
+  type: value
+- nl_term: sales
+  db_target: amount
+  type: column
+- nl_term: initial purchase
+  db_target: first_purchase_date
+  type: column
+- nl_term: zero lifetime sales
+  db_target: total_ltv > 0
+  type: condition
+- nl_term: first movie rented
+  db_target: MIN(p.payment_date) OVER (PARTITION BY p.customer_id)
+  type: condition
+- nl_term: earliest payment date
+  db_target: payment_date ASC
+  type: condition
+- nl_term: total amount spent per customer
+  db_target: SUM(p.amount)
+  type: value
+- nl_term: number of subsequent rentals
+  db_target: COUNT(r.rental_id) - 1
+  type: value
+- nl_term: rating category
+  db_target: f.rating
+  type: column
+- nl_term: top 10 paying customers
+  db_target: Top10Customers.customer_id
+  type: condition
+- nl_term: payment amounts
+  db_target: payment.amount
+  type: column
+- nl_term: month-over-month difference
+  db_target: MonthOverMonthDifferences.month_over_month_diff
+  type: column
+- nl_term: largest change
+  db_target: MaxDifference.max_diff
+  type: value
+- nl_term: weekly-sales data
+  db_target: cleaned_weekly_sales
+  type: table
+- nl_term: sales performance
+  db_target: cleaned_weekly_sales.sales
+  type: column
+- nl_term: mid-June
+  db_target: calendar_year || '-06-15'
+  type: condition
+- nl_term: years 2018, 2019, and 2020
+  db_target: cleaned_weekly_sales.calendar_year IN (2018, 2019, 2020)
+  type: condition
+- nl_term: percentage change in sales
+  db_target: percentage_change
+  type: value
+- nl_term: four weeks leading up to June 15
+  db_target: period = 'Before'
+  type: condition
+- nl_term: four weeks following June 15
+  db_target: period = 'After'
+  type: condition
+- nl_term: region
+  db_target: cleaned_weekly_sales.region
+  type: column
+- nl_term: platform
+  db_target: cleaned_weekly_sales.platform
+  type: column
+- nl_term: age band
+  db_target: cleaned_weekly_sales.age_band
+  type: column
+- nl_term: demographic
+  db_target: cleaned_weekly_sales.demographic
+  type: column
+- nl_term: customer type
+  db_target: cleaned_weekly_sales.customer_type
+  type: column
+- nl_term: percentage change
+  db_target: percentage_change
+  type: value
+- nl_term: average percentage change
+  db_target: avg_percentage_change
+  type: value
+- nl_term: before June 15, 2020
+  db_target: week_date < '2020-06-15'
+  type: condition
+- nl_term: after June 15, 2020
+  db_target: week_date >= '2020-06-15'
+  type: condition
+- nl_term: 12 weeks before
+  db_target: DATE('2020-06-15', '-84 days')
+  type: value
+- nl_term: 12 weeks after
+  db_target: DATE('2020-06-15', '+84 days')
+  type: value
+- nl_term: highest negative impact
+  db_target: ORDER BY avg_percentage_change ASC LIMIT 1
+  type: condition
+- nl_term: landing page
+  db_target: rn_asc = 1
+  type: condition
+- nl_term: exit page
+  db_target: rn_desc = 1
+  type: condition
+- nl_term: unique user sessions
+  db_target: COUNT(DISTINCT session)
+  type: column
+- nl_term: web page
+  db_target: path
+  type: column
+- nl_term: activity log table
+  db_target: activity_log
+  type: table
+- nl_term: product categories
+  db_target: olist_products.product_category_name
+  type: column
+- nl_term: payment type
+  db_target: olist_order_payments.payment_type
+  type: column
+- nl_term: top three
+  db_target: LIMIT 3
+  type: condition
+- nl_term: most commonly used payment type
+  db_target: rnk = 1
+  type: condition
+- nl_term: United States
+  db_target: countries.country_name = 'United States of America'
+  type: condition
+- nl_term: promo_id=999
+  db_target: sales.promo_id = 999
+  type: condition
+- nl_term: Q4 2019
+  db_target: times.calendar_quarter_id = 1772
+  type: condition
+- nl_term: Q4 2020
+  db_target: times.calendar_quarter_id = 1776
+  type: condition
+- nl_term: sales increased by at least 20%
+  db_target: |-
+    SUM(CASE WHEN calendar_quarter_id = 1776 THEN total_city_sales ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN calendar_quarter_id = 1772 THEN total_city_sales ELSE 0 END), 0) >= 1.20
+  type: condition
+- nl_term: top 20% of total sales
+  db_target: sales_rank <= total_product_count * 0.2
+  type: condition
+- nl_term: smallest percentage-point change
+  db_target: ORDER BY sc.percentage_point_change ASC LIMIT 1
+  type: condition
+biz_logic:
+- metric_name: total_payment_per_order
+  sql_logic: |-
+    SELECT order_id, SUM(payment_value) AS total_payment_per_order
+    FROM order_payments
+    GROUP BY order_id
+- metric_name: customer_aggregates
+  sql_logic: |-
+    SELECT c.customer_unique_id, COUNT(DISTINCT o.order_id) AS num_orders,
+           SUM(op.total_payment_per_order) AS total_customer_payment, MIN(o.order_purchase_timestamp) AS min_purchase_date,
+           MAX(o.order_purchase_timestamp) AS max_purchase_date
+    FROM customers AS c
+    INNER JOIN orders AS o ON c.customer_id = o.customer_id
+    INNER JOIN CTE_OrderPayments AS op ON o.order_id = op.order_id
+    GROUP BY c.customer_unique_id
+- metric_name: avg_payment_per_order
+  sql_logic: |-
+    SELECT customer_unique_id, num_orders, total_customer_payment / num_orders AS avg_payment_per_order
+    FROM CTE_CustomerAggregates
+- metric_name: customer_lifespan_weeks
+  sql_logic: |-
+    SELECT customer_unique_id,
+           CASE
+               WHEN (JULIANDAY(max_purchase_date) - JULIANDAY(min_purchase_date)) < 7 THEN 1.0
+               ELSE (JULIANDAY(max_purchase_date) - JULIANDAY(min_purchase_date)) / 7.0
+           END AS customer_lifespan_weeks
+    FROM CTE_CustomerAggregates
+- metric_name: Monthly Delivered Orders by Year
+  sql_logic: |-
+    WITH DeliveredOrders AS
+      (SELECT order_id, order_delivered_customer_date
+       FROM olist_orders
+       WHERE order_status = 'delivered'
+         AND order_delivered_customer_date IS NOT NULL),
+         MonthlyOrders AS
+      (SELECT order_id, STRFTIME('%Y',
+                          order_delivered_customer_date) AS YEAR,
+              STRFTIME('%m', order_delivered_customer_date) AS month_number,
+              CASE STRFTIME('%m', order_delivered_customer_date) WHEN '01' THEN 'January' WHEN '02' THEN 'February' WHEN '03' THEN 'March' WHEN '04' THEN 'April' WHEN '05' THEN 'May' WHEN '06' THEN 'June' WHEN '07' THEN 'July' WHEN '08' THEN 'August' WHEN '09' THEN 'September' WHEN '10' THEN 'October' WHEN '11' THEN 'November' WHEN '12' THEN 'December'
+              END AS month_name
+       FROM DeliveredOrders
+       WHERE STRFTIME('%Y', order_delivered_customer_date) IN ('2016', '2017', '2018'))
+    SELECT month_name,
+           COUNT(CASE WHEN YEAR = '2016' THEN order_id ELSE NULL
+                 END) AS "2016",
+           COUNT(CASE WHEN YEAR = '2017' THEN order_id ELSE NULL
+                 END) AS "2017",
+           COUNT(CASE WHEN YEAR = '2018' THEN order_id ELSE NULL
+                 END) AS "2018"
+    FROM MonthlyOrders
+    GROUP BY month_number, month_name
+    ORDER BY month_number;
+- metric_name: highest_monthly_delivered_orders_in_lowest_annual_year
+  sql_logic: |-
+    WITH DeliveredOrders AS
+      (SELECT order_id,
+              CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER) AS delivery_year, STRFTIME('%Y-%m',
+
+                                                                                                 order_delivered_customer_date) AS delivery_month
+       FROM olist_orders
+       WHERE order_status = 'delivered'
+         AND order_delivered_customer_date IS NOT NULL
+         AND CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER) IN (2016, 2017,
+                                                                                2018)),
+         AnnualVolumes AS
+      (SELECT delivery_year, COUNT(order_id) AS annual_volume
+       FROM DeliveredOrders
+       GROUP BY delivery_year),
+         LowestVolumeYear AS
+      (SELECT delivery_year
+       FROM AnnualVolumes
+       ORDER BY annual_volume ASC
+       LIMIT 1),
+         MonthlyVolumesInTargetYear AS
+      (SELECT DO.delivery_month, COUNT(DO.order_id) AS monthly_volume
+       FROM DeliveredOrders AS DO
+       INNER JOIN LowestVolumeYear AS LVY ON DO.delivery_year = LVY.delivery_year
+       GROUP BY DO.delivery_month)
+    SELECT MAX(monthly_volume)
+    FROM MonthlyVolumesInTargetYear;
+- metric_name: average_most_preferred_payment_method_payments
+  sql_logic: |-
+    WITH OrderCategory AS
+      (SELECT DISTINCT oi.order_id, p.product_category_name
+       FROM olist_order_items AS oi
+       INNER JOIN olist_products AS p ON oi.product_id = p.product_id
+       WHERE p.product_category_name IS NOT NULL),
+         CategoryPaymentData AS
+      (SELECT oc.product_category_name, op.payment_type
+       FROM OrderCategory AS oc
+       INNER JOIN olist_order_payments AS op ON oc.order_id = op.order_id),
+         CategoryPaymentCounts AS
+      (SELECT product_category_name, payment_type, COUNT(*) AS payment_count
+       FROM CategoryPaymentData
+       GROUP BY product_category_name, payment_type),
+         MaxPaymentCountsPerCategory AS
+      (SELECT product_category_name, MAX(payment_count) AS max_payment_count
+       FROM CategoryPaymentCounts
+       GROUP BY product_category_name)
+    SELECT AVG(max_payment_count)
+    FROM MaxPaymentCountsPerCategory
+- metric_name: Customers with Low Spending on Best Selling Artist
+  sql_logic: |-
+    WITH BestSellingArtist AS
+      (SELECT T3.ArtistId
+       FROM invoice_items AS T1
+       JOIN tracks AS T2 ON T1.TrackId = T2.TrackId
+       JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId
+       GROUP BY T3.ArtistId
+       ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC
+       LIMIT 1),
+         CustomerSpending AS
+      (SELECT T1.FirstName, SUM(T4.UnitPrice * T4.Quantity) AS AmountSpent
+       FROM customers AS T1
+       JOIN invoices AS T2 ON T1.CustomerId = T2.CustomerId
+       JOIN invoice_items AS T4 ON T2.InvoiceId = T4.InvoiceId
+       JOIN tracks AS T5 ON T4.TrackId = T5.TrackId
+       JOIN albums AS T6 ON T5.AlbumId = T6.AlbumId
+       JOIN artists AS T7 ON T6.ArtistId = T7.ArtistId
+       WHERE T7.ArtistId =
+           (SELECT ArtistId
+            FROM BestSellingArtist)
+       GROUP BY T1.CustomerId, T1.FirstName)
+    SELECT FirstName, AmountSpent
+    FROM CustomerSpending
+    WHERE AmountSpent < 1;
+- metric_name: median_total_sales_for_countries_with_many_customers
+  sql_logic: |-
+    WITH CountryCustomerCounts AS
+      (SELECT Country
+       FROM customers
+       GROUP BY Country
+       HAVING COUNT(DISTINCT CustomerId) > 4),
+         CountryTotalSales AS
+      (SELECT T2.Country, SUM(T1.Total) AS total_sales
+       FROM invoices AS T1
+       INNER JOIN customers AS T2 ON T1.CustomerId = T2.CustomerId
+       GROUP BY T2.Country),
+         FilteredCountrySales AS
+      (SELECT T1.total_sales
+       FROM CountryTotalSales AS T1
+       INNER JOIN CountryCustomerCounts AS T2 ON T1.Country = T2.Country),
+         RankedSales AS
+      (SELECT total_sales,
+              ROW_NUMBER() OVER (
+                                 ORDER BY total_sales) AS rn, COUNT(*) OVER () AS total_count
+       FROM FilteredCountrySales)
+    SELECT AVG(total_sales) AS median_total_sales
+    FROM RankedSales
+    WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
+- metric_name: Monthly Total Payment Amount
+  sql_logic: |-
+    WITH monthly_payments AS
+      (SELECT customer_id, STRFTIME('%Y-%m', payment_date) AS payment_month,
+              SUM(amount) AS monthly_amount
+       FROM payment
+       GROUP BY customer_id, payment_month)
+- metric_name: Monthly Payment Amount Change
+  sql_logic: |-
+    WITH monthly_changes AS
+      (SELECT customer_id, payment_month,
+              ABS(monthly_amount - LAG(monthly_amount) OVER (PARTITION BY customer_id
+                                                             ORDER BY payment_month)) AS monthly_change
+       FROM monthly_payments)
+- metric_name: Average Monthly Payment Volatility
+  sql_logic: |-
+    WITH avg_monthly_volatility AS
+      (SELECT customer_id, AVG(monthly_change) AS avg_change
+       FROM monthly_changes
+       GROUP BY customer_id)
+- metric_name: Individual Sale Profit
+  sql_logic: s.quantity_sold * (cst.unit_price - cst.unit_cost)
+- metric_name: Customer Total Monthly Profit
+  sql_logic: SUM(s.quantity_sold * (cst.unit_price - cst.unit_cost))
+- metric_name: Profit Bucket Size
+  sql_logic: |-
+    CASE WHEN (MAX(total_monthly_profit) - MIN(total_monthly_profit)) = 0 THEN 1.0 ELSE (MAX(total_monthly_profit) - MIN(total_monthly_profit)) / 10.0
+    END
+- metric_name: Customer Profit Bucket Assignment
+  sql_logic: |-
+    CASE
+        WHEN pri.bucket_size = 1.0
+             AND (pri.max_overall_profit - pri.min_overall_profit) = 0 THEN 1 WHEN ctp.total_monthly_profit = pri.max_overall_profit THEN 10
+        ELSE CAST((ctp.total_monthly_profit - pri.min_overall_profit) / pri.bucket_size AS INTEGER) + 1
+    END
+- metric_name: Number of Customers in Profit Bucket
+  sql_logic: COUNT(DISTINCT cust_id)
+- metric_name: Minimum Profit in Bucket
+  sql_logic: MIN(total_monthly_profit)
+- metric_name: Maximum Profit in Bucket
+  sql_logic: MAX(total_monthly_profit)
+- metric_name: average_unit_cost
+  sql_logic: |-
+    SELECT prod_id, time_id, promo_id, channel_id, AVG(unit_cost) AS avg_unit_cost
+    FROM costs
+    GROUP BY prod_id, time_id, promo_id, channel_id
+- metric_name: filtered_sales_data_italy_dec_2021
+  sql_logic: |-
+    SELECT s.cust_id, s.prod_id, s.time_id, s.promo_id, s.channel_id, s.quantity_sold,
+           s.amount_sold
+    FROM sales AS s
+    INNER JOIN customers AS c ON s.cust_id = c.cust_id
+    INNER JOIN countries AS co ON c.country_id = co.country_id
+    INNER JOIN times AS t ON s.time_id = t.time_id
+    WHERE co.country_name = 'Italy'
+      AND t.calendar_year = 2021
+      AND t.calendar_month_number = 12
+- metric_name: customer_sale_profit
+  sql_logic: |-
+    SELECT fsd.cust_id, (fsd.amount_sold - ac.avg_unit_cost * fsd.quantity_sold) AS sale_profit
+    FROM FilteredSalesData AS fsd
+    INNER JOIN AggregatedCosts AS ac ON fsd.prod_id = ac.prod_id
+    AND fsd.time_id = ac.time_id
+    AND fsd.promo_id = ac.promo_id
+    AND fsd.channel_id = ac.channel_id
+- metric_name: customer_total_profit
+  sql_logic: |-
+    SELECT cust_id, SUM(sale_profit) AS total_profit
+    FROM CustomerSaleProfits
+    GROUP BY cust_id
+- metric_name: customer_profit_tier
+  sql_logic: |-
+    SELECT cust_id, total_profit,
+           NTILE(10) OVER (
+                           ORDER BY total_profit ASC) AS profit_tier
+    FROM CustomerTotalProfits
+- metric_name: tier_profit_summary
+  sql_logic: |-
+    SELECT profit_tier, MAX(total_profit) AS highest_profit_in_tier,
+           MIN(total_profit) AS lowest_profit_in_tier
+    FROM CustomerTiers
+    GROUP BY profit_tier
+    ORDER BY profit_tier
+- metric_name: product_views
+  sql_logic: |-
+    COUNT(CASE WHEN event_type = 1 THEN 1
+          END)
+- metric_name: times_added_to_cart
+  sql_logic: |-
+    COUNT(CASE WHEN event_type = 2 THEN 1
+          END)
+- metric_name: actual_purchases
+  sql_logic: |-
+    WITH purchase_visits AS
+      (SELECT DISTINCT visit_id
+       FROM shopping_cart_events
+       WHERE event_type = 3)
+    SELECT COUNT(fpe.event_type)
+    FROM filtered_product_events AS fpe
+    INNER JOIN purchase_visits AS pv ON fpe.visit_id = pv.visit_id
+    WHERE fpe.event_type = 2
+- metric_name: left_in_cart
+  sql_logic: times_added_to_cart - actual_purchases
+- metric_name: customer_total_spending_1998
+  sql_logic: |-
+    WITH CustomerSpending1998 AS
+      (SELECT o.customerid, SUM(od.unitprice * od.quantity) AS total_spending
+       FROM orders AS o
+       INNER JOIN order_details AS od ON o.orderid = od.orderid
+       WHERE STRFTIME('%Y', o.orderdate) = '1998'
+       GROUP BY o.customerid)
+    SELECT customerid, total_spending
+    FROM CustomerSpending1998
+- metric_name: total_customers_1998
+  sql_logic: |-
+    WITH CustomerSpending1998 AS
+      (SELECT o.customerid, SUM(od.unitprice * od.quantity) AS total_spending
+       FROM orders AS o
+       INNER JOIN order_details AS od ON o.orderid = od.orderid
+       WHERE STRFTIME('%Y', o.orderdate) = '1998'
+       GROUP BY o.customerid),
+         TotalCustomers1998 AS
+      (SELECT COUNT(DISTINCT customerid) AS total_customer_count
+       FROM CustomerSpending1998)
+    SELECT total_customer_count
+    FROM TotalCustomers1998
+- metric_name: customers_by_spending_group
+  sql_logic: |-
+    WITH CustomerSpending1998 AS
+      (SELECT o.customerid, SUM(od.unitprice * od.quantity) AS total_spending
+       FROM orders AS o
+       INNER JOIN order_details AS od ON o.orderid = od.orderid
+       WHERE STRFTIME('%Y', o.orderdate) = '1998'
+       GROUP BY o.customerid),
+         CustomersByGroup AS
+      (SELECT cgt.groupname, cs.customerid
+       FROM CustomerSpending1998 AS cs
+       INNER JOIN customergroupthreshold AS cgt ON cs.total_spending BETWEEN cgt.rangebottom AND cgt.rangetop)
+    SELECT groupname, customerid
+    FROM CustomersByGroup
+- metric_name: number_of_customers_per_group
+  sql_logic: |-
+    WITH CustomerSpending1998 AS
+      (SELECT o.customerid, SUM(od.unitprice * od.quantity) AS total_spending
+       FROM orders AS o
+       INNER JOIN order_details AS od ON o.orderid = od.orderid
+       WHERE STRFTIME('%Y', o.orderdate) = '1998'
+       GROUP BY o.customerid),
+         CustomersByGroup AS
+      (SELECT cgt.groupname, cs.customerid
+       FROM CustomerSpending1998 AS cs
+       INNER JOIN customergroupthreshold AS cgt ON cs.total_spending BETWEEN cgt.rangebottom AND cgt.rangetop),
+         GroupAggregates AS
+      (SELECT groupname, COUNT(DISTINCT customerid) AS number_of_customers
+       FROM CustomersByGroup
+       GROUP BY groupname)
+    SELECT groupname, number_of_customers
+    FROM GroupAggregates
+- metric_name: percentage_of_customers_per_group
+  sql_logic: |-
+    WITH CustomerSpending1998 AS
+      (SELECT o.customerid, SUM(od.unitprice * od.quantity) AS total_spending
+       FROM orders AS o
+       INNER JOIN order_details AS od ON o.orderid = od.orderid
+       WHERE STRFTIME('%Y', o.orderdate) = '1998'
+       GROUP BY o.customerid),
+         TotalCustomers1998 AS
+      (SELECT COUNT(DISTINCT customerid) AS total_customer_count
+       FROM CustomerSpending1998),
+         CustomersByGroup AS
+      (SELECT cgt.groupname, cs.customerid
+       FROM CustomerSpending1998 AS cs
+       INNER JOIN customergroupthreshold AS cgt ON cs.total_spending BETWEEN cgt.rangebottom AND cgt.rangetop),
+         GroupAggregates AS
+      (SELECT groupname, COUNT(DISTINCT customerid) AS number_of_customers
+       FROM CustomersByGroup
+       GROUP BY groupname)
+    SELECT ga.groupname,
+           (ga.number_of_customers * 1.0 / tc.total_customer_count) * 100.0 AS percentage_of_customers
+    FROM GroupAggregates AS ga
+    CROSS JOIN TotalCustomers1998 AS tc
+- metric_name: customer_first_purchase_date
+  sql_logic: |-
+    WITH first_purchase_dates AS
+      (SELECT customer_id, payment_date AS first_purchase_date,
+              ROW_NUMBER() OVER (PARTITION BY customer_id
+                                 ORDER BY payment_date ASC) AS rn
+       FROM payment)
+    SELECT customer_id, first_purchase_date
+    FROM first_purchase_dates
+    WHERE rn = 1
+- metric_name: customer_lifetime_value_components
+  sql_logic: |-
+    WITH first_purchase_dates AS
+      (SELECT customer_id, payment_date AS first_purchase_date,
+              ROW_NUMBER() OVER (PARTITION BY customer_id
+                                 ORDER BY payment_date ASC) AS rn
+       FROM payment),
+         customer_ltv_components AS
+      (SELECT p.customer_id, SUM(p.amount) AS total_ltv,
+              SUM(CASE
+                      WHEN p.payment_date <= DATETIME(fp.first_purchase_date,
+                                               '+7 day') THEN p.amount ELSE 0
+                  END) AS ltv_7_days,
+              SUM(CASE
+                      WHEN p.payment_date <= DATETIME(fp.first_purchase_date,
+                                               '+30 day') THEN p.amount ELSE 0
+                  END) AS ltv_30_days
+       FROM payment AS p
+       INNER JOIN first_purchase_dates AS fp ON p.customer_id = fp.customer_id
+       WHERE fp.rn = 1
+       GROUP BY p.customer_id)
+    SELECT customer_id, total_ltv, ltv_7_days, ltv_30_days
+    FROM customer_ltv_components
+- metric_name: customer_ltv_percentages
+  sql_logic: |-
+    WITH first_purchase_dates AS
+      (SELECT customer_id, payment_date AS first_purchase_date,
+              ROW_NUMBER() OVER (PARTITION BY customer_id
+                                 ORDER BY payment_date ASC) AS rn
+       FROM payment),
+         customer_ltv_components AS
+      (SELECT p.customer_id, SUM(p.amount) AS total_ltv,
+              SUM(CASE
+                      WHEN p.payment_date <= DATETIME(fp.first_purchase_date,
+                                               '+7 day') THEN p.amount ELSE 0
+                  END) AS ltv_7_days,
+              SUM(CASE
+                      WHEN p.payment_date <= DATETIME(fp.first_purchase_date,
+                                               '+30 day') THEN p.amount ELSE 0
+                  END) AS ltv_30_days
+       FROM payment AS p
+       INNER JOIN first_purchase_dates AS fp ON p.customer_id = fp.customer_id
+       WHERE fp.rn = 1
+       GROUP BY p.customer_id),
+         customer_ltv_percentages AS
+      (SELECT customer_id, total_ltv, (ltv_7_days * 100.0 / total_ltv) AS pct_ltv_7_days,
+              (ltv_30_days * 100.0 / total_ltv) AS pct_ltv_30_days
+       FROM customer_ltv_components
+       WHERE total_ltv > 0)
+    SELECT customer_id, total_ltv, pct_ltv_7_days, pct_ltv_30_days
+    FROM customer_ltv_percentages
+- metric_name: average_customer_ltv_metrics
+  sql_logic: |-
+    WITH first_purchase_dates AS
+      (SELECT customer_id, payment_date AS first_purchase_date,
+              ROW_NUMBER() OVER (PARTITION BY customer_id
+                                 ORDER BY payment_date ASC) AS rn
+       FROM payment),
+         customer_ltv_components AS
+      (SELECT p.customer_id, SUM(p.amount) AS total_ltv,
+              SUM(CASE
+                      WHEN p.payment_date <= DATETIME(fp.first_purchase_date,
+                                               '+7 day') THEN p.amount ELSE 0
+                  END) AS ltv_7_days,
+              SUM(CASE
+                      WHEN p.payment_date <= DATETIME(fp.first_purchase_date,
+                                               '+30 day') THEN p.amount ELSE 0
+                  END) AS ltv_30_days
+       FROM payment AS p
+       INNER JOIN first_purchase_dates AS fp ON p.customer_id = fp.customer_id
+       WHERE fp.rn = 1
+       GROUP BY p.customer_id),
+         customer_ltv_percentages AS
+      (SELECT customer_id, total_ltv, (ltv_7_days * 100.0 / total_ltv) AS pct_ltv_7_days,
+              (ltv_30_days * 100.0 / total_ltv) AS pct_ltv_30_days
+       FROM customer_ltv_components
+       WHERE total_ltv > 0)
+    SELECT AVG(total_ltv) AS average_total_ltv, AVG(pct_ltv_7_days) AS average_pct_ltv_7_days,
+           AVG(pct_ltv_30_days) AS average_pct_ltv_30_days
+    FROM customer_ltv_percentages
+- metric_name: Customer Rental Film Rating Details
+  sql_logic: |-
+    WITH customer_first_rental_film_rating_cte AS
+      (SELECT p.customer_id, p.payment_date, f.rating
+       FROM payment AS p
+       INNER JOIN rental AS r ON p.rental_id = r.rental_id
+       INNER JOIN inventory AS i ON r.inventory_id = i.inventory_id
+       INNER JOIN film AS f ON i.film_id = f.film_id)
+- metric_name: Ranked Customer Payments by Date
+  sql_logic: |-
+    WITH ranked_customer_payments_cte AS
+      (SELECT customer_id, payment_date, rating,
+              ROW_NUMBER() OVER (PARTITION BY customer_id
+                                 ORDER BY payment_date ASC) AS rn
+       FROM customer_first_rental_film_rating_cte)
+- metric_name: First Rental Rating for Each Customer
+  sql_logic: |-
+    WITH first_rental_rating_per_customer_cte AS
+      (SELECT customer_id, rating AS first_rental_rating
+       FROM ranked_customer_payments_cte
+       WHERE rn = 1)
+- metric_name: Total Amount Spent and Rental Count per Customer
+  sql_logic: |-
+    WITH customer_total_metrics_cte AS
+      (SELECT customer_id, SUM(amount) AS total_amount_spent, COUNT(rental_id) AS total_rentals
+       FROM payment
+       GROUP BY customer_id)
+- metric_name: Combined Customer Metrics with First Rental Rating
+  sql_logic: |-
+    WITH customer_final_metrics_cte AS
+      (SELECT fr.first_rental_rating, ctm.total_amount_spent, ctm.total_rentals - 1 AS subsequent_rentals
+       FROM first_rental_rating_per_customer_cte AS fr
+       INNER JOIN customer_total_metrics_cte AS ctm ON fr.customer_id = ctm.customer_id)
+- metric_name: Average Customer Metrics by First Rental Film Rating
+  sql_logic: |-
+    SELECT first_rental_rating, AVG(total_amount_spent) AS average_total_amount_spent_per_customer,
+           AVG(subsequent_rentals) AS average_number_of_subsequent_rentals
+    FROM customer_final_metrics_cte
+    GROUP BY first_rental_rating
+- metric_name: Total Customer Payment Amount
+  sql_logic: |-
+    SELECT customer_id, SUM(amount) AS total_payment_amount
+    FROM payment
+    GROUP BY customer_id
+- metric_name: Top 10 Customers by Total Payment
+  sql_logic: |-
+    WITH CustomerTotalPayments AS
+      (SELECT customer_id, SUM(amount) AS total_payment_amount
+       FROM payment
+       GROUP BY customer_id)
+    SELECT customer_id
+    FROM
+      (SELECT customer_id, total_payment_amount,
+              DENSE_RANK() OVER (
+                                 ORDER BY total_payment_amount DESC) AS customer_rank
+       FROM CustomerTotalPayments)
+    WHERE customer_rank <= 10
+- metric_name: Monthly Payment for Top Customers
+  sql_logic: |-
+    SELECT t10.customer_id,
+           STRFTIME('%Y-%m-01', p.payment_date) AS payment_month, SUM(p.amount) AS total_monthly_payment
+    FROM Top10Customers AS t10
+    INNER JOIN payment AS p ON t10.customer_id = p.customer_id
+    GROUP BY t10.customer_id, payment_month
+- metric_name: Month-over-Month Payment Difference
+  sql_logic: |-
+    SELECT customer_id, payment_month, total_monthly_payment,
+           LAG(total_monthly_payment, 1, 0) OVER (PARTITION BY customer_id
+                                                  ORDER BY payment_month) AS previous_month_payment,
+           ABS(total_monthly_payment - LAG(total_monthly_payment,
+                                         1, 0) OVER (PARTITION BY customer_id
+                                                     ORDER BY payment_month)) AS month_over_month_diff
+    FROM MonthlyPaymentsForTopCustomers
+- metric_name: Maximum Month-over-Month Difference
+  sql_logic: |-
+    SELECT MAX(month_over_month_diff)
+    FROM MonthOverMonthDifferences
+- metric_name: Customer and Month of Largest MoM Difference
+  sql_logic: |-
+    SELECT c.first_name, c.last_name,
+           STRFTIME('%Y-%m', mod.payment_month) AS month_of_change, ROUND(mod.month_over_month_diff,
+                                                                      2) AS largest_change
+    FROM MonthOverMonthDifferences AS MOD
+    INNER JOIN MaxDifference AS md ON mod.month_over_month_diff = md.max_diff
+    INNER JOIN customer AS c ON mod.customer_id = c.customer_id
+    ORDER BY largest_change DESC, month_of_change
+    LIMIT 1
+- metric_name: percentage_change_in_sales_around_mid_june
+  sql_logic: |-
+    WITH MidJuneWeek AS
+      (SELECT DISTINCT calendar_year, week_number AS mid_june_week
+       FROM cleaned_weekly_sales
+       WHERE (calendar_year || '-06-15') BETWEEN week_date AND date(week_date,
+                                                                 '+6 days')),
+         SalesPeriods AS
+      (SELECT cws.calendar_year, cws.sales,
+              CASE
+                  WHEN cws.week_number BETWEEN mjw.mid_june_week - 4 AND mjw.mid_june_week - 1 THEN 'Before'
+                  WHEN cws.week_number BETWEEN mjw.mid_june_week + 1 AND mjw.mid_june_week + 4 THEN 'After'
+              END AS period
+       FROM cleaned_weekly_sales AS cws
+       INNER JOIN MidJuneWeek AS mjw ON cws.calendar_year = mjw.calendar_year
+       WHERE cws.calendar_year IN (2018, 2019, 2020)
+         AND period IS NOT NULL),
+         AggregatedSales AS
+      (SELECT calendar_year,
+              SUM(CASE WHEN period = 'Before' THEN sales ELSE 0
+                  END) AS before_sales,
+              SUM(CASE WHEN period = 'After' THEN sales ELSE 0
+                  END) AS after_sales
+       FROM SalesPeriods
+       GROUP BY calendar_year)
+    SELECT calendar_year, before_sales, after_sales,
+           (CAST(after_sales AS REAL) - before_sales) * 100.0 / NULLIF(before_sales,
+                                                                  0) AS percentage_change
+    FROM AggregatedSales
+    ORDER BY calendar_year;
+- metric_name: average_sales_percentage_change_by_attribute_type
+  sql_logic: |-
+    WITH SalesByAttributeValue AS
+      (SELECT 'region' AS attribute_type, region AS attribute_value,
+              SUM(CASE
+                      WHEN week_date >= DATE('2020-06-15',
+                                          '-84 days')
+                           AND week_date < '2020-06-15' THEN sales ELSE 0
+                  END) AS sales_before,
+              SUM(CASE
+                      WHEN week_date >= '2020-06-15'
+                           AND week_date < DATE('2020-06-15',
+                                             '+84 days') THEN sales ELSE 0
+                  END) AS sales_after
+       FROM cleaned_weekly_sales
+       GROUP BY region
+       UNION ALL SELECT 'platform' AS attribute_type, platform AS attribute_value,
+                        SUM(CASE
+                                WHEN week_date >= DATE('2020-06-15',
+                                                    '-84 days')
+                                     AND week_date < '2020-06-15' THEN sales ELSE 0
+                            END) AS sales_before,
+                        SUM(CASE
+                                WHEN week_date >= '2020-06-15'
+                                     AND week_date < DATE('2020-06-15',
+                                                       '+84 days') THEN sales ELSE 0
+                            END) AS sales_after
+       FROM cleaned_weekly_sales
+       GROUP BY platform
+       UNION ALL SELECT 'age_band' AS attribute_type, age_band AS attribute_value,
+                        SUM(CASE
+                                WHEN week_date >= DATE('2020-06-15',
+                                                    '-84 days')
+                                     AND week_date < '2020-06-15' THEN sales ELSE 0
+                            END) AS sales_before,
+                        SUM(CASE
+                                WHEN week_date >= '2020-06-15'
+                                     AND week_date < DATE('2020-06-15',
+                                                       '+84 days') THEN sales ELSE 0
+                            END) AS sales_after
+       FROM cleaned_weekly_sales
+       GROUP BY age_band
+       UNION ALL SELECT 'demographic' AS attribute_type, demographic AS attribute_value,
+                        SUM(CASE
+                                WHEN week_date >= DATE('2020-06-15',
+                                                    '-84 days')
+                                     AND week_date < '2020-06-15' THEN sales ELSE 0
+                            END) AS sales_before,
+                        SUM(CASE
+                                WHEN week_date >= '2020-06-15'
+                                     AND week_date < DATE('2020-06-15',
+                                                       '+84 days') THEN sales ELSE 0
+                            END) AS sales_after
+       FROM cleaned_weekly_sales
+       GROUP BY demographic
+       UNION ALL SELECT 'customer_type' AS attribute_type, customer_type AS attribute_value,
+                        SUM(CASE
+                                WHEN week_date >= DATE('2020-06-15',
+                                                    '-84 days')
+                                     AND week_date < '2020-06-15' THEN sales ELSE 0
+                            END) AS sales_before,
+                        SUM(CASE
+                                WHEN week_date >= '2020-06-15'
+                                     AND week_date < DATE('2020-06-15',
+                                                       '+84 days') THEN sales ELSE 0
+                            END) AS sales_after
+       FROM cleaned_weekly_sales
+       GROUP BY customer_type),
+         PercentageChangeByAttributeValue AS
+      (SELECT attribute_type, attribute_value,
+              (sales_after - sales_before) * 100.0 / NULLIF(sales_before,
+                                                       0) AS percentage_change
+       FROM SalesByAttributeValue),
+         AveragePercentageChangeByAttributeType AS
+      (SELECT attribute_type, AVG(percentage_change) AS avg_percentage_change
+       FROM PercentageChangeByAttributeValue
+       GROUP BY attribute_type)
+    SELECT attribute_type, avg_percentage_change
+    FROM AveragePercentageChangeByAttributeType
+    ORDER BY avg_percentage_change ASC
+    LIMIT 1
+- metric_name: total_unique_landing_exit_sessions_per_page
+  sql_logic: |-
+    WITH session_page_ranks AS
+      (SELECT SESSION, PATH,
+              ROW_NUMBER() OVER (PARTITION BY SESSION
+                                 ORDER BY stamp ASC) AS rn_asc,
+              ROW_NUMBER() OVER (PARTITION BY SESSION
+                                 ORDER BY stamp DESC) AS rn_desc
+       FROM activity_log),
+         landing_exit_pages AS
+      (SELECT DISTINCT SESSION, PATH
+       FROM session_page_ranks
+       WHERE rn_asc = 1
+         OR rn_desc = 1)
+    SELECT PATH, COUNT(DISTINCT SESSION) AS total_unique_sessions
+    FROM landing_exit_pages
+    GROUP BY PATH
+    ORDER BY PATH
+- metric_name: top_product_categories_by_most_common_payment_type
+  sql_logic: |-
+    WITH OrderCategory AS
+      (SELECT DISTINCT oi.order_id, p.product_category_name
+       FROM olist_order_items AS oi
+       INNER JOIN olist_products AS p ON oi.product_id = p.product_id
+       WHERE p.product_category_name IS NOT NULL),
+         CategoryPaymentData AS
+      (SELECT oc.product_category_name, op.payment_type
+       FROM OrderCategory AS oc
+       INNER JOIN olist_order_payments AS op ON oc.order_id = op.order_id),
+         CategoryPaymentCounts AS
+      (SELECT product_category_name, payment_type, COUNT(*) AS payments_count
+       FROM CategoryPaymentData
+       GROUP BY product_category_name, payment_type),
+         RankedPaymentTypes AS
+      (SELECT product_category_name, payments_count,
+              ROW_NUMBER() OVER (PARTITION BY product_category_name
+                                 ORDER BY payments_count DESC) AS rnk
+       FROM CategoryPaymentCounts)
+    SELECT product_category_name, payments_count AS payments_count_for_most_common_type
+    FROM RankedPaymentTypes
+    WHERE rnk = 1
+    ORDER BY payments_count_for_most_common_type DESC
+    LIMIT 3;
+- metric_name: Total City Sales
+  sql_logic: SUM(T1.amount_sold)
+- metric_name: City Sales Growth Rate (Q4 2019 to Q4 2020)
+  sql_logic: |-
+    SUM(CASE WHEN calendar_quarter_id = 1776 THEN total_city_sales ELSE 0
+        END) * 1.0 / NULLIF(SUM(CASE
+                                    WHEN calendar_quarter_id = 1772 THEN total_city_sales ELSE 0
+                                END), 0)
+- metric_name: Total Product Sales (Filtered by Growing Cities)
+  sql_logic: SUM(T1.amount_sold)
+- metric_name: Product Sales Rank (Overall Filtered Sales)
+  sql_logic: |-
+    DENSE_RANK() OVER (
+                       ORDER BY total_product_sales_overall DESC)
+- metric_name: Product Quarterly Sales (Filtered by Growing Cities)
+  sql_logic: SUM(T1.amount_sold)
+- metric_name: Total Quarterly Sales (All Products, Filtered)
+  sql_logic: |-
+    SUM(SUM(T1.amount_sold)) OVER (PARTITION BY T1.calendar_quarter_id)
+- metric_name: Product Share of Total Quarterly Sales
+  sql_logic: |-
+    T1.product_quarterly_sales_raw * 1.0 / NULLIF(T1.total_quarterly_sales_all_products,
+                                             0)
+- metric_name: |-
+    Absolute Percentage Point Change in Product Share (Q4 2019 vs Q4 2020)
+  sql_logic: |-
+    ABS(SUM(CASE WHEN calendar_quarter_id = 1776 THEN product_share ELSE 0
+            END) - SUM(CASE WHEN calendar_quarter_id = 1772 THEN product_share ELSE 0
+                       END))

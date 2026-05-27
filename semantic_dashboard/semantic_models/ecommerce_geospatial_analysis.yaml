@@ -1,0 +1,24 @@
+databases:
+- Brazilian_E_Commerce
+descriptions:
+- table: olist_customers
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: olist_customers
+  column: customer_unique_id
+  meaning: Unique identifier for a customer across multiple purchases.
+- table: olist_customers
+  column: customer_zip_code_prefix
+  meaning: First 5 digits of the customer's zip code.
+- table: olist_customers
+  column: customer_city
+  meaning: City where the customer is located.
+- table: olist_customers
+  column: customer_state
+  meaning: State where the customer is located.
+- table: olist_sellers
+  column: seller_id
+  meaning: Unique identifier for a seller.
+relations: []
+synonyms: []
+biz_logic: []

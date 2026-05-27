@@ -1,0 +1,97 @@
+databases:
+- Baseball
+descriptions:
+- table: player
+  column: name_given
+  meaning: The given name of a baseball player.
+- table: player
+  column: player_id
+  meaning: Unique identifier for a baseball player.
+- table: batting
+  column: player_id
+  meaning: Foreign key linking to the player table.
+- table: batting
+  column: g
+  meaning: Number of games played by a player in a given season/stint.
+- table: batting
+  column: r
+  meaning: Number of runs scored by a player in a given season/stint.
+- table: batting
+  column: h
+  meaning: Number of hits by a player in a given season/stint.
+- table: batting
+  column: hr
+  meaning: Number of home runs by a player in a given season/stint.
+relations:
+- table_1: player
+  column_1: player_id
+  table_2: batting
+  column_2: player_id
+  meaning: |-
+    Links player demographic information to their batting statistics.
+synonyms:
+- nl_term: games played
+  db_target: batting.g
+  type: column
+- nl_term: runs
+  db_target: batting.r
+  type: column
+- nl_term: hits
+  db_target: batting.h
+  type: column
+- nl_term: home runs
+  db_target: batting.hr
+  type: column
+- nl_term: given names
+  db_target: player.name_given
+  type: column
+- nl_term: score values
+  db_target: score
+  type: value
+biz_logic:
+- metric_name: Highest Career Games Played
+  sql_logic: |-
+    WITH PlayerCareerStats AS
+      (SELECT player_id, SUM(g) AS total_g
+       FROM batting
+       GROUP BY player_id),
+         MaxGamesPlayed AS
+      (SELECT MAX(total_g) AS max_g
+       FROM PlayerCareerStats)
+    SELECT T1.player_id, T1.total_g AS score
+    FROM PlayerCareerStats AS T1
+    JOIN MaxGamesPlayed AS T2 ON T1.total_g = T2.max_g
+- metric_name: Highest Career Runs
+  sql_logic: |-
+    WITH PlayerCareerStats AS
+      (SELECT player_id, SUM(r) AS total_r
+       FROM batting
+       GROUP BY player_id), MaxRuns AS
+      (SELECT MAX(total_r) AS max_r
+       FROM PlayerCareerStats)
+    SELECT T1.player_id, T1.total_r AS score
+    FROM PlayerCareerStats AS T1
+    JOIN MaxRuns AS T2 ON T1.total_r = T2.max_r
+- metric_name: Highest Career Hits
+  sql_logic: |-
+    WITH PlayerCareerStats AS
+      (SELECT player_id, SUM(h) AS total_h
+       FROM batting
+       GROUP BY player_id), MaxHits AS
+      (SELECT MAX(total_h) AS max_h
+       FROM PlayerCareerStats)
+    SELECT T1.player_id, T1.total_h AS score
+    FROM PlayerCareerStats AS T1
+    JOIN MaxHits AS T2 ON T1.total_h = T2.max_h
+- metric_name: Highest Career Home Runs
+  sql_logic: |-
+    WITH PlayerCareerStats AS
+      (SELECT player_id, SUM(hr) AS total_hr
+       FROM batting
+       GROUP BY player_id),
+         MaxHomeRuns AS
+      (SELECT MAX(total_hr) AS max_hr
+       FROM PlayerCareerStats)
+    SELECT T1.player_id, T1.total_hr AS score
+    FROM PlayerCareerStats AS T1
+    JOIN MaxHomeRuns AS T2 ON T1.total_hr = T2.max_hr

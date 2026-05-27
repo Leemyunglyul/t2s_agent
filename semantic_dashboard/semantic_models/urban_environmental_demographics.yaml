@@ -1,0 +1,448 @@
+databases:
+- modern_data
+- city_legislation
+descriptions:
+- table: trees
+  column: boroname
+  meaning: The name of the borough where the tree is located.
+- table: trees
+  column: tree_id
+  meaning: A unique identifier for each tree.
+- table: trees
+  column: zipcode
+  meaning: The ZIP code where the tree is located.
+- table: income_trees
+  column: zipcode
+  meaning: The ZIP code for which income data is available.
+- table: income_trees
+  column: Estimate_Mean_income
+  meaning: The estimated mean income for a given ZIP code.
+- table: income_trees
+  column: Estimate_Median_income
+  meaning: The estimated median income for a given ZIP code.
+- table: trees
+  column: health
+  meaning: The health status of the tree, e.g., 'Good', 'Fair', 'Poor'.
+- table: trees
+  column: spc_common
+  meaning: The common name of the tree species.
+- table: cities
+  column: city_id
+  meaning: Unique identifier for a city.
+- table: cities
+  column: city_name
+  meaning: The name of the city.
+- table: cities
+  column: latitude
+  meaning: Geographical latitude coordinate of the city.
+- table: cities
+  column: longitude
+  meaning: Geographical longitude coordinate of the city.
+- table: cities
+  column: country_code_2
+  meaning: |-
+    Two-letter ISO country code for the country the city is located in.
+- table: cities
+  column: capital
+  meaning: Indicator if the city is a capital (1 for yes, 0 for no).
+- table: cities
+  column: population
+  meaning: The population of the city.
+- table: cities
+  column: insert_date
+  meaning: The date when the city record was inserted or last updated.
+- table: cities_countries
+  column: country_id
+  meaning: Unique identifier for a country.
+- table: cities_countries
+  column: country_name
+  meaning: The full name of the country.
+- table: cities_countries
+  column: country_code_2
+  meaning: Two-letter ISO country code.
+- table: cities_countries
+  column: country_code_3
+  meaning: Three-letter ISO country code.
+- table: cities_countries
+  column: region
+  meaning: |-
+    Geographical region the country belongs to (e.g., Asia, Europe).
+- table: cities_countries
+  column: sub_region
+  meaning: Sub-region within the main geographical region.
+- table: cities_currencies
+  column: currency_id
+  meaning: Unique identifier for a currency.
+- table: cities_currencies
+  column: currency_name
+  meaning: The name of the currency.
+- table: cities_currencies
+  column: currency_code
+  meaning: The ISO currency code (e.g., USD, EUR).
+- table: cities_languages
+  column: language_id
+  meaning: Unique identifier for a language.
+- table: cities_languages
+  column: language
+  meaning: The name of the language.
+relations:
+- table_1: trees
+  column_1: zipcode
+  table_2: income_trees
+  column_2: zipcode
+  meaning: |-
+    Links tree data to income data based on geographical ZIP code.
+- table_1: cities
+  column_1: country_code_2
+  table_2: cities_countries
+  column_2: country_code_2
+  meaning: Links cities to their respective country details.
+- table_1: cities
+  column_1: country_code_2
+  table_2: cities_currencies
+  column_2: country_code_2
+  meaning: Links cities to the currencies used in their country.
+- table_1: cities
+  column_1: country_code_2
+  table_2: cities_languages
+  column_2: country_code_2
+  meaning: Links cities to the languages spoken in their country.
+synonyms:
+- nl_term: boroughs
+  db_target: trees.boroname
+  type: column
+- nl_term: median income
+  db_target: income_trees.Estimate_Median_income
+  type: column
+- nl_term: mean income
+  db_target: income_trees.Estimate_Mean_income
+  type: column
+- nl_term: number of trees
+  db_target: COUNT(tree_id)
+  type: value
+- nl_term: average mean income
+  db_target: AVG(Estimate_Mean_income)
+  type: value
+- nl_term: greater than zero
+  db_target: '> 0'
+  type: condition
+- nl_term: valid borough name
+  db_target: boroname IS NOT NULL AND boroname != ''
+  type: condition
+- nl_term: highest number of trees
+  db_target: ORDER BY tree_count DESC
+  type: condition
+- nl_term: three boroughs
+  db_target: rank_num <= 3
+  type: condition
+- nl_term: Bronx
+  db_target: trees.boroname
+  type: condition
+- nl_term: health status of Good
+  db_target: trees.health
+  type: condition
+- nl_term: Chinese cities
+  db_target: cities.country_code_2 = 'cn'
+  type: condition
+- nl_term: July 2021
+  db_target: strftime('%Y-%m', insert_date) = '2021-07'
+  type: condition
+- nl_term: shortest streak
+  db_target: min_len
+  type: value
+- nl_term: longest streak
+  db_target: max_len
+  type: value
+- nl_term: city name
+  db_target: cities.city_name
+  type: column
+- nl_term: date entries
+  db_target: cities.insert_date
+  type: column
+- nl_term: June 2022
+  db_target: insert_date BETWEEN '2022-06-01' AND '2022-06-30'
+  type: condition
+- nl_term: 2-letter length country codes
+  db_target: cities.country_code_2
+  type: column
+- nl_term: new cities inserted
+  db_target: COUNT(T1.city_id)
+  type: value
+- nl_term: April, May, and June
+  db_target: STRFTIME('%m', T1.insert_date) IN (4, 5, 6)
+  type: condition
+- nl_term: each year from 2021 to 2023
+  db_target: STRFTIME('%Y', T1.insert_date) BETWEEN 2021 AND 2023
+  type: condition
+- nl_term: monthly total
+  db_target: monthly_total
+  type: column
+- nl_term: cumulative running total
+  db_target: cumulative_running_total
+  type: column
+- nl_term: year-over-year growth percentages for monthly total
+  db_target: monthly_yoy_growth
+  type: column
+- nl_term: year-over-year growth percentages for running total
+  db_target: cumulative_yoy_growth
+  type: column
+- nl_term: country with data inserted on nine different days
+  db_target: CountryWithNineDays.country_code_2
+  type: column
+- nl_term: longest consecutive period with data insertions
+  db_target: LongestPeriod.period_length
+  type: column
+- nl_term: proportion of entries that are from its capital city
+  db_target: proportion_of_capital_entries
+  type: column
+- nl_term: January 2022
+  db_target: STRFTIME('%Y-%m', insert_date) = '2022-01'
+  type: condition
+biz_logic:
+- metric_name: filtered_tree_income_data
+  sql_logic: |-
+    SELECT T1.boroname, T1.tree_id, T2.Estimate_Mean_income
+    FROM trees AS T1
+    INNER JOIN income_trees AS T2 ON T1.zipcode = T2.zipcode
+    WHERE T1.boroname IS NOT NULL
+      AND T1.boroname != ''
+      AND T2.Estimate_Median_income > 0
+      AND T2.Estimate_Mean_income > 0
+- metric_name: borough_summary_metrics
+  sql_logic: |-
+    SELECT boroname, COUNT(tree_id) AS tree_count,
+           AVG(Estimate_Mean_income) AS avg_mean_income
+    FROM FilteredData
+    GROUP BY boroname
+- metric_name: ranked_boroughs_by_tree_count
+  sql_logic: |-
+    SELECT boroname, tree_count, avg_mean_income,
+           DENSE_RANK() OVER (
+                              ORDER BY tree_count DESC) AS rank_num
+    FROM BoroughMetrics
+- metric_name: top_3_boroughs_with_income
+  sql_logic: |-
+    SELECT boroname, tree_count, avg_mean_income
+    FROM RankedBoroughs
+    WHERE rank_num <= 3
+- metric_name: percentage_good_health_trees_bronx
+  sql_logic: |-
+    WITH bronx_trees AS
+      (SELECT *
+       FROM trees
+       WHERE boroname = 'Bronx')
+    SELECT (SUM(CASE WHEN health = 'Good' THEN 1 ELSE 0
+                END) * 1.0 / NULLIF(COUNT(*), 0)) * 100.0 AS percentage_good_health_trees_bronx
+    FROM bronx_trees
+- metric_name: filtered_chinese_cities_july_2021
+  sql_logic: |-
+    SELECT city_id, city_name, insert_date
+    FROM cities
+    WHERE country_code_2 = 'cn'
+      AND strftime('%Y-%m', insert_date) = '2021-07'
+- metric_name: deduplicated_daily_city_record
+  sql_logic: |-
+    SELECT city_id, city_name, insert_date
+    FROM
+      (SELECT city_id, city_name, insert_date,
+              ROW_NUMBER() OVER (PARTITION BY insert_date
+                                 ORDER BY city_id) AS rn
+       FROM filtered_chinese_cities) AS subquery
+    WHERE rn = 1
+- metric_name: consecutive_date_streak_group_id
+  sql_logic: |-
+    DATE(insert_date,
+
+      '-' || ROW_NUMBER() OVER (
+                                ORDER BY insert_date) || ' days')
+- metric_name: consecutive_date_streak_length
+  sql_logic: |-
+    COUNT(DISTINCT insert_date)
+    FROM streaks_with_group_id
+    GROUP BY streak_group_id
+- metric_name: minimum_overall_streak_length
+  sql_logic: |-
+    MIN(streak_length)
+    FROM streak_lengths
+- metric_name: maximum_overall_streak_length
+  sql_logic: |-
+    MAX(streak_length)
+    FROM streak_lengths
+- metric_name: city_name_capitalized_first_letter
+  sql_logic: |-
+    UPPER(SUBSTR(city_name, 1, 1)) || LOWER(SUBSTR(city_name,
+                                              2))
+- metric_name: country_longest_consecutive_city_insertion_streak
+  sql_logic: |-
+    WITH FilteredDates AS
+      (SELECT DISTINCT country_code_2, insert_date
+       FROM cities
+       WHERE insert_date BETWEEN '2022-06-01' AND '2022-06-30'),
+         DateGroups AS
+      (SELECT country_code_2, insert_date,
+              julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2
+                                                          ORDER BY insert_date) AS grouping_key
+       FROM FilteredDates),
+         StreakCounts AS
+      (SELECT country_code_2, COUNT(insert_date) AS streak_length
+       FROM DateGroups
+       GROUP BY country_code_2, grouping_key),
+         CountryMaxStreaks AS
+      (SELECT country_code_2, MAX(streak_length) AS max_streak
+       FROM StreakCounts
+       GROUP BY country_code_2),
+         RankedCountries AS
+      (SELECT country_code_2,
+              DENSE_RANK() OVER (
+                                 ORDER BY max_streak DESC) AS rnk
+       FROM CountryMaxStreaks)
+    SELECT country_code_2
+    FROM RankedCountries
+    WHERE rnk = 1;
+- metric_name: monthly_total_cities_inserted
+  sql_logic: |-
+    WITH MonthlyInsertions AS
+      (SELECT CAST(STRFTIME('%Y', insert_date) AS INTEGER) AS YEAR,
+              CAST(STRFTIME('%m', insert_date) AS INTEGER) AS MONTH, COUNT(city_id) AS monthly_total
+       FROM cities
+       WHERE CAST(STRFTIME('%Y', insert_date) AS INTEGER) BETWEEN 2021 AND 2023
+         AND CAST(STRFTIME('%m', insert_date) AS INTEGER) IN (4, 5, 6)
+       GROUP BY 1, 2)
+    SELECT YEAR, MONTH, monthly_total
+    FROM MonthlyInsertions;
+- metric_name: cumulative_monthly_cities_inserted
+  sql_logic: |-
+    WITH MonthlyInsertions AS
+      (SELECT CAST(STRFTIME('%Y', insert_date) AS INTEGER) AS YEAR,
+              CAST(STRFTIME('%m', insert_date) AS INTEGER) AS MONTH, COUNT(city_id) AS monthly_total
+       FROM cities
+       WHERE CAST(STRFTIME('%Y', insert_date) AS INTEGER) BETWEEN 2021 AND 2023
+         AND CAST(STRFTIME('%m', insert_date) AS INTEGER) IN (4, 5, 6)
+       GROUP BY 1, 2)
+    SELECT YEAR, MONTH, monthly_total,
+           SUM(monthly_total) OVER (PARTITION BY MONTH
+                                    ORDER BY YEAR) AS cumulative_running_total
+    FROM MonthlyInsertions;
+- metric_name: monthly_yoy_growth_percentage
+  sql_logic: |-
+    WITH MonthlyInsertions AS
+      (SELECT CAST(STRFTIME('%Y', insert_date) AS INTEGER) AS YEAR,
+              CAST(STRFTIME('%m', insert_date) AS INTEGER) AS MONTH, COUNT(city_id) AS monthly_total
+       FROM cities
+       WHERE CAST(STRFTIME('%Y', insert_date) AS INTEGER) BETWEEN 2021 AND 2023
+         AND CAST(STRFTIME('%m', insert_date) AS INTEGER) IN (4, 5, 6)
+       GROUP BY 1, 2),
+         LaggedMetrics AS
+      (SELECT YEAR, MONTH, monthly_total,
+              LAG(monthly_total, 1, 0) OVER (PARTITION BY MONTH
+                                             ORDER BY YEAR) AS previous_year_monthly_total
+       FROM MonthlyInsertions)
+    SELECT YEAR, MONTH, monthly_total,
+           CASE WHEN previous_year_monthly_total = 0 THEN NULL
+               ELSE (monthly_total - previous_year_monthly_total) * 100.0 / previous_year_monthly_total
+           END AS monthly_yoy_growth
+    FROM LaggedMetrics
+    WHERE YEAR IN (2022, 2023);
+- metric_name: cumulative_yoy_growth_percentage
+  sql_logic: |-
+    WITH MonthlyInsertions AS
+      (SELECT CAST(STRFTIME('%Y', insert_date) AS INTEGER) AS YEAR,
+              CAST(STRFTIME('%m', insert_date) AS INTEGER) AS MONTH, COUNT(city_id) AS monthly_total
+       FROM cities
+       WHERE CAST(STRFTIME('%Y', insert_date) AS INTEGER) BETWEEN 2021 AND 2023
+         AND CAST(STRFTIME('%m', insert_date) AS INTEGER) IN (4, 5, 6)
+       GROUP BY 1, 2),
+         CumulativeMetrics AS
+      (SELECT YEAR, MONTH, monthly_total,
+              SUM(monthly_total) OVER (PARTITION BY MONTH
+                                       ORDER BY YEAR) AS cumulative_running_total
+       FROM MonthlyInsertions),
+         LaggedMetrics AS
+      (SELECT YEAR, MONTH, cumulative_running_total,
+              LAG(cumulative_running_total, 1, 0) OVER (PARTITION BY MONTH
+                                                        ORDER BY YEAR) AS previous_year_cumulative_total
+       FROM CumulativeMetrics)
+    SELECT YEAR, MONTH, cumulative_running_total,
+           CASE WHEN previous_year_cumulative_total = 0 THEN NULL
+               ELSE (cumulative_running_total - previous_year_cumulative_total) * 100.0 / previous_year_cumulative_total
+           END AS cumulative_yoy_growth
+    FROM LaggedMetrics
+    WHERE YEAR IN (2022, 2023);
+- metric_name: country_with_nine_jan_2022_insertion_days_name
+  sql_logic: |-
+    WITH CountryWithNineDays AS
+      (SELECT country_code_2
+       FROM cities
+       WHERE STRFTIME('%Y-%m', insert_date) = '2022-01'
+       GROUP BY country_code_2
+       HAVING COUNT(DISTINCT insert_date) = 9)
+    SELECT T4.country_name
+    FROM CountryWithNineDays AS T1
+    INNER JOIN cities_countries AS T4 ON T1.country_code_2 = T4.country_code_2
+- metric_name: longest_consecutive_insertion_period_length
+  sql_logic: |-
+    WITH CountryWithNineDays AS
+      (SELECT country_code_2
+       FROM cities
+       WHERE STRFTIME('%Y-%m', insert_date) = '2022-01'
+       GROUP BY country_code_2
+       HAVING COUNT(DISTINCT insert_date) = 9),
+         CountryDistinctDates AS
+      (SELECT DISTINCT T1.insert_date
+       FROM cities AS T1
+       INNER JOIN CountryWithNineDays AS T2 ON T1.country_code_2 = T2.country_code_2
+       WHERE STRFTIME('%Y-%m', T1.insert_date) = '2022-01'
+       ORDER BY T1.insert_date),
+         DateGroups AS
+      (SELECT insert_date,
+              DATE(insert_date,
+                '-' || ROW_NUMBER() OVER (
+                                          ORDER BY insert_date) || ' days') AS grouping_key
+       FROM CountryDistinctDates),
+         ConsecutivePeriods AS
+      (SELECT MIN(insert_date) AS start_date, MAX(insert_date) AS end_date, COUNT(*) AS period_length
+       FROM DateGroups
+       GROUP BY grouping_key),
+         LongestPeriod AS
+      (SELECT start_date, end_date, period_length
+       FROM ConsecutivePeriods
+       ORDER BY period_length DESC
+       LIMIT 1)
+    SELECT period_length
+    FROM LongestPeriod
+- metric_name: proportion_of_capital_entries_in_longest_period
+  sql_logic: |-
+    WITH CountryWithNineDays AS
+      (SELECT country_code_2
+       FROM cities
+       WHERE STRFTIME('%Y-%m', insert_date) = '2022-01'
+       GROUP BY country_code_2
+       HAVING COUNT(DISTINCT insert_date) = 9),
+         CountryDistinctDates AS
+      (SELECT DISTINCT T1.insert_date
+       FROM cities AS T1
+       INNER JOIN CountryWithNineDays AS T2 ON T1.country_code_2 = T2.country_code_2
+       WHERE STRFTIME('%Y-%m', T1.insert_date) = '2022-01'
+       ORDER BY T1.insert_date),
+         DateGroups AS
+      (SELECT insert_date,
+              DATE(insert_date,
+                '-' || ROW_NUMBER() OVER (
+                                          ORDER BY insert_date) || ' days') AS grouping_key
+       FROM CountryDistinctDates),
+         ConsecutivePeriods AS
+      (SELECT MIN(insert_date) AS start_date, MAX(insert_date) AS end_date, COUNT(*) AS period_length
+       FROM DateGroups
+       GROUP BY grouping_key),
+         LongestPeriod AS
+      (SELECT start_date, end_date, period_length
+       FROM ConsecutivePeriods
+       ORDER BY period_length DESC
+       LIMIT 1),
+         FinalMetrics AS
+      (SELECT SUM(T1.capital) AS capital_entries_count, COUNT(T1.city_id) AS total_entries_count
+       FROM cities AS T1
+       INNER JOIN CountryWithNineDays AS T2 ON T1.country_code_2 = T2.country_code_2
+       INNER JOIN LongestPeriod AS T3 ON T1.insert_date BETWEEN T3.start_date AND T3.end_date)
+    SELECT CAST(T6.capital_entries_count AS REAL) * 1.0 / T6.total_entries_count
+    FROM FinalMetrics AS T6

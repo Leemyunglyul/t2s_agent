@@ -1,0 +1,501 @@
+databases:
+- bank_sales_trading
+descriptions:
+- table: customer_transactions
+  column: customer_id
+  meaning: Unique identifier for a customer.
+- table: customer_transactions
+  column: txn_date
+  meaning: The date when a transaction occurred.
+- table: customer_transactions
+  column: txn_type
+  meaning: |-
+    The type of financial transaction, e.g., 'deposit', 'withdrawal', 'purchase'.
+- table: customer_transactions
+  column: txn_amount
+  meaning: The monetary amount of the transaction.
+- table: CTE_CombinedData
+  column: monthly_net_change
+  meaning: |-
+    The aggregated net change in a customer's account balance for a specific month, considering deposits as positive and withdrawals/purchases as negative.
+- table: CTE_CombinedData
+  column: monthly_closing_balance
+  meaning: |-
+    The cumulative account balance for a customer at the end of each month, calculated by summing monthly net changes over time.
+- table: customer_nodes
+  column: customer_id
+  meaning: |-
+    Unique identifier for a customer, linking to customer_transactions.
+- table: customer_nodes
+  column: region_id
+  meaning: |-
+    Identifier for the geographical or organizational region a customer node belongs to.
+- table: customer_regions
+  column: region_id
+  meaning: Unique identifier for a region, linking to customer_nodes.
+- table: customer_regions
+  column: region_name
+  meaning: The name of the geographical or organizational region.
+- table: all_months
+  column: month
+  meaning: |-
+    The first day of a calendar month, used for time series aggregation
+- table: customer_net_transactions
+  column: monthly_net_change
+  meaning: |-
+    The aggregated net financial change (deposits minus withdrawals) for a customer within a specific month
+- table: customer_monthly_activity
+  column: monthly_net_change
+  meaning: |-
+    The net financial change for a customer in a given month, including zero for months with no activity
+- table: customer_balance_at_month_start
+  column: balance_at_month_start
+  meaning: |-
+    The cumulative balance of a customer at the beginning of a given month, based on all prior transactions
+- table: total_positive_balance_per_month
+  column: total_previous_month_positive_balance
+  meaning: |-
+    The sum of all positive customer balances at the start of a given month, with any negative individual balances treated as zero
+- table: weekly_sales
+  column: week_date
+  meaning: The date representing the start or end of a sales week.
+- table: weekly_sales
+  column: region
+  meaning: Geographical region where sales occurred.
+- table: weekly_sales
+  column: platform
+  meaning: Sales platform (e.g., online, in-store).
+- table: weekly_sales
+  column: segment
+  meaning: Customer segment for the sales data.
+- table: weekly_sales
+  column: customer_type
+  meaning: Type of customer involved in the sales.
+- table: weekly_sales
+  column: transactions
+  meaning: Number of transactions recorded for the week.
+- table: weekly_sales
+  column: sales
+  meaning: Total sales amount for the week.
+- table: shopping_cart_users
+  column: user_id
+  meaning: Unique identifier for a shopping cart user.
+- table: shopping_cart_users
+  column: cookie_id
+  meaning: Identifier for a user's browser cookie, linking sessions.
+- table: shopping_cart_users
+  column: start_date
+  meaning: Date when the user's activity was first recorded.
+- table: bitcoin_members
+  column: member_id
+  meaning: Unique identifier for a bitcoin platform member.
+- table: bitcoin_members
+  column: first_name
+  meaning: First name of the bitcoin member.
+- table: bitcoin_members
+  column: region
+  meaning: Geographical region of the bitcoin member.
+- table: interest_metrics
+  column: _month
+  meaning: Numeric representation of the month.
+- table: interest_metrics
+  column: _year
+  meaning: Numeric representation of the year.
+- table: interest_metrics
+  column: month_year
+  meaning: Combined month and year string.
+- table: interest_metrics
+  column: interest_id
+  meaning: Identifier for a specific interest, links to interest_map.
+- table: interest_metrics
+  column: composition
+  meaning: A metric representing the composition of an interest.
+- table: interest_metrics
+  column: index_value
+  meaning: An index value associated with the interest.
+- table: interest_metrics
+  column: ranking
+  meaning: The ranking of the interest.
+- table: interest_metrics
+  column: percentile_ranking
+  meaning: The percentile ranking of the interest.
+- table: bitcoin_transactions
+  column: txn_id
+  meaning: Unique identifier for a bitcoin transaction.
+- table: bitcoin_transactions
+  column: member_id
+  meaning: Identifier for the bitcoin member, links to bitcoin_members.
+- table: bitcoin_transactions
+  column: ticker
+  meaning: Cryptocurrency ticker symbol (e.g., BTC, ETH).
+- table: bitcoin_transactions
+  column: txn_date
+  meaning: Date when the bitcoin transaction occurred.
+- table: bitcoin_transactions
+  column: txn_type
+  meaning: Type of bitcoin transaction (e.g., buy, sell).
+- table: bitcoin_transactions
+  column: quantity
+  meaning: Quantity of cryptocurrency involved in the transaction.
+- table: bitcoin_transactions
+  column: percentage_fee
+  meaning: Transaction fee as a percentage.
+- table: bitcoin_transactions
+  column: txn_time
+  meaning: Time when the bitcoin transaction occurred.
+- table: customer_nodes
+  column: node_id
+  meaning: |-
+    Identifier for a specific node or branch associated with a customer.
+- table: customer_nodes
+  column: start_date
+  meaning: Start date of the customer's association with a node/region.
+- table: customer_nodes
+  column: end_date
+  meaning: End date of the customer's association with a node/region.
+- table: cleaned_weekly_sales
+  column: week_date_formatted
+  meaning: Formatted week date string.
+- table: cleaned_weekly_sales
+  column: week_date
+  meaning: Original week date.
+- table: cleaned_weekly_sales
+  column: region
+  meaning: Geographical region for sales.
+- table: cleaned_weekly_sales
+  column: platform
+  meaning: Sales platform.
+- table: cleaned_weekly_sales
+  column: segment
+  meaning: Customer segment.
+- table: cleaned_weekly_sales
+  column: customer_type
+  meaning: Type of customer.
+- table: cleaned_weekly_sales
+  column: transactions
+  meaning: Number of transactions.
+- table: cleaned_weekly_sales
+  column: sales
+  meaning: Total sales amount.
+- table: cleaned_weekly_sales
+  column: week_number
+  meaning: Week number of the year.
+- table: cleaned_weekly_sales
+  column: month_number
+  meaning: Month number of the year.
+- table: cleaned_weekly_sales
+  column: calendar_year
+  meaning: Calendar year of the sales data.
+- table: cleaned_weekly_sales
+  column: age_band
+  meaning: Age demographic band of customers.
+- table: cleaned_weekly_sales
+  column: demographic
+  meaning: General demographic category of customers.
+- table: cleaned_weekly_sales
+  column: avg_transaction
+  meaning: Average transaction amount.
+- table: veg_txn_df
+  column: index
+  meaning: Row index.
+- table: veg_txn_df
+  column: txn_date
+  meaning: Transaction date for vegetable sales.
+- table: veg_txn_df
+  column: txn_time
+  meaning: Transaction time for vegetable sales.
+- table: veg_txn_df
+  column: item_code
+  meaning: |-
+    Code for the vegetable item, links to veg_cat, veg_loss_rate_df, veg_whsle_df.
+- table: veg_txn_df
+  column: qty_sold(kg)
+  meaning: Quantity of vegetables sold in kilograms.
+- table: veg_txn_df
+  column: unit_selling_px_rmb/kg
+  meaning: Unit selling price in RMB per kilogram.
+- table: veg_txn_df
+  column: sale/return
+  meaning: Indicates if the transaction was a sale or a return.
+- table: veg_txn_df
+  column: discount(%)
+  meaning: Discount percentage applied to the transaction.
+- table: veg_txn_df
+  column: day_of_week
+  meaning: Day of the week for the transaction.
+- table: shopping_cart_events
+  column: visit_id
+  meaning: Unique identifier for a user's visit.
+- table: shopping_cart_events
+  column: cookie_id
+  meaning: |-
+    Identifier for a user's browser cookie, links to shopping_cart_users.
+- table: shopping_cart_events
+  column: page_id
+  meaning: |-
+    Identifier for the page visited, links to shopping_cart_page_hierarchy.
+- table: shopping_cart_events
+  column: event_type
+  meaning: |-
+    Type of event that occurred, links to shopping_cart_event_identifier.
+- table: shopping_cart_events
+  column: sequence_number
+  meaning: Order of the event within a visit.
+- table: shopping_cart_events
+  column: event_time
+  meaning: Timestamp when the event occurred.
+- table: shopping_cart_page_hierarchy
+  column: page_id
+  meaning: Unique identifier for a page.
+- table: shopping_cart_page_hierarchy
+  column: page_name
+  meaning: Name of the page.
+- table: shopping_cart_page_hierarchy
+  column: product_category
+  meaning: Category of product displayed on the page.
+- table: shopping_cart_page_hierarchy
+  column: product_id
+  meaning: Identifier for a product on the page.
+- table: bitcoin_prices
+  column: ticker
+  meaning: Cryptocurrency ticker symbol, links to bitcoin_transactions.
+- table: bitcoin_prices
+  column: market_date
+  meaning: Date of the market price record.
+- table: bitcoin_prices
+  column: price
+  meaning: Closing price of the cryptocurrency.
+- table: bitcoin_prices
+  column: open
+  meaning: Opening price of the cryptocurrency.
+- table: bitcoin_prices
+  column: high
+  meaning: Highest price of the cryptocurrency during the day.
+- table: bitcoin_prices
+  column: low
+  meaning: Lowest price of the cryptocurrency during the day.
+relations:
+- table_1: customer_transactions
+  column_1: customer_id
+  table_2: customer_nodes
+  column_2: customer_id
+  meaning: A customer can be associated with one or more nodes.
+- table_1: customer_nodes
+  column_1: region_id
+  table_2: customer_regions
+  column_2: region_id
+  meaning: Each customer node belongs to a specific region.
+- table_1: customer_transactions
+  column_1: customer_id
+  table_2: customer_net_transactions
+  column_2: customer_id
+  meaning: |-
+    Customer transactions are aggregated by customer to calculate net changes
+- table_1: customer_transactions
+  column_1: txn_date
+  table_2: all_months
+  column_2: month
+  meaning: |-
+    Transaction dates are used to determine the relevant month for aggregation
+- table_1: customer_net_transactions
+  column_1: customer_id
+  table_2: customer_monthly_activity
+  column_2: customer_id
+  meaning: |-
+    Net transaction changes are joined with all customers and months to ensure complete monthly activity records
+- table_1: customer_net_transactions
+  column_1: month
+  table_2: customer_monthly_activity
+  column_2: month
+  meaning: |-
+    Net transaction changes are joined with all customers and months to ensure complete monthly activity records
+- table_1: customer_monthly_activity
+  column_1: customer_id
+  table_2: customer_balance_at_month_start
+  column_2: customer_id
+  meaning: |-
+    Monthly activity is used to calculate the cumulative balance for each customer
+- table_1: customer_monthly_activity
+  column_1: month
+  table_2: customer_balance_at_month_start
+  column_2: month
+  meaning: |-
+    Monthly activity is used to calculate the cumulative balance for each customer over time
+- table_1: customer_balance_at_month_start
+  column_1: month
+  table_2: total_positive_balance_per_month
+  column_2: month
+  meaning: |-
+    Customer balances at month start are aggregated by month to get total positive balances
+- table_1: bitcoin_transactions
+  column_1: member_id
+  table_2: bitcoin_members
+  column_2: member_id
+  meaning: Links a Bitcoin transaction to the member who performed it.
+- table_1: bitcoin_transactions
+  column_1: ticker
+  table_2: bitcoin_prices
+  column_2: ticker
+  meaning: |-
+    Links a Bitcoin transaction to its market price based on the cryptocurrency ticker.
+- table_1: bitcoin_transactions
+  column_1: txn_date
+  table_2: bitcoin_prices
+  column_2: market_date
+  meaning: |-
+    Links a Bitcoin transaction to its market price based on the transaction date.
+synonyms:
+- nl_term: closing balances
+  db_target: monthly_closing_balance
+  type: column
+- nl_term: monthly changes
+  db_target: monthly_net_change
+  type: column
+- nl_term: monthly cumulative bank account balances
+  db_target: monthly_closing_balance
+  type: column
+- nl_term: customer transactions
+  db_target: customer_transactions
+  type: value
+- nl_term: deposit
+  db_target: txn_type = 'deposit'
+  type: condition
+- nl_term: withdrawal
+  db_target: txn_type = 'withdrawal'
+  type: condition
+- nl_term: purchase
+  db_target: txn_type = 'purchase'
+  type: condition
+- nl_term: month-end balance
+  db_target: monthly_balance
+  type: column
+- nl_term: deposit amounts
+  db_target: txn_amount WHERE txn_type = 'deposit'
+  type: condition
+- nl_term: withdrawal amounts
+  db_target: txn_amount WHERE txn_type = 'withdrawal'
+  type: condition
+- nl_term: positive month-end balance
+  db_target: balance > 0
+  type: condition
+- nl_term: highest count of customers with a positive month-end balance
+  db_target: positive_customer_count (ranked by rn_highest)
+  type: column
+- nl_term: lowest count of customers with a positive month-end balance
+  db_target: positive_customer_count (ranked by rn_lowest)
+  type: column
+- nl_term: average month-end balance
+  db_target: avg_month_end_balance
+  type: column
+- nl_term: total balance
+  db_target: total_previous_month_positive_balance
+  type: column
+- nl_term: previous month
+  db_target: balance_at_month_start
+  type: column
+- nl_term: negative balances with zero
+  db_target: CASE WHEN ... > 0 THEN ... ELSE 0 END
+  type: condition
+- nl_term: month
+  db_target: month
+  type: column
+- nl_term: users
+  db_target: customer_id
+  type: column
+- nl_term: annual average purchase price per Bitcoin
+  db_target: avg_purchase_price
+  type: column
+- nl_term: region
+  db_target: bitcoin_members.region
+  type: column
+- nl_term: total dollar amount spent
+  db_target: SUM(quantity * price)
+  type: value
+- nl_term: total quantity purchased
+  db_target: SUM(quantity)
+  type: value
+- nl_term: year
+  db_target: txn_year
+  type: column
+- nl_term: first year's data
+  db_target: year_rank = 1
+  type: condition
+- nl_term: annual percentage change in cost
+  db_target: annual_percentage_change
+  type: column
+biz_logic:
+- metric_name: monthly_net_change
+  sql_logic: |-
+    SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal',
+                                                                       'purchase') THEN -txn_amount ELSE 0
+        END)
+- metric_name: monthly_closing_balance
+  sql_logic: |-
+    SUM(monthly_net_change) OVER (PARTITION BY customer_id
+                                  ORDER BY MONTH)
+- metric_name: Monthly Customer Transaction Balance
+  sql_logic: |-
+    SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal' THEN -txn_amount ELSE 0
+        END)
+- metric_name: Monthly Positive Customer Count
+  sql_logic: |-
+    COUNT(DISTINCT customer_id) FILTER (
+                                        WHERE balance > 0)
+- metric_name: Monthly Average Customer Balance
+  sql_logic: |-
+    SUM(balance) * 1.0 /
+      (SELECT COUNT(DISTINCT customer_id)
+       FROM all_unique_customers)
+- metric_name: Month with Highest Positive Customer Count
+  sql_logic: |-
+    MAX(CASE WHEN rn_highest = 1 THEN month_str
+        END)
+- metric_name: Month with Lowest Positive Customer Count
+  sql_logic: |-
+    MAX(CASE WHEN rn_lowest = 1 THEN month_str
+        END)
+- metric_name: Difference in Average Balance (Highest vs. Lowest Months)
+  sql_logic: |-
+    ABS(MAX(CASE WHEN rn_highest = 1 THEN avg_month_end_balance
+            END) - MAX(CASE WHEN rn_lowest = 1 THEN avg_month_end_balance
+                       END))
+- metric_name: Monthly Net Change
+  sql_logic: |-
+    SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount ELSE -txn_amount
+        END)
+- metric_name: Customer Balance at Month Start
+  sql_logic: |-
+    COALESCE(SUM(monthly_net_change) OVER (PARTITION BY customer_id
+                                           ORDER BY MONTH ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0)
+- metric_name: Total Previous Month Positive Balance
+  sql_logic: |-
+    SUM(CASE
+            WHEN COALESCE(cbs.balance_at_month_start, 0) > 0 THEN COALESCE(cbs.balance_at_month_start,
+                                                                    0) ELSE 0
+        END)
+- metric_name: Annual Average Purchase Price per Bitcoin
+  sql_logic: SUM(quantity * price) * 1.0 / NULLIF(SUM(quantity), 0)
+  description: |-
+    Calculates the weighted average purchase price for Bitcoin
+    in a given year and region, by dividing the total dollar amount spent
+    by the total quantity purchased.
+- metric_name: Annual Percentage Change in Average Purchase Price
+  sql_logic: |-
+    (avg_purchase_price - previous_year_price) * 100.0 / previous_year_price
+  description: |-
+    Calculates the year-over-year percentage change in the
+    average Bitcoin purchase price for a given region.
+- metric_name: Region Rank by Average Purchase Price
+  sql_logic: |-
+    DENSE_RANK() OVER (PARTITION BY txn_year
+                       ORDER BY avg_purchase_price DESC)
+  description: |-
+    Ranks regions within each year based on their average
+    Bitcoin purchase price, from highest to lowest.
+- metric_name: First Year Data Exclusion
+  sql_logic: |-
+    DENSE_RANK() OVER (PARTITION BY region
+                       ORDER BY txn_year) > 1
+  description: |-
+    Excludes the first year of data for each region
+    to ensure year-over-year comparisons are meaningful.

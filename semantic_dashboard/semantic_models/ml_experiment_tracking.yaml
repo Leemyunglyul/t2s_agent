@@ -1,0 +1,370 @@
+databases:
+- stacking
+descriptions:
+- table: problem
+  column: name
+  meaning: Unique identifier for a machine learning problem or task.
+- table: problem
+  column: path
+  meaning: File path associated with the problem definition or data.
+- table: problem
+  column: type
+  meaning: |-
+    Type of machine learning problem (e.g., classification, regression).
+- table: problem
+  column: target
+  meaning: |-
+    Name of the target variable for the machine learning problem.
+- table: eda
+  column: name
+  meaning: Foreign key referencing the problem name.
+- table: eda
+  column: version
+  meaning: |-
+    Version number of the Exploratory Data Analysis (EDA) for a given problem.
+- table: eda
+  column: feature
+  meaning: Name of a feature analyzed during EDA.
+- table: eda
+  column: type
+  meaning: Data type of the feature.
+- table: eda
+  column: range
+  meaning: |-
+    Statistical range or distribution information for the feature.
+- table: eda
+  column: drop_user
+  meaning: |-
+    Flag indicating if the feature was dropped by a user (1 for dropped, 0 for not).
+- table: eda
+  column: drop_correlation
+  meaning: |-
+    Flag indicating if the feature was dropped due to high correlation (1 for dropped, 0 for not).
+- table: eda
+  column: target
+  meaning: |-
+    Flag indicating if the feature is the target variable (1 for target, 0 for not).
+- table: feature_importance
+  column: name
+  meaning: Foreign key referencing the problem name.
+- table: feature_importance
+  column: version
+  meaning: Version number of the experiment or solution.
+- table: feature_importance
+  column: step
+  meaning: |-
+    Specific step in the machine learning pipeline (e.g., preprocessing, model training).
+- table: feature_importance
+  column: feature
+  meaning: Name of the feature.
+- table: feature_importance
+  column: importance
+  meaning: Calculated importance score of the feature.
+- table: solution
+  column: name
+  meaning: Foreign key referencing the problem name.
+- table: solution
+  column: version
+  meaning: Version number of the overall solution or experiment run.
+- table: solution
+  column: correlation
+  meaning: Correlation metric associated with the solution.
+- table: solution
+  column: nb_model
+  meaning: Number of models used in this solution.
+- table: solution
+  column: nb_feature
+  meaning: Number of features used in this solution.
+- table: solution
+  column: score
+  meaning: Overall performance score of the solution.
+- table: solution
+  column: test_size
+  meaning: Proportion of data used for testing.
+- table: solution
+  column: resampling
+  meaning: |-
+    Flag indicating if resampling techniques were used (1 for used, 0 for not).
+- table: model_score
+  column: name
+  meaning: Foreign key referencing the problem name.
+- table: model_score
+  column: version
+  meaning: Version number of the experiment or solution.
+- table: model_score
+  column: step
+  meaning: |-
+    Specific step in the machine learning pipeline where the model was evaluated.
+- table: model_score
+  column: model
+  meaning: |-
+    Name or identifier of the machine learning model (e.g., 'Stack').
+- table: model_score
+  column: train_score
+  meaning: Performance score on the training dataset.
+- table: model_score
+  column: test_score
+  meaning: Performance score on the test dataset.
+- table: model_importance
+  column: name
+  meaning: Foreign key referencing the problem name.
+- table: model_importance
+  column: version
+  meaning: Version number of the experiment or solution.
+- table: model_importance
+  column: step
+  meaning: Specific step in the machine learning pipeline.
+- table: model_importance
+  column: model
+  meaning: Name or identifier of the machine learning model.
+- table: model_importance
+  column: importance
+  meaning: Calculated importance score of the model.
+- table: model
+  column: name
+  meaning: Foreign key referencing the problem name.
+- table: model
+  column: version
+  meaning: Version number of the experiment or solution.
+- table: model
+  column: step
+  meaning: Specific step in the machine learning pipeline (1, 2, or 3).
+- table: model
+  column: L1_model
+  meaning: |-
+    Type of the Level 1 model in a stacking ensemble (regression or tree).
+relations:
+- table_1: problem
+  column_1: name
+  table_2: eda
+  column_2: name
+  meaning: A problem can have multiple EDA records.
+- table_1: problem
+  column_1: name
+  table_2: feature_importance
+  column_2: name
+  meaning: |-
+    A problem can have feature importance scores recorded across different versions and steps.
+- table_1: problem
+  column_1: name
+  table_2: solution
+  column_2: name
+  meaning: A problem can have multiple solutions or experiment runs.
+- table_1: problem
+  column_1: name
+  table_2: model_score
+  column_2: name
+  meaning: |-
+    A problem can have multiple model performance scores recorded across different versions and steps.
+- table_1: problem
+  column_1: name
+  table_2: model_importance
+  column_2: name
+  meaning: |-
+    A problem can have multiple model importance scores recorded across different versions and steps.
+- table_1: problem
+  column_1: name
+  table_2: model
+  column_2: name
+  meaning: A problem can have multiple model configurations.
+- table_1: solution
+  column_1: name
+  table_2: model_score
+  column_2: name
+  meaning: |-
+    Model scores are recorded for specific problem solutions/experiment versions.
+- table_1: solution
+  column_1: version
+  table_2: model_score
+  column_2: version
+  meaning: |-
+    Model scores are recorded for specific problem solutions/experiment versions.
+- table_1: model
+  column_1: name
+  table_2: model_score
+  column_2: name
+  meaning: |-
+    Model configurations are associated with specific steps and versions of a problem, for which scores are recorded.
+- table_1: model
+  column_1: version
+  table_2: model_score
+  column_2: version
+  meaning: |-
+    Model configurations are associated with specific steps and versions of a problem, for which scores are recorded.
+- table_1: model
+  column_1: step
+  table_2: model_score
+  column_2: step
+  meaning: |-
+    Model configurations are associated with specific steps and versions of a problem, for which scores are recorded.
+- table_1: model_score
+  column_1: name, version, step
+  table_2: model
+  column_2: name, version, step
+  meaning: |-
+    Links specific model scores to the corresponding model architecture and step.
+- table_1: model_score
+  column_1: name, version
+  table_2: solution
+  column_2: name, version
+  meaning: |-
+    Links model scores to the overall solution for a problem version.
+- table_1: solution
+  column_1: name
+  table_2: model
+  column_2: name
+  meaning: Models are part of a solution for a problem.
+- table_1: solution
+  column_1: version
+  table_2: model
+  column_2: version
+  meaning: Models are part of a specific version of a solution.
+- table_1: model
+  column_1: name
+  table_2: model_importance
+  column_2: name
+  meaning: |-
+    Model importance is linked to specific models within a problem.
+- table_1: model
+  column_1: version
+  table_2: model_importance
+  column_2: version
+  meaning: Model importance is linked to specific model versions.
+- table_1: model
+  column_1: step
+  table_2: model_importance
+  column_2: step
+  meaning: Model importance is linked to specific model steps.
+- table_1: model
+  column_1: name
+  table_2: feature_importance
+  column_2: name
+  meaning: |-
+    Feature importance is linked to specific models within a problem.
+- table_1: model
+  column_1: version
+  table_2: feature_importance
+  column_2: version
+  meaning: Feature importance is linked to specific model versions.
+- table_1: model
+  column_1: step
+  table_2: feature_importance
+  column_2: step
+  meaning: Feature importance is linked to specific model steps.
+synonyms:
+- nl_term: problems
+  db_target: problem.name
+  type: column
+- nl_term: total number of times they appear in the solution table
+  db_target: COUNT(*) FROM solution GROUP BY name
+  type: value
+- nl_term: across steps 1, 2, and 3
+  db_target: model_score.step IN (1, 2, 3)
+  type: condition
+- nl_term: non-"Stack" model's maximum test score
+  db_target: |-
+    MAX(model_score.test_score) WHERE model_score.model != 'Stack'
+  type: value
+- nl_term: '"Stack" model''s test score'
+  db_target: model_score.test_score WHERE model_score.model = 'Stack'
+  type: value
+- nl_term: lower than
+  db_target: <
+  type: condition
+- nl_term: L1 model type
+  db_target: model.L1_model
+  type: column
+- nl_term: model name
+  db_target: model.name
+  type: column
+- nl_term: model version
+  db_target: model.version
+  type: column
+- nl_term: strong status
+  db_target: max_non_stack_score < stack_score
+  type: condition
+- nl_term: soft status
+  db_target: max_non_stack_score = stack_score
+  type: condition
+- nl_term: test score
+  db_target: model_score.test_score
+  type: column
+- nl_term: Stack model
+  db_target: model_score.model = 'Stack'
+  type: condition
+- nl_term: non-Stack model
+  db_target: model_score.model != 'Stack'
+  type: condition
+- nl_term: occurrence count
+  db_target: occurrence_count
+  type: value
+- nl_term: problem identifier
+  db_target: problem.name
+  type: column
+- nl_term: model step
+  db_target: model.step
+  type: column
+- nl_term: model category
+  db_target: model.L1_model
+  type: column
+- nl_term: total count
+  db_target: total_count
+  type: value
+- nl_term: most frequently
+  db_target: ORDER BY total_count DESC LIMIT 1
+  type: condition
+biz_logic:
+- metric_name: Stack Model Test Score
+  sql_logic: |-
+    SELECT test_score
+    FROM model_score
+    WHERE model = 'Stack'
+      AND step IN (1, 2, 3)
+- metric_name: Max Non-Stack Model Test Score
+  sql_logic: |-
+    SELECT MAX(test_score)
+    FROM model_score
+    WHERE model != 'Stack'
+      AND step IN (1, 2, 3)
+    GROUP BY name, VERSION, step
+- metric_name: Stacking Outperformance Indicator
+  sql_logic: nsms.max_non_stack_test_score < ss.stack_test_score
+- metric_name: Count of Stacking Outperformance Events
+  sql_logic: |-
+    SELECT COUNT(*)
+    FROM StackingOutperformancePerStep
+    GROUP BY name
+- metric_name: Total Solution Occurrences per Problem
+  sql_logic: |-
+    SELECT COUNT(*)
+    FROM solution
+    GROUP BY name
+- metric_name: |-
+    Problems with Stacking Outperformance Exceeding Total Solutions
+  sql_logic: |-
+    SELECT soc.name
+    FROM StackingOutperformanceCounts AS soc
+    INNER JOIN TotalSolutionOccurrences AS tso ON soc.name = tso.name
+    WHERE soc.stacking_outperformance_count > tso.total_solution_occurrences
+- metric_name: Model Step Status
+  sql_logic: |-
+    CASE WHEN max_non_stack_score < stack_score THEN 'strong' WHEN max_non_stack_score = stack_score THEN 'soft' ELSE NULL
+    END
+- metric_name: Model Final Status
+  sql_logic: MAX(step_status)
+- metric_name: L1 Model Occurrence Count
+  sql_logic: COUNT(*)
+- metric_name: Rank of L1 Model by Occurrence
+  sql_logic: |-
+    DENSE_RANK() OVER (PARTITION BY final_status
+                       ORDER BY occurrence_count DESC)
+- metric_name: most_frequent_L1_model
+  sql_logic: |-
+    WITH CategoryCounts AS
+      (SELECT L1_model, COUNT(*) AS total_count
+       FROM model
+       GROUP BY L1_model)
+    SELECT L1_model, total_count
+    FROM CategoryCounts
+    ORDER BY total_count DESC
+    LIMIT 1;

@@ -1,0 +1,126 @@
+databases:
+- Airlines
+descriptions:
+- table: aircrafts_data
+  column: aircraft_code
+  meaning: Unique identifier for an aircraft model.
+- table: aircrafts_data
+  column: model
+  meaning: |-
+    JSONB field containing the model name of the aircraft, potentially in multiple languages.
+- table: aircrafts_data
+  column: range
+  meaning: The maximum operational range of the aircraft in kilometers.
+- table: airports_data
+  column: airport_code
+  meaning: Unique identifier for an airport.
+- table: airports_data
+  column: airport_name
+  meaning: |-
+    JSONB field containing the name of the airport, potentially in multiple languages.
+- table: airports_data
+  column: city
+  meaning: |-
+    JSONB field containing the city name where the airport is located, potentially in multiple languages.
+- table: airports_data
+  column: coordinates
+  meaning: |-
+    Geographical coordinates (latitude, longitude) of the airport as a point type.
+- table: airports_data
+  column: timezone
+  meaning: Timezone of the airport.
+- table: flights
+  column: flight_id
+  meaning: Unique identifier for a flight.
+- table: flights
+  column: flight_no
+  meaning: Flight number.
+- table: flights
+  column: scheduled_departure
+  meaning: Scheduled departure date and time.
+- table: flights
+  column: scheduled_arrival
+  meaning: Scheduled arrival date and time.
+- table: flights
+  column: departure_airport
+  meaning: Code of the airport from which the flight departs.
+- table: flights
+  column: arrival_airport
+  meaning: Code of the airport where the flight arrives.
+- table: flights
+  column: status
+  meaning: |-
+    Current status of the flight (e.g., 'Scheduled', 'Departed', 'Arrived').
+- table: flights
+  column: aircraft_code
+  meaning: Code of the aircraft used for the flight.
+- table: flights
+  column: actual_departure
+  meaning: Actual departure date and time.
+- table: flights
+  column: actual_arrival
+  meaning: Actual arrival date and time.
+relations:
+- table_1: flights
+  column_1: departure_airport
+  table_2: airports_data
+  column_2: airport_code
+  meaning: Links a flight to its departure airport details.
+- table_1: flights
+  column_1: arrival_airport
+  table_2: airports_data
+  column_2: airport_code
+  meaning: Links a flight to its arrival airport details.
+- table_1: flights
+  column_1: aircraft_code
+  table_2: aircrafts_data
+  column_2: aircraft_code
+  meaning: Links a flight to the aircraft used for that flight.
+synonyms:
+- nl_term: Abakan
+  db_target: Abakan
+  type: value
+- nl_term: distance
+  db_target: distance_km
+  type: column
+- nl_term: longest route
+  db_target: MAX(distance_km)
+  type: metric
+- nl_term: departure city
+  db_target: flights.departure_airport
+  type: column
+- nl_term: destination city
+  db_target: flights.arrival_airport
+  type: column
+- nl_term: kilometers
+  db_target: distance_km
+  type: value
+biz_logic:
+- metric_name: Longest Route Distance from/to Abakan
+  sql_logic: |-
+    WITH AbakanAirport AS
+      (SELECT airport_code
+       FROM airports_data
+       WHERE city ->> 'en' = 'Abakan'),
+         AbakanRoutes AS
+      (SELECT DISTINCT T1.departure_airport, T1.arrival_airport
+       FROM flights AS T1
+       JOIN AbakanAirport AS T2 ON T1.departure_airport = T2.airport_code
+       OR T1.arrival_airport = T2.airport_code),
+         AirportCoords AS
+      (SELECT airport_code,
+              CAST(SUBSTR(coordinates, 2, INSTR(coordinates,
+                                            ',') - 2) AS REAL) AS longitude,
+              CAST(SUBSTR(coordinates,
+                     INSTR(coordinates, ',') + 1,
+                     LENGTH(coordinates) - (INSTR(coordinates,
+                                              ',') + 1) - 1) AS REAL) AS latitude
+       FROM airports_data),
+         RouteDistances AS
+      (SELECT dep.latitude AS lat1, dep.longitude AS lon1, arr.latitude AS lat2, arr.longitude AS lon2,
+              (6371 * 2 * ASIN(SQRT((SIN(((arr.latitude - dep.latitude) * PI() / 180.0) / 2)) * (SIN(((arr.latitude - dep.latitude) * PI() / 180.0) / 2)) + COS(dep.latitude * PI() / 180.0) * COS(arr.latitude * PI() / 180.0) * (SIN(((arr.longitude - dep.longitude) * PI() / 180.0) / 2)) * (SIN(((arr.longitude - dep.longitude) * PI() / 180.0) / 2))))) AS distance_km
+       FROM AbakanRoutes AS ar
+       JOIN AirportCoords AS dep ON ar.departure_airport = dep.airport_code
+       JOIN AirportCoords AS arr ON ar.arrival_airport = arr.airport_code)
+    SELECT MAX(distance_km)
+    FROM RouteDistances;

@@ -1,0 +1,62 @@
+databases:
+- bank_sales_trading
+descriptions:
+- table: veg_whsle_df
+  column: item_code
+  meaning: Unique identifier for a product item in wholesale data.
+- table: veg_loss_rate_df
+  column: item_code
+  meaning: Unique identifier for a product item in loss rate data.
+- table: veg_loss_rate_df
+  column: loss_rate_%
+  meaning: The percentage of loss recorded for a specific product item.
+relations:
+- table_1: veg_whsle_df
+  column_1: item_code
+  table_2: veg_loss_rate_df
+  column_2: item_code
+  meaning: |-
+    Links product items from wholesale records to their corresponding loss rate information.
+synonyms:
+- nl_term: veg whsle data
+  db_target: veg_whsle_df
+  type: table
+- nl_term: items' loss rates
+  db_target: veg_loss_rate_df."loss_rate_%"
+  type: column
+- nl_term: average loss rate
+  db_target: AVG("loss_rate_%")
+  type: value
+- nl_term: count of items
+  db_target: COUNT(item_code)
+  type: value
+- nl_term: below, above, and within one standard deviation
+  db_target: loss_rate_category
+  type: column
+biz_logic:
+- metric_name: average_loss_rate
+  sql_logic: |-
+    SELECT AVG("loss_rate_%")
+    FROM RelevantLossRates
+- metric_name: std_dev_loss_rate
+  sql_logic: |-
+    SELECT CASE WHEN COUNT(T1."loss_rate_%") <= 1 THEN 0.0
+               ELSE SQRT(SUM((T1."loss_rate_%" -
+                                (SELECT avg_loss_rate
+                                 FROM AvgLossRate)) * (T1."loss_rate_%" -
+                                                         (SELECT avg_loss_rate
+                                                          FROM AvgLossRate))) / (COUNT(T1."loss_rate_%") - 1.0))
+           END
+    FROM RelevantLossRates AS T1
+- metric_name: items_below_1_std_dev
+  sql_logic: |-
+    COUNT(CASE WHEN loss_rate_category = 'Below 1 Std Dev' THEN 1
+          END)
+- metric_name: items_within_1_std_dev
+  sql_logic: |-
+    COUNT(CASE WHEN loss_rate_category = 'Within 1 Std Dev' THEN 1
+          END)
+- metric_name: items_above_1_std_dev
+  sql_logic: |-
+    COUNT(CASE WHEN loss_rate_category = 'Above 1 Std Dev' THEN 1
+          END)

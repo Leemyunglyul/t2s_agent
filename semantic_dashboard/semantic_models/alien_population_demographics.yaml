@@ -1,0 +1,64 @@
+databases:
+- city_legislation
+descriptions:
+- table: alien_data
+  column: id
+  meaning: Unique identifier for an alien.
+- table: alien_data
+  column: state
+  meaning: The geographical state where the alien resides.
+- table: alien_data
+  column: aggressive
+  meaning: |-
+    Indicator of an alien's temperament (1 for aggressive, 0 for friendly).
+- table: alien_data
+  column: age
+  meaning: The age of the alien.
+relations: []
+synonyms:
+- nl_term: alien population
+  db_target: alien_data.id
+  type: column
+- nl_term: friendly aliens
+  db_target: alien_data.aggressive = 0
+  type: condition
+- nl_term: hostile aliens
+  db_target: alien_data.aggressive = 1
+  type: condition
+- nl_term: alien age
+  db_target: alien_data.age
+  type: column
+- nl_term: states
+  db_target: alien_data.state
+  type: column
+- nl_term: top 10 states by alien population
+  db_target: state_rank <= 10
+  type: condition
+- nl_term: higher percentage of friendly aliens than hostile aliens
+  db_target: friendly_aliens_count > hostile_aliens_count
+  type: condition
+- nl_term: average alien age exceeding 200
+  db_target: average_alien_age > 200
+  type: condition
+biz_logic:
+- metric_name: count_of_qualifying_states
+  sql_logic: |-
+    WITH state_metrics AS
+      (SELECT state, COUNT(id) AS total_alien_population,
+              SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0
+                  END) AS friendly_aliens_count,
+              SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0
+                  END) AS hostile_aliens_count, AVG(age) AS average_alien_age
+       FROM alien_data
+       GROUP BY state),
+         ranked_states AS
+      (SELECT state, total_alien_population, friendly_aliens_count, hostile_aliens_count,
+              average_alien_age,
+              DENSE_RANK() OVER (
+                                 ORDER BY total_alien_population DESC) AS state_rank
+       FROM state_metrics)
+    SELECT COUNT(DISTINCT state)
+    FROM ranked_states
+    WHERE state_rank <= 10
+      AND friendly_aliens_count > hostile_aliens_count
+      AND average_alien_age > 200;
