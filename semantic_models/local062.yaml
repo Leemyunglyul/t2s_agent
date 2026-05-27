@@ -20,3 +20,5 @@ synonyms: []
 biz_logic:
 - metric_name: profit
   sql_logic: sales.quantity_sold * (costs.unit_price - costs.unit_cost)
+- metric_name: total_profit
+  sql_logic: SUM(sales.quantity_sold * (costs.unit_price - costs.unit_cost))

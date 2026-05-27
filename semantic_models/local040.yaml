@@ -8,11 +8,7 @@ descriptions:
 - table: income_trees
   column: Estimate_Mean_income
   meaning: Only values greater than 0 are considered valid for this analysis.
-relations:
-- table_1: trees
-  column_1: zipcode
-  table_2: income_trees
-  column_2: zipcode
+relations: []
 synonyms: []
 biz_logic:
 - metric_name: tree_count_per_borough

@@ -33,69 +33,117 @@ logger = logging.getLogger("langgraph_agent")
 
 embed_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def get_few_shot_examples(db_id: str, current_question: str, n: int = 2) -> str:
+def mask_sql_literals(sql: str) -> str:
     """
-    ChromaDB를 사용하여 의미론적으로 가장 유사한 과거 정답 사례를 추출합니다.
+    [SQL 마스킹 유틸리티] 
+    숫자와 문자열 리터럴을 플레이스홀더로 치환하여 쿼리의 논리적 구조만 남깁니다.
+    """
+    # 1. 문자열 리터럴 마스킹 (작은따옴표, 큰따옴표 모두 처리)
+    sql = re.sub(r"'.*?'", "'[STR]'", sql)
+    sql = re.sub(r'".*?"', '"[STR]"', sql)
+    # 2. 숫자 리터럴 마스킹 (단어 경계 \b를 사용하여 테이블/컬럼명에 붙은 숫자 보호)
+    sql = re.sub(r"\b\d+\b", "[NUM]", sql)
+    return sql
+
+def get_few_shot_examples(current_db_id: str, current_question: str, n: int = 2) -> str:
+    """
+    [하이브리드 RAG]
+    1순위: 동일 DB의 유사 쿼리 (그대로 제공)
+    2순위: 타 DB의 유사 쿼리 (마스킹하여 구조만 제공)
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     gold_file_path = os.path.join(current_dir, "..", "gold_sql.jsonl")
-    db_path = os.path.join(current_dir, "..", "chroma_db") # 벡터 DB 저장 경로
+    db_path = os.path.join(current_dir, "..", "chroma_db") 
     
     if not os.path.exists(gold_file_path):
         return ""
 
     try:
-        # 1. ChromaDB 클라이언트 초기화 (로컬 저장 방식)
         client = chromadb.PersistentClient(path=db_path)
-        
-        # 2. DB별로 컬렉션 관리 (이미 있으면 가져오고 없으면 생성)
-        # 컬렉션 이름은 영문/숫자만 가능하므로 db_id를 정제하여 사용
-        collection_name = f"few_shot_{db_id.replace('-', '_')}"
-        collection = client.get_or_create_collection(name=collection_name)
+        collection = client.get_or_create_collection(name="global_gold_sqls_hybrid")
 
-        # 3. 데이터 동기화 (gold_sql.jsonl의 내용이 DB에 없으면 인덱싱)
-        # 실시간으로 추가되는 gold_sql을 반영하기 위해 count 체크
         with open(gold_file_path, 'r', encoding='utf-8') as f:
             gold_data = [json.loads(line) for line in f if line.strip()]
-            db_specific_gold = [item for item in gold_data if item.get("db") == db_id]
 
-        if collection.count() < len(db_specific_gold):
-            logger.info(f"🔄 DB [{db_id}] 신규 Gold SQL 인덱싱 중...")
-            questions = [item['question'] for item in db_specific_gold]
-            # 질문들을 벡터로 변환
-            embeddings = embed_model.encode(questions).tolist()
+        if collection.count() < len(gold_data):
+            logger.info("🔄 [Hybrid RAG] 통합 글로벌 벡터 스페이스 갱신 중...")
+            ids, documents, embeddings, metadatas = [], [], [], []
             
-            # 벡터 DB에 저장
-            collection.add(
-                embeddings=embeddings,
-                documents=questions,
-                metadatas=[{"gold_sql": item['gold_sql']} for item in db_specific_gold],
-                ids=[f"id_{i}" for i in range(len(db_specific_gold))]
-            )
+            for i, item in enumerate(gold_data):
+                q = item.get("question", "")
+                sql = item.get("gold_sql", "")
+                
+                ids.append(f"gold_{i}")
+                documents.append(q)
+                embeddings.append(embed_model.encode(q).tolist())
+                metadatas.append({
+                    "db_id": item.get("db", "unknown"),
+                    "gold_sql": sql,
+                    "masked_sql": mask_sql_literals(sql)
+                })
+            
+            collection.upsert(ids=ids, embeddings=embeddings, documents=documents, metadatas=metadatas)
 
         if collection.count() == 0:
             return ""
 
-        # 4. 현재 질문과 유사한 Top-N 검색
         query_embedding = embed_model.encode([current_question]).tolist()
         results = collection.query(
             query_embeddings=query_embedding,
-            n_results=min(n, collection.count())
+            n_results=min(10, collection.count())
         )
 
-        # 5. 검색 결과 포맷팅
+        if not results['documents'] or not results['documents'][0]:
+            return ""
+
+        same_db_examples = []
+        cross_db_examples = []
+
+        for q, meta, dist in zip(results['documents'][0], results['metadatas'][0], results['distances'][0]):
+            # [추가된 로직] 현재 질문과 완전히 동일한 few-shot(정답 유출) 배제
+            if q.strip() == current_question.strip():
+                continue
+
+            example = {
+                "question": q,
+                "db_id": meta["db_id"],
+                "gold_sql": meta["gold_sql"],
+                "masked_sql": meta["masked_sql"],
+                "distance": dist
+            }
+            if meta["db_id"] == current_db_id:
+                same_db_examples.append(example)
+            else:
+                cross_db_examples.append(example)
+
+        selected_examples = same_db_examples[:n]
+        if len(selected_examples) < n:
+            needed = n - len(selected_examples)
+            selected_examples.extend(cross_db_examples[:needed])
+
+        if not selected_examples:
+            return ""
+
         few_shot_text = "\n# [FEW-SHOT EXAMPLES (SEMANTICALLY SIMILAR)]\n"
-        few_shot_text += "Use the following successful patterns to guide your SQL generation:\n\n"
+        few_shot_text += "Use the following successful patterns to guide your SQL generation.\n"
+        few_shot_text += "🚨 CRITICAL RULE: For 'Cross-DB Structural Reference' examples, DO NOT copy their table or column names. They are from a different database. Use them ONLY to understand the logical skeleton (e.g., CTE structures, Window functions). ALWAYS use the exact names from your [Filtered Schema].\n\n"
         
-        # results['documents'][0]은 유사한 질문 리스트, results['metadatas'][0]은 해당 SQL 정보
-        for q, meta in zip(results['documents'][0], results['metadatas'][0]):
-            few_shot_text += f"Example Question: {q}\n"
-            few_shot_text += f"Example SQL: {meta['gold_sql']}\n\n"
+        for idx, ex in enumerate(selected_examples):
+            is_same_db = (ex["db_id"] == current_db_id)
+            match_type = "Same-DB Exact Match" if is_same_db else "Cross-DB Structural Reference"
+            
+            sql_to_show = ex["gold_sql"] if is_same_db else ex["masked_sql"]
+            
+            logger.info(f"🔍 [RAG 매칭 {idx+1}] 타입: {match_type} | 유사도(Dist): {ex['distance']:.4f} | DB: {ex['db_id']}")
+            
+            few_shot_text += f"--- Example {idx+1} ({match_type}) ---\n"
+            few_shot_text += f"Question: {ex['question']}\n"
+            few_shot_text += f"SQL:\n{sql_to_show}\n\n"
             
         return few_shot_text
 
     except Exception as e:
-        logger.warning(f"임베딩 기반 Few-shot 추출 중 에러: {e}")
+        logger.warning(f"하이브리드 Few-shot 추출 중 에러: {e}")
         return ""
 
 def clean_json_string(raw_string: str) -> str:
@@ -533,7 +581,8 @@ def query_planning_node(state: AgentState) -> Dict[str, Any]:
     few_shots = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
     domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shots}\n" if (domain_rules or few_shots) else ""
-        
+    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
+    
     dynamic_planner_system = QUERY_PLANNING_SYSTEM + domain_prompt
     
     user_content = (
@@ -587,6 +636,7 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     few_shot = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
     domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
+    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
 
     dynamic_system_prompt = f"{SQL_WRITER_PERSONA}\n\n{SQL_GENERATION_SYSTEM}\n{domain_prompt}"
     
@@ -652,6 +702,7 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
 
     few_shot = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
+    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
     domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
 
     # 시스템 프롬프트에 선택된 가이드라인 동적 주입

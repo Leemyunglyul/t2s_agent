@@ -31,10 +31,10 @@ synonyms:
   - nl_term: "container, item"
     db_target: "packaging"
     type: "table"
-  - nl_term: "leaf items"
+  - nl_term: "leaf items, base items"
     db_target: "packaging.id NOT IN (SELECT packaging_id FROM packaging_relations)"
     type: "condition"
-  - nl_term: "top-level packages"
+  - nl_term: "top-level packages, top-level container"
     db_target: "packaging.id NOT IN (SELECT contains_id FROM packaging_relations)"
     type: "condition"
 biz_logic:
@@ -44,12 +44,12 @@ biz_logic:
   - metric_name: "Cumulative Quantity in Hierarchy"
     sql_logic: |
       parent_cumulative_qty * current_level_qty
-  - metric_name: "Average Total Leaf Quantity"
-    sql_logic: |
-      AVG(COALESCE(total_leaf_quantity, 1.0))
   - metric_name: "average_quantity_picked"
     sql_logic: |
       AVG(picking_line.qty)
   - metric_name: "Product Display Order by Pick Start"
     sql_logic: |
       ORDER BY MIN(picking_list.created)
+  - metric_name: "Average Leaf Items per Top-Level Package"
+    sql_logic: |
+      AVG(total_leaf_quantity)

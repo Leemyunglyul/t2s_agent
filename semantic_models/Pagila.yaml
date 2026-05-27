@@ -38,3 +38,6 @@ biz_logic:
   - metric_name: "total rental hours"
     sql_logic: |
       SUM(film.rental_duration * 24)
+  - metric_name: "Rank by Total Rental Hours"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY total_rental_hours DESC)

@@ -1,7 +1,4 @@
-descriptions:
-- table: cities
-  column: insert_date
-  meaning: The date a city record was added to the database.
+descriptions: []
 relations: []
 synonyms: []
 biz_logic:
@@ -10,7 +7,7 @@ biz_logic:
 - metric_name: month
   sql_logic: CAST(STRFTIME('%m', insert_date) AS INTEGER)
 - metric_name: monthly_total
-  sql_logic: COUNT(city_id)
+  sql_logic: COUNT(DISTINCT city_id)
 - metric_name: cumulative_running_total
   sql_logic: SUM(monthly_total) OVER (PARTITION BY month ORDER BY year)
 - metric_name: previous_year_monthly_total

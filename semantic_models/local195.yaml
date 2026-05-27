@@ -8,9 +8,22 @@ biz_logic:
 - metric_name: Actor Rank by Rental Count
   sql_logic: DENSE_RANK() OVER (ORDER BY rental_count DESC)
 - metric_name: Actor Rental Count
-  sql_logic: COUNT(rental.rental_id) GROUP BY actor.actor_id
-- metric_name: Percentage of Customers Renting from Top 5 Actors
-  sql_logic: (CAST(COUNT(DISTINCT CustomersRentingFromTopActors.customer_id) AS DECIMAL)
-    * 100.0) / TotalCustomerCount.total_customers
+  sql_logic: SELECT T1.actor_id, COUNT(T4.rental_id) FROM actor AS T1 JOIN film_actor
+    AS T2 ON T1.actor_id = T2.actor_id JOIN inventory AS T3 ON T2.film_id = T3.film_id
+    JOIN rental AS T4 ON T3.inventory_id = T4.inventory_id GROUP BY T1.actor_id
 - metric_name: Total Customer Count
   sql_logic: SELECT COUNT(DISTINCT customer_id) FROM customer
+- metric_name: Percentage of Customers Renting from Top 5 Actors
+  sql_logic: WITH ActorRentalCounts AS (SELECT T1.actor_id, T1.first_name, T1.last_name,
+    COUNT(T4.rental_id) AS rental_count FROM actor AS T1 INNER JOIN film_actor AS
+    T2 ON T1.actor_id = T2.actor_id INNER JOIN inventory AS T3 ON T2.film_id = T3.film_id
+    INNER JOIN rental AS T4 ON T3.inventory_id = T4.inventory_id GROUP BY T1.actor_id,
+    T1.first_name, T1.last_name), Top5Actors AS (SELECT actor_id FROM (SELECT actor_id,
+    DENSE_RANK() OVER (ORDER BY rental_count DESC) AS actor_rank FROM ActorRentalCounts)
+    WHERE actor_rank <= 5), CustomersRentingFromTopActors AS (SELECT DISTINCT T4.customer_id
+    FROM Top5Actors AS T1 INNER JOIN film_actor AS T2 ON T1.actor_id = T2.actor_id
+    INNER JOIN inventory AS T3 ON T2.film_id = T3.film_id INNER JOIN rental AS T4
+    ON T3.inventory_id = T4.inventory_id), TotalCustomerCount AS (SELECT COUNT(DISTINCT
+    customer_id) AS total_customers FROM customer) SELECT CAST(COUNT(T1.customer_id)
+    AS REAL) * 100 / T2.total_customers FROM CustomersRentingFromTopActors AS T1,
+    TotalCustomerCount AS T2

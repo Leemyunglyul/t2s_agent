@@ -2,19 +2,23 @@ descriptions:
   - table: "sales"
     column: "promo_id"
     meaning: |
-      A value of 999 indicates a special promotion type, likely 'No Promotion' or a baseline for sales without specific promotional activity.
+      A value of 999 indicates sales that are not associated with a specific promotion, often used as a baseline for sales without promotional activity.
   - table: "promotions"
     column: "promo_total_id"
     meaning: |
-      The value '1' is used to filter for an aggregate category of promotions, such as 'All Promotions' or 'No Promotion'.
+      A value of 1 represents the 'Total' or 'All' promotions category, used for broad sales analysis without filtering for a specific promotion.
   - table: "channels"
     column: "channel_total_id"
     meaning: |
-      The value '1' is used to filter for an aggregate category of channels, such as 'All Channels'.
+      A value of 1 represents the 'Total' or 'All' channels category, used for broad sales analysis without filtering for a specific channel.
   - table: "times"
     column: "calendar_month_number"
     meaning: |
       The numeric representation of the month, where 12 corresponds to December.
+  - table: "times"
+    column: "calendar_quarter_id"
+    meaning: |
+      Identifier for the calendar quarter. The value 1772 corresponds to Q4 2019, and 1776 corresponds to Q4 2020.
 relations:
   - table_1: "sales"
     column_1: "[prod_id, time_id, promo_id, channel_id]"
@@ -39,12 +43,18 @@ synonyms:
   - nl_term: "December 2021"
     db_target: "times.calendar_year = 2021 AND times.calendar_month_number = 12"
     type: "condition"
-  - nl_term: "profit"
-    db_target: "sales.amount_sold - (AVG(costs.unit_cost) * sales.quantity_sold)"
+  - nl_term: "profit, sale profit"
+    db_target: "sales.amount_sold - (costs.unit_cost * sales.quantity_sold)"
     type: "column"
-  - nl_term: "customer profit tiers"
+  - nl_term: "total customer profit"
+    db_target: "SUM(sales.amount_sold - (costs.unit_cost * sales.quantity_sold))"
+    type: "column"
+  - nl_term: "customer profit tiers, profit tiers"
     db_target: "NTILE(10) OVER (ORDER BY SUM(sales.amount_sold - (costs.unit_cost * sales.quantity_sold)) ASC)"
     type: "column"
+  - nl_term: "no promotion sales"
+    db_target: "sales.promo_id = 999"
+    type: "condition"
 biz_logic:
   - metric_name: "Growing Cities"
     sql_logic: |
@@ -70,7 +80,7 @@ biz_logic:
   - metric_name: "Customer Profit Tiers (Decile)"
     sql_logic: |
       NTILE(10) OVER (ORDER BY total_profit ASC)
-  - metric_name: "Projected Sales (YoY Growth Method)"
+  - metric_name: "Projected Sales (YoY Growth Method/Extrapolation)"
     sql_logic: |
       s20.monthly_sales * (s20.monthly_sales * 1.0 / NULLIF(s19.monthly_sales, 0))
   - metric_name: "Projected Sales in USD"
@@ -82,3 +92,9 @@ biz_logic:
   - metric_name: "profit"
     sql_logic: |
       sales.quantity_sold * (costs.unit_price - costs.unit_cost)
+  - metric_name: "total_profit"
+    sql_logic: |
+      SUM(sales.quantity_sold * (costs.unit_price - costs.unit_cost))
+  - metric_name: "Median Calculation (Window Function Method)"
+    sql_logic: |
+      SELECT AVG(value_column) FROM (SELECT value_column, ROW_NUMBER() OVER (ORDER BY value_column) AS rn, COUNT(*) OVER () AS total_count FROM source_table) AS Ranked WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)

@@ -19,13 +19,6 @@ synonyms:
 - nl_term: bowler
   db_target: ball_by_ball.bowler
   type: column
-- nl_term: total runs
-  db_target: SUM(batsman_scored.runs_scored)
-  type: column
-- nl_term: total wickets
-  db_target: COUNT(*) FROM wicket_taken WHERE kind_out NOT IN ('run out', 'hit wicket',
-    'retired hurt')
-  type: condition
 - nl_term: top 3
   db_target: ROW_NUMBER() OVER (...) <= 3
   type: condition

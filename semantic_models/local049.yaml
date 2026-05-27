@@ -20,6 +20,17 @@ synonyms:
   type: column
 biz_logic:
 - metric_name: Top Industry by Company Count
-  sql_logic: SELECT T1.industry FROM companies_industries AS T1 JOIN companies_dates
+  sql_logic: SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates
     AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT
     T1.company_id) DESC LIMIT 1
+- metric_name: average_new_unicorn_companies_per_year
+  sql_logic: WITH TopIndustry AS (SELECT T1.industry FROM companies_industries AS
+    T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY
+    T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1), UnicornCompaniesInTopIndustry
+    AS (SELECT T1.company_id, STRFTIME('%Y', T2.date_joined) AS joined_year FROM companies_funding
+    AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id INNER
+    JOIN companies_industries AS T3 ON T1.company_id = T3.company_id WHERE T1.valuation
+    >= 1000000000 AND T3.industry = (SELECT industry FROM TopIndustry) AND STRFTIME('%Y',
+    T2.date_joined) BETWEEN '2019' AND '2021'), YearlyUnicornCounts AS (SELECT joined_year,
+    COUNT(DISTINCT company_id) AS yearly_unicorn_count FROM UnicornCompaniesInTopIndustry
+    GROUP BY joined_year) SELECT AVG(yearly_unicorn_count) FROM YearlyUnicornCounts

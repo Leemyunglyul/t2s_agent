@@ -2,11 +2,15 @@ descriptions:
   - table: "orders"
     column: "order_status"
     meaning: |
-      A value of 'FINISHED' indicates a completed order suitable for analytical calculations.
+      Indicates the current state of an order. A value of 'FINISHED' signifies a completed order that is valid for analytical calculations.
   - table: "deliveries"
     column: "driver_id"
     meaning: |
-      A NULL value indicates that no driver has been assigned to the delivery.
+      The unique identifier for the driver assigned to the delivery. A NULL value indicates that no driver has been assigned yet.
+  - table: "orders"
+    column: "order_created_month"
+    meaning: |
+      The month when the order was created, represented as a number (e.g., 2 for February, 3 for March).
 relations:
   - table_1: "deliveries"
     column_1: "delivery_order_id"
@@ -16,12 +20,16 @@ synonyms: []
 biz_logic:
   - metric_name: "Average Daily Deliveries per Driver"
     sql_logic: |
-      WITH CTE_DailyDeliveries AS (SELECT del.driver_id, o.order_created_year,
-      o.order_created_month, o.order_created_day, COUNT(DISTINCT del.delivery_id)
-      AS daily_delivery_count FROM deliveries AS del JOIN orders AS o ON del.delivery_order_id
-      = o.order_id WHERE del.driver_id IS NOT NULL GROUP BY del.driver_id, o.order_created_year,
-      o.order_created_month, o.order_created_day) SELECT driver_id, AVG(daily_delivery_count)
-      AS average_daily_deliveries FROM CTE_DailyDeliveries GROUP BY driver_id
+      WITH CTE_DailyDeliveries AS (SELECT del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day, COUNT(DISTINCT del.delivery_id) AS daily_delivery_count FROM deliveries AS del JOIN orders AS o ON del.delivery_order_id = o.order_id WHERE del.driver_id IS NOT NULL GROUP BY del.driver_id, o.order_created_year, o.order_created_month, o.order_created_day) SELECT driver_id, AVG(daily_delivery_count) AS average_daily_deliveries FROM CTE_DailyDeliveries GROUP BY driver_id
   - metric_name: "Percentage Increase in Monthly Orders"
     sql_logic: |
       (CAST(Current_Month_Orders AS DECIMAL) - Previous_Month_Orders) * 100.0 / Previous_Month_Orders
+  - metric_name: "Driver Rank by Average Daily Deliveries"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY average_daily_deliveries DESC)
+  - metric_name: "February Orders"
+    sql_logic: |
+      SUM(CASE WHEN order_created_month = 2 THEN TotalOrders ELSE 0 END)
+  - metric_name: "March Orders"
+    sql_logic: |
+      SUM(CASE WHEN order_created_month = 3 THEN TotalOrders ELSE 0 END)

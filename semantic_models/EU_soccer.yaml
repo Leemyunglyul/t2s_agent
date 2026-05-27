@@ -16,11 +16,14 @@ synonyms:
   - nl_term: "team"
     db_target: "Team"
     type: "table"
-  - nl_term: "team name"
+  - nl_term: "team name, champion team name"
     db_target: "Team.team_long_name"
     type: "column"
   - nl_term: "league name"
     db_target: "League.name"
+    type: "column"
+  - nl_term: "player"
+    db_target: "Player.player_name"
     type: "column"
   - nl_term: "wins"
     db_target: "number_of_wins"
@@ -31,6 +34,12 @@ synonyms:
   - nl_term: "loss count"
     db_target: "losses_count"
     type: "column"
+  - nl_term: "champion points"
+    db_target: "total_points"
+    type: "column"
+  - nl_term: "most"
+    db_target: "ORDER BY ... DESC"
+    type: "value"
   - nl_term: "top 10"
     db_target: "DENSE_RANK() OVER (ORDER BY ... DESC) ... WHERE rank_num <= 10"
     type: "value"
@@ -68,7 +77,7 @@ biz_logic:
   - metric_name: "Rank Teams by Wins"
     sql_logic: |
       DENSE_RANK() OVER (ORDER BY number_of_wins DESC)
-  - metric_name: "Rank Teams by Fewest Wins"
+  - metric_name: "Rank Teams by Wins (Ascending)"
     sql_logic: |
       SELECT league_id, team_id, total_wins, ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC) AS rank_num FROM TeamTotalWinsPerLeague
   - metric_name: "Rank Players by Wins"
@@ -122,12 +131,21 @@ biz_logic:
       FROM RankedGoals
       WHERE
           rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
-  - metric_name: "Match Points Calculation"
+  - metric_name: "Home Team Match Points"
     sql_logic: |
       CASE WHEN home_team_goal > away_team_goal THEN 3 WHEN home_team_goal = away_team_goal THEN 1 ELSE 0 END
-  - metric_name: "Team Rank by Season"
+  - metric_name: "Away Team Match Points"
+    sql_logic: |
+      CASE WHEN away_team_goal > home_team_goal THEN 3 WHEN away_team_goal = home_team_goal THEN 1 ELSE 0 END
+  - metric_name: "Total Points per Team per Season"
+    sql_logic: |
+      SUM(points_earned)
+  - metric_name: "Team Rank by Season and League"
     sql_logic: |
       ROW_NUMBER() OVER (PARTITION BY season, league_id ORDER BY total_points DESC)
   - metric_name: "Exclude Draw Matches"
     sql_logic: |
       WHERE home_team_goal != away_team_goal
+  - metric_name: "Combine Top Winners and Losers"
+    sql_logic: |
+      A UNION ALL is used to combine the results for players with the most wins (win_rank = 1) and players with the most losses (loss_rank = 1) into a single result set, adding a 'category' column to differentiate them.

@@ -2,7 +2,7 @@ descriptions:
   - table: "customergroupthreshold"
     column: "groupname"
     meaning: |
-      A named segment or tier for customers based on their spending.
+      A named segment or tier for customers based on their spending, such as 'Bronze', 'Silver', or 'Gold'.
   - table: "customergroupthreshold"
     column: "rangebottom"
     meaning: |
@@ -14,20 +14,26 @@ descriptions:
   - table: "orders"
     column: "shippeddate"
     meaning: |
-      An order is considered 'late' if its shippeddate is on or after its requireddate.
-relations: []
+      The date the order was shipped. An order is considered 'late' if this date is on or after its 'requireddate'.
+relations:
+  - table_1: "orders"
+    column_1: "customerid"
+    table_2: "customergroupthreshold"
+    column_2: "groupname"
+    meaning: |
+      This is a conceptual, non-equi join. A customer's 'total spending' (calculated as SUM(od.unitprice * od.quantity) from order_details joined on orderid) is used to find the corresponding 'groupname' from customergroupthreshold where the total spending falls between 'rangebottom' and 'rangetop'.
 synonyms:
-  - nl_term: "total spending"
+  - nl_term: "total spending, customer spending"
     db_target: "SUM(order_details.unitprice * order_details.quantity)"
     type: "value"
-  - nl_term: "spending group"
+  - nl_term: "spending group, customer tier"
     db_target: "customergroupthreshold.groupname"
     type: "column"
-  - nl_term: "number of customers"
+  - nl_term: "number of customers, customer count"
     db_target: "COUNT(DISTINCT customerid)"
     type: "value"
   - nl_term: "year 1998"
-    db_target: "STRFTIME('%Y', o.orderdate) = '1998'"
+    db_target: "STRFTIME('%Y', orders.orderdate) = '1998'"
     type: "condition"
   - nl_term: "late order"
     db_target: "shippeddate >= requireddate"
@@ -35,31 +41,22 @@ synonyms:
   - nl_term: "high-volume employee"
     db_target: "COUNT(orderid) > 50"
     type: "condition"
-  - nl_term: "percentage of customers"
-    db_target: "(ga.number_of_customers * 1.0 / tc.total_customer_count) * 100.0"
-    type: "value"
 biz_logic:
-  - metric_name: "Customer Spending Group Assignment"
+  - metric_name: "Total Customer Spending"
     sql_logic: |
-      A customer's spending group is determined by joining on the condition that their total spending (calculated as SUM(order_details.unitprice * order_details.quantity)) is between the 'rangebottom' and 'rangetop' values in the 'customergroupthreshold' table.
-  - metric_name: "Percentage of Total Customers by Group"
+      SUM(order_details.unitprice * order_details.quantity)
+  - metric_name: "Number of Unique Customers"
     sql_logic: |
-      (COUNT(customers in group) * 1.0 / COUNT(DISTINCT total customers in the same period)) * 100.0
+      COUNT(DISTINCT customerid)
   - metric_name: "Late Orders Count"
     sql_logic: |
       SUM(CASE WHEN shippeddate >= requireddate THEN 1 ELSE 0 END)
   - metric_name: "Late Order Percentage"
     sql_logic: |
       CAST(SUM(CASE WHEN shippeddate >= requireddate THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(orderid)
+  - metric_name: "Percentage of Total Customers by Group"
+    sql_logic: |
+      (COUNT(customers in group) * 1.0 / COUNT(DISTINCT total customers in the same period)) * 100.0
   - metric_name: "Employee Rank by Late Order Percentage"
     sql_logic: |
       DENSE_RANK() OVER (ORDER BY CAST(SUM(CASE WHEN shippeddate >= requireddate THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(orderid) DESC)
-  - metric_name: "Total Customer Spending"
-    sql_logic: |
-      SUM(order_details.unitprice * order_details.quantity)
-  - metric_name: "Number of Customers per Group"
-    sql_logic: |
-      COUNT(DISTINCT customerid)
-  - metric_name: "Total Unique Customers"
-    sql_logic: |
-      COUNT(DISTINCT customerid)

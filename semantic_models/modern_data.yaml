@@ -54,7 +54,7 @@ relations:
     column_2: "pizza_id"
     type: "hidden"
     join_condition: |
-      Indirect join: pizza_clean_customer_orders.pizza_id -> pizza_names.pizza_name, which maps to a recipe ID via a business rule (CASE WHEN pizza_name = 'Meatlovers' THEN 1 ELSE 2 END).
+      The join is indirect. pizza_clean_customer_orders.pizza_id is used to get pizza_names.pizza_name, which is then mapped to a recipe ID (pizza_recipes.pizza_id) via a business rule (CASE WHEN pizza_name = 'Meatlovers' THEN 1 ELSE 2 END).
   - table_1: "pizza_recipes"
     column_1: "toppings"
     table_2: "pizza_toppings"
@@ -118,11 +118,11 @@ biz_logic:
   - metric_name: "Final Pizza Ingredients Calculation"
     sql_logic: |
       The final ingredient list for an ordered pizza is calculated through a multi-step process:
-      1. Recipe Mapping: The pizza name is mapped to a recipe ID ('Meatlovers' -> 1, others -> 2).
-      2. ID Parsing: A recursive CTE unnests the comma-separated topping IDs from the base recipe, added extras, and removed exclusions. Empty or 'None' strings are handled as NULL.
-      3. Ingredient Aggregation: Base toppings and extras are combined, and then exclusions are removed from this set.
-      4. Formatting: Ingredients that appear more than once (e.g., in the base recipe and as an extra) are prefixed with '2x '.
-      5. Uniqueness: To handle multiple identical pizzas within the same order, a unique `row_id` is generated for each item using `ROW_NUMBER()`.
+      1. Order Item Uniqueness: To handle multiple identical pizzas within the same order, a unique `row_id` is generated for each item using `ROW_NUMBER()`.
+      2. Recipe Mapping: The pizza name is mapped to a recipe ID ('Meatlovers' -> 1, others -> 2) to get the base toppings.
+      3. ID Parsing: A recursive CTE unnests the comma-separated topping IDs from the base recipe (`toppings`), added `extras`, and removed `exclusions`. Empty or 'None' strings are handled as NULL using `NULLIF(TRIM(column), 'None')`.
+      4. Net Ingredient Calculation: The conceptual model is to sum quantities: +1 for each base topping, +1 for each extra, and -1 for each exclusion. This is implemented by combining base toppings and extras (UNION ALL), then removing exclusions (LEFT JOIN and check for NULL).
+      5. Formatting and Aggregation: Ingredients that appear more than once (e.g., in the base recipe and as an extra) are prefixed with '2x '. The final list is aggregated into a single string using `GROUP_CONCAT`, sorted to show '2x' items first, then alphabetically.
   - metric_name: "Total Order Revenue"
     sql_logic: |
       Total revenue is the sum of Base Pizza Revenue and Extras Revenue for all successful orders (where cancellation IS NULL). Base revenue is calculated as SUM(CASE WHEN pizza_name = 'Meatlovers' THEN 12 WHEN pizza_name = 'Vegetarian' THEN 10 END). Extras revenue is SUM(extras_count), where each extra costs $1.
@@ -141,3 +141,6 @@ biz_logic:
   - metric_name: "average_mean_income_per_borough"
     sql_logic: |
       AVG(Estimate_Mean_income) GROUP BY boroname
+  - metric_name: "average_new_unicorn_companies_per_year"
+    sql_logic: |
+      WITH TopIndustry AS (SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1), UnicornCompaniesInTopIndustry AS (SELECT T1.company_id, STRFTIME('%Y', T2.date_joined) AS joined_year FROM companies_funding AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id INNER JOIN companies_industries AS T3 ON T1.company_id = T3.company_id WHERE T1.valuation >= 1000000000 AND T3.industry = (SELECT industry FROM TopIndustry) AND STRFTIME('%Y', T2.date_joined) BETWEEN '2019' AND '2021'), YearlyUnicornCounts AS (SELECT joined_year, COUNT(DISTINCT company_id) AS yearly_unicorn_count FROM UnicornCompaniesInTopIndustry GROUP BY joined_year) SELECT AVG(yearly_unicorn_count) FROM YearlyUnicornCounts

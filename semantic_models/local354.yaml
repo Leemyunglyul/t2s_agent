@@ -1,6 +1,12 @@
 descriptions: []
 relations: []
-synonyms: []
+synonyms:
+- nl_term: 1950s
+  db_target: year BETWEEN 1950 AND 1959
+  type: condition
+- nl_term: team
+  db_target: constructors
+  type: table
 biz_logic:
 - metric_name: Eligible Driver Season
   sql_logic: A driver's season is eligible if they raced for the same constructor
@@ -8,3 +14,11 @@ biz_logic:
     rounds. The condition is `first_race_constructor_id = last_race_constructor_id
     AND distinct_rounds_count >= 2`, where these values are derived per driver per
     season.
+- metric_name: First Race Constructor of a Season
+  sql_logic: MAX(CASE WHEN ROW_NUMBER() OVER (PARTITION BY driver_id, year ORDER BY
+    round ASC) = 1 THEN constructor_id END)
+- metric_name: Last Race Constructor of a Season
+  sql_logic: MAX(CASE WHEN ROW_NUMBER() OVER (PARTITION BY driver_id, year ORDER BY
+    round DESC) = 1 THEN constructor_id END)
+- metric_name: Number of Races per Driver per Season
+  sql_logic: COUNT(DISTINCT round)

@@ -48,7 +48,11 @@ biz_logic:
     +1 for each base topping (from pizza_recipes.toppings), +1 for each extra topping
     (from pizza_clean_customer_orders.extras), and -1 for each excluded topping (from
     pizza_clean_customer_orders.exclusions).'
-- metric_name: Unnest Comma-Separated IDs
-  sql_logic: A recursive CTE can be used to parse comma-separated ID strings from
-    columns like 'toppings', 'extras', and 'exclusions' into separate rows for each
-    ID.
+- metric_name: Unnest Comma-Separated IDs (Recursive Pattern)
+  sql_logic: WITH RECURSIVE Split(item, rest_of_string) AS (SELECT TRIM(SUBSTR(csv_column,
+    1, INSTR(csv_column || ',', ',') - 1)), SUBSTR(csv_column, INSTR(csv_column ||
+    ',', ',') + 1) FROM source_table WHERE csv_column IS NOT NULL AND csv_column !=
+    '' UNION ALL SELECT TRIM(SUBSTR(rest_of_string, 1, INSTR(rest_of_string || ',',
+    ',') - 1)), SUBSTR(rest_of_string, INSTR(rest_of_string || ',', ',') + 1) FROM
+    Split WHERE rest_of_string != '') SELECT item FROM Split WHERE item IS NOT NULL
+    AND item != ''

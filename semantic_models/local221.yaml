@@ -13,6 +13,9 @@ synonyms:
 - nl_term: wins
   db_target: number_of_wins
   type: column
+- nl_term: most
+  db_target: ORDER BY ... DESC
+  type: value
 biz_logic:
 - metric_name: Number of Wins
   sql_logic: WITH wins AS (SELECT home_team_api_id AS team_id FROM Match WHERE home_team_goal

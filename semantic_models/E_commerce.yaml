@@ -3,7 +3,11 @@ descriptions:
     column: "customer_unique_id"
     meaning: |
       Unique identifier for a customer entity. A single customer can have multiple 'customer_id's, but they all map to one 'customer_unique_id'.
-relations: []
+relations:
+  - table_1: "products"
+    column_1: "product_category_name"
+    table_2: "product_category_name_translation"
+    column_2: "product_category_name"
 synonyms:
   - nl_term: "customer"
     db_target: "customers.customer_unique_id"
@@ -18,9 +22,39 @@ biz_logic:
   - metric_name: "customer_lifespan_weeks"
     sql_logic: |
       CASE WHEN (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp))) < 7 THEN 1.0 ELSE (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp))) / 7.0 END
+  - metric_name: "customer_rank_by_avg_payment"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY (SUM(order_payments.payment_value) / COUNT(DISTINCT orders.order_id)) DESC)
+  - metric_name: "daily_sales"
+    sql_logic: |
+      SUM(order_items.price) GROUP BY DATE(orders.order_purchase_timestamp)
+  - metric_name: "days_since_start_date"
+    sql_logic: |
+      JULIANDAY(date_column) - JULIANDAY('start_date')
+  - metric_name: "five_day_simple_moving_average"
+    sql_logic: |
+      AVG(value_column) OVER (ORDER BY date_column ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING)
+  - metric_name: "linear_regression_intercept"
+    sql_logic: |
+      (SUM(y) - slope * SUM(x)) / N
+  - metric_name: "linear_regression_prediction"
+    sql_logic: |
+      slope * (JULIANDAY(date_column) - JULIANDAY('start_date')) + intercept
+  - metric_name: "linear_regression_slope"
+    sql_logic: |
+      (N * SUM(x * y) - SUM(x) * SUM(y)) / (N * SUM(x*x) - SUM(x) * SUM(x))
   - metric_name: "number of orders per customer"
     sql_logic: |
       COUNT(DISTINCT orders.order_id)
+  - metric_name: "predicted_value_linear_regression"
+    sql_logic: |
+      ( (N * sum_xy - sum_x * sum_y) / (N * sum_x_squared - sum_x * sum_x) ) * x + ( (sum_y - ( (N * sum_xy - sum_x * sum_y) / (N * sum_x_squared - sum_x * sum_x) ) * sum_x) / N )
+  - metric_name: "recursive_date_series_generation"
+    sql_logic: |
+      WITH RECURSIVE DateSeries(date_col) AS (SELECT 'start_date' UNION ALL SELECT DATE(date_col, '+1 day') FROM DateSeries WHERE date_col < 'end_date') SELECT date_col FROM DateSeries
+  - metric_name: "time_series_index_from_start_date"
+    sql_logic: |
+      JULIANDAY(date_column) - JULIANDAY('start_date') + 1
   - metric_name: "total customer payment"
     sql_logic: |
       SUM(order_payments.payment_value)

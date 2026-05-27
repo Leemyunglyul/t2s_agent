@@ -22,3 +22,6 @@ biz_logic:
   sql_logic: COUNT(DISTINCT orders.order_id)
 - metric_name: total customer payment
   sql_logic: SUM(order_payments.payment_value)
+- metric_name: customer_rank_by_avg_payment
+  sql_logic: DENSE_RANK() OVER (ORDER BY (SUM(order_payments.payment_value) / COUNT(DISTINCT
+    orders.order_id)) DESC)

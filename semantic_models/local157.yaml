@@ -22,4 +22,6 @@ biz_logic:
     = fd.ticker AND prev_fd.formatted_date < fd.formatted_date AND prev_fd.numeric_volume
     > 0 ORDER BY prev_fd.formatted_date DESC LIMIT 1)
 - metric_name: Volume Change Percentage
-  sql_logic: (numeric_volume - previous_day_non_zero_volume) * 100.0 / previous_day_non_zero_volume
+  sql_logic: CASE WHEN previous_day_non_zero_volume IS NULL OR previous_day_non_zero_volume
+    = 0 THEN NULL ELSE (numeric_volume - previous_day_non_zero_volume) * 100.0 / previous_day_non_zero_volume
+    END

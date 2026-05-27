@@ -21,7 +21,7 @@ relations:
     table_2: "Wrestlers"
     column_2: "id"
 synonyms:
-  - nl_term: "loser"
+  - nl_term: "loser, winner"
     db_target: "Wrestlers.name"
     type: "column"
   - nl_term: "non-title match"
@@ -33,9 +33,6 @@ synonyms:
   - nl_term: "shortest match"
     db_target: "ORDER BY duration_in_seconds ASC LIMIT 1"
     type: "condition"
-  - nl_term: "winner"
-    db_target: "Wrestlers.name"
-    type: "column"
 biz_logic:
   - metric_name: "Duration in Seconds"
     sql_logic: |

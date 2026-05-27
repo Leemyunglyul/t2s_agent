@@ -20,4 +20,4 @@ biz_logic:
   sql_logic: COALESCE(SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER
     BY month ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0)
 - metric_name: Total Positive Balance at Start of Month
-  sql_logic: SUM(MAX(0, COALESCE(balance_at_month_start, 0)))
+  sql_logic: SUM(MAX(0, balance_at_month_start))

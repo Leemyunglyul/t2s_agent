@@ -3,8 +3,8 @@ relations: []
 synonyms: []
 biz_logic:
 - metric_name: Find Furthest Pair of Cities (Heuristic)
-  sql_logic: A method to find a pair of distant cities by sorting all unique locations
-    (by state, city, zip, lat, lng), using the LAG() window function to get the preceding
-    location in the sorted list, calculating the distance between the current and
-    preceding location, and finding the maximum distance among pairs that span two
-    different cities.
+  sql_logic: 'An algorithmic approach to find a pair of distant cities. It involves:
+    1. Sorting all unique geolocations. 2. Using the LAG() window function to access
+    the preceding location in the sorted list. 3. Calculating the squared Euclidean
+    distance `(current_lat - prev_lat)^2 + (current_lng - prev_lng)^2` as a heuristic.
+    4. Finding the maximum distance among pairs that are in different cities.'

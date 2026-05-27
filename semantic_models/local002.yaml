@@ -1,0 +1,27 @@
+descriptions: []
+relations:
+- table_1: products
+  column_1: product_category_name
+  table_2: product_category_name_translation
+  column_2: product_category_name
+synonyms: []
+biz_logic:
+- metric_name: five_day_simple_moving_average
+  sql_logic: AVG(value_column) OVER (ORDER BY date_column ROWS BETWEEN 2 PRECEDING
+    AND 2 FOLLOWING)
+- metric_name: linear_regression_slope
+  sql_logic: (N * SUM(x * y) - SUM(x) * SUM(y)) / (N * SUM(x*x) - SUM(x) * SUM(x))
+- metric_name: linear_regression_intercept
+  sql_logic: (SUM(y) - slope * SUM(x)) / N
+- metric_name: time_series_index_from_start_date
+  sql_logic: JULIANDAY(date_column) - JULIANDAY('start_date') + 1
+- metric_name: daily_sales
+  sql_logic: SUM(order_items.price) GROUP BY DATE(orders.order_purchase_timestamp)
+- metric_name: days_since_start_date
+  sql_logic: JULIANDAY(date_column) - JULIANDAY('start_date')
+- metric_name: linear_regression_prediction
+  sql_logic: slope * (JULIANDAY(date_column) - JULIANDAY('start_date')) + intercept
+- metric_name: recursive_date_series_generation
+  sql_logic: WITH RECURSIVE DateSeries(date_col) AS (SELECT 'start_date' UNION ALL
+    SELECT DATE(date_col, '+1 day') FROM DateSeries WHERE date_col < 'end_date') SELECT
+    date_col FROM DateSeries

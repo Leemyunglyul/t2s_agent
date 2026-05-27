@@ -1,8 +1,11 @@
 descriptions: []
 relations: []
 synonyms:
-  - nl_term: "sales, amount spent"
+  - nl_term: "sales"
     db_target: "SUM(invoices.Total)"
+    type: "column"
+  - nl_term: "amount spent"
+    db_target: "SUM(invoice_items.UnitPrice * invoice_items.Quantity)"
     type: "column"
   - nl_term: "top-selling artist, best selling artist"
     db_target: |
@@ -20,6 +23,9 @@ biz_logic:
   - metric_name: "Total Sales"
     sql_logic: |
       SUM(invoices.Total)
+  - metric_name: "Total Sales Amount"
+    sql_logic: |
+      SUM(invoice_items.UnitPrice * invoice_items.Quantity)
   - metric_name: "Total Sales per Artist"
     sql_logic: |
       SUM(invoice_items.UnitPrice * invoice_items.Quantity) GROUP BY artists.ArtistId
@@ -31,7 +37,7 @@ biz_logic:
       SUM(invoice_items.UnitPrice * invoice_items.Quantity) GROUP BY customers.CustomerId, artists.ArtistId
   - metric_name: "Customer Count per Country"
     sql_logic: |
-      COUNT(DISTINCT customers.CustomerId)
+      COUNT(DISTINCT customers.CustomerId) GROUP BY customers.Country
   - metric_name: "Average Customer Spending on Top Selling Artist(s)"
     sql_logic: |
       The average of 'Customer Spending on an Artist' calculated only for artists that are defined as 'top-selling artist'.
@@ -40,7 +46,22 @@ biz_logic:
       The average of 'Customer Spending on an Artist' calculated only for artists that are defined as 'lowest-selling artist'.
   - metric_name: "Absolute Difference in Average Spending"
     sql_logic: |
-      The absolute difference between 'Average Customer Spending on Top Selling Artist(s)' and 'Average Customer Spending on Lowest Selling Artist(s)'.
+      ABS(TASA.AvgSpending - LASA.AvgSpending)
   - metric_name: "Median Calculation Template"
     sql_logic: |
       WITH RankedData AS (SELECT <column_to_rank>, ROW_NUMBER() OVER (ORDER BY <column_to_rank>) AS rn, COUNT(*) OVER () AS total_count FROM <source_table>) SELECT AVG(<column_to_rank>) FROM RankedData WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
+  - metric_name: "Top Selling Artist Rank"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity) DESC, artists.Name ASC)
+  - metric_name: "Lowest Selling Artist Rank"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity) ASC, artists.Name ASC)
+  - metric_name: "Best Selling Artist ID"
+    sql_logic: |
+      SELECT T3.ArtistId FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId GROUP BY T3.ArtistId ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1
+  - metric_name: "Customer Spending On Best Selling Artist's Albums"
+    sql_logic: |
+      SELECT T4.CustomerId, SUM(T1.UnitPrice * T1.Quantity) FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId JOIN invoices AS T4 ON T1.InvoiceId = T4.InvoiceId WHERE T3.ArtistId = (SELECT T3.ArtistId FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId GROUP BY T3.ArtistId ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1) GROUP BY T4.CustomerId
+  - metric_name: "Median of Total Sales for Countries with more than 4 Customers"
+    sql_logic: |
+      WITH CountriesWithEnoughCustomers AS (SELECT Country FROM customers GROUP BY Country HAVING COUNT(DISTINCT CustomerId) > 4), TotalSalesPerQualifiedCountry AS (SELECT c.Country, SUM(i.Total) AS TotalSales FROM customers AS c INNER JOIN invoices AS i ON c.CustomerId = i.CustomerId WHERE c.Country IN (SELECT Country FROM CountriesWithEnoughCustomers) GROUP BY c.Country), RankedSales AS (SELECT TotalSales, ROW_NUMBER() OVER (ORDER BY TotalSales) AS rn, COUNT(*) OVER () AS total_count FROM TotalSalesPerQualifiedCountry) SELECT AVG(TotalSales) FROM RankedSales WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)

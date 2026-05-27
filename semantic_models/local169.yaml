@@ -13,22 +13,24 @@ synonyms:
   db_target: MIN(legislators_terms.term_start)
   type: value
 - nl_term: initial cohort
-  db_target: legislators_terms.term_start BETWEEN '1917-01-01' AND '1999-12-31'
+  db_target: The set of legislators whose first term started between 1917-01-01 and
+    1999-12-31.
   type: condition
 - nl_term: retained legislator
-  db_target: A legislator is considered retained in a year if they have a term covering
-    the end of that year.
-  type: value
+  db_target: A legislator is considered retained in a given year if their term of
+    office (term_start to term_end) includes the end of that year.
+  type: condition
 - nl_term: retention rate
-  db_target: retained_count / cohort_size
+  db_target: The ratio of legislators from an initial cohort who are still in office
+    after a certain period.
   type: value
 biz_logic:
-- metric_name: Legislator Retention Rate
-  sql_logic: CAST(COALESCE(retained_count, 0) AS REAL) * 1.0 / cohort_size
 - metric_name: Legislator First Term Start
   sql_logic: SELECT id_bioguide, MIN(term_start) AS first_term_start_date FROM legislators_terms
     GROUP BY id_bioguide
 - metric_name: Legislator Cohort Definition
   sql_logic: first_term_start_date BETWEEN '1917-01-01' AND '1999-12-31'
 - metric_name: Legislator Yearly Retention Check
-  sql_logic: term_start <= retention_check_date AND term_end >= retention_check_date
+  sql_logic: term_start <= [check_date] AND term_end >= [check_date]
+- metric_name: Legislator Retention Rate
+  sql_logic: CAST(COALESCE(retained_count, 0) AS REAL) * 1.0 / total_cohort_size

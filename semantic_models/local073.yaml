@@ -13,39 +13,22 @@ descriptions:
   meaning: The base recipe for a pizza, represented as a comma-separated string of
     topping_ids.
 relations:
-- table_1: pizza_customer_orders
-  column_1: pizza_id
-  table_2: pizza_names
-  column_2: pizza_id
 - table_1: pizza_recipes
   column_1: toppings
   table_2: pizza_toppings
   column_2: topping_id
-  type: hidden
-  join_condition: The 'toppings' column is a comma-separated string of IDs that correspond
-    to 'topping_id'.
 - table_1: pizza_customer_orders
   column_1: extras
   table_2: pizza_toppings
   column_2: topping_id
-  type: hidden
-  join_condition: The 'extras' column is a comma-separated string of IDs that correspond
-    to 'topping_id'.
 - table_1: pizza_customer_orders
   column_1: exclusions
   table_2: pizza_toppings
   column_2: topping_id
-  type: hidden
-  join_condition: The 'exclusions' column is a comma-separated string of IDs that
-    correspond to 'topping_id'.
 - table_1: pizza_customer_orders
   column_1: pizza_id
   table_2: pizza_recipes
   column_2: pizza_id
-  type: hidden
-  join_condition: 'The join is indirect. pizza_customer_orders.pizza_id is used to
-    get pizza_names.pizza_name, which is then mapped to a recipe ID (pizza_recipes.pizza_id)
-    via a business rule (see biz_logic: ''Effective Pizza Recipe Mapping'').'
 synonyms: []
 biz_logic:
 - metric_name: Final Pizza Ingredients Calculation
@@ -75,3 +58,8 @@ biz_logic:
     toppings. ''Meatlovers'' uses recipe ID 1, and all other pizzas use recipe ID
     2. SQL Logic: CASE WHEN pizza_names.pizza_name = ''Meatlovers'' THEN 1 ELSE 2
     END'
+- metric_name: Final Ingredient String Aggregation
+  sql_logic: 'Final ingredients for each pizza item are aggregated into a single string
+    using GROUP_CONCAT. The ingredients are sorted to show ''2x'' items first, then
+    alphabetically. SQL: GROUP_CONCAT(formatted_topping_name, '', '') ORDER BY sort_key,
+    topping_name'

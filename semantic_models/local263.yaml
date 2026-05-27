@@ -27,9 +27,9 @@ synonyms:
   type: condition
 biz_logic:
 - metric_name: stack_score
-  sql_logic: MAX(CASE WHEN MS.model = 'Stack' THEN MS.test_score ELSE NULL END)
+  sql_logic: MAX(CASE WHEN model = 'Stack' THEN test_score ELSE NULL END)
 - metric_name: max_non_stack_score
-  sql_logic: MAX(CASE WHEN MS.model != 'Stack' THEN MS.test_score ELSE NULL END)
+  sql_logic: MAX(CASE WHEN model != 'Stack' THEN test_score ELSE NULL END)
 - metric_name: step_status
   sql_logic: CASE WHEN max_non_stack_score < stack_score THEN 'strong' WHEN max_non_stack_score
     = stack_score THEN 'soft' ELSE NULL END

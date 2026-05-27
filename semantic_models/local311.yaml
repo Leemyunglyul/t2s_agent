@@ -1,7 +1,17 @@
 descriptions: []
 relations: []
-synonyms: []
+synonyms:
+- nl_term: top 3 constructors
+  db_target: DENSE_RANK() OVER (ORDER BY combined_points DESC) <= 3
+  type: condition
 biz_logic:
+- metric_name: Driver Season Points
+  sql_logic: 'SUM(points) from the combined results of the ''results'' and ''sprint_results''
+    tables for a given driver in a season. SQL: (SELECT race_id, driver_id, constructor_id,
+    points FROM results UNION ALL SELECT race_id, driver_id, constructor_id, points
+    FROM sprint_results)'
+- metric_name: Constructor Points Per Season
+  sql_logic: SUM(points) FROM constructor_results GROUP BY year, constructor_id
 - metric_name: Constructor Combined Points
-  sql_logic: For a given year and constructor, this is the sum of `SUM(constructor_results.points)`
-    and `MAX(SUM(results.points) GROUP BY driver_id)`.
+  sql_logic: '[Constructor Points Per Season] + MAX([Driver Season Points]) for that
+    constructor''s drivers in the same season.'

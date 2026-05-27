@@ -15,3 +15,14 @@ biz_logic:
 - metric_name: High-Rated Movie Count by Genre
   sql_logic: SELECT T2.genre, COUNT(DISTINCT T1.movie_id) FROM ratings AS T1 JOIN
     genre AS T2 ON T1.movie_id = T2.movie_id WHERE T1.avg_rating > 8 GROUP BY T2.genre
+- metric_name: Top Directors of High-Rated Movies in Top Genres
+  sql_logic: WITH HighRatedMovies AS (SELECT movie_id FROM ratings WHERE avg_rating
+    > 8), GenreMovieCounts AS (SELECT T2.genre, COUNT(T1.movie_id) AS movie_count
+    FROM HighRatedMovies AS T1 INNER JOIN genre AS T2 ON T1.movie_id = T2.movie_id
+    GROUP BY T2.genre), Top3Genres AS (SELECT genre FROM GenreMovieCounts ORDER BY
+    movie_count DESC LIMIT 3), DirectorMovieCounts AS (SELECT T3.name, COUNT(DISTINCT
+    T1.movie_id) AS movie_count FROM HighRatedMovies AS T1 INNER JOIN director_mapping
+    AS T2 ON T1.movie_id = T2.movie_id INNER JOIN names AS T3 ON T2.name_id = T3.id
+    WHERE T1.movie_id IN (SELECT T4.movie_id FROM genre AS T4 WHERE T4.genre IN (SELECT
+    genre FROM Top3Genres)) GROUP BY T3.name) SELECT name, movie_count FROM DirectorMovieCounts
+    ORDER BY movie_count DESC LIMIT 4;

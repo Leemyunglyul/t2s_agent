@@ -16,9 +16,18 @@ synonyms:
   db_target: week_date >= '2020-06-15' AND week_date < DATE('2020-06-15', '+84 days')
   type: condition
 - nl_term: highest negative impact
-  db_target: ORDER BY avg_percentage_change ASC LIMIT 1
+  db_target: ORDER BY avg_percentage_change_for_type ASC LIMIT 1
   type: condition
 biz_logic:
+- metric_name: Unpivoted Sales Attributes
+  sql_logic: SELECT 'region' AS attribute_type, region AS attribute_value, week_date,
+    sales FROM cleaned_weekly_sales UNION ALL SELECT 'platform' AS attribute_type,
+    platform AS attribute_value, week_date, sales FROM cleaned_weekly_sales UNION
+    ALL SELECT 'age_band' AS attribute_type, age_band AS attribute_value, week_date,
+    sales FROM cleaned_weekly_sales UNION ALL SELECT 'demographic' AS attribute_type,
+    demographic AS attribute_value, week_date, sales FROM cleaned_weekly_sales UNION
+    ALL SELECT 'customer_type' AS attribute_type, customer_type AS attribute_value,
+    week_date, sales FROM cleaned_weekly_sales
 - metric_name: Sales Before Period
   sql_logic: SUM(CASE WHEN week_date >= DATE('2020-06-15', '-84 days') AND week_date
     < '2020-06-15' THEN sales ELSE 0 END)
@@ -29,6 +38,3 @@ biz_logic:
   sql_logic: (sales_after - sales_before) * 100.0 / NULLIF(sales_before, 0)
 - metric_name: Average Percentage Change by Attribute
   sql_logic: AVG(percentage_change) GROUP BY attribute_type
-- metric_name: Unpivot Sales Attributes
-  sql_logic: A technique to transform columns (e.g., region, platform, age_band) into
-    rows with an 'attribute_type' and 'attribute_value', typically using UNION ALL.

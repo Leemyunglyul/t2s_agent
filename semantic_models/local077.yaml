@@ -20,7 +20,7 @@ biz_logic:
     || '-01')
 - metric_name: Monthly Interest Rank for Top Item
   sql_logic: ROW_NUMBER() OVER (PARTITION BY month_date ORDER BY avg_composition DESC,
-    interest_name ASC)
+    interest_id ASC)
 - metric_name: 3-Month Rolling Avg of Top Interest Composition
   sql_logic: AVG(max_index_composition) OVER (ORDER BY month_date ROWS BETWEEN 2 PRECEDING
     AND CURRENT ROW)

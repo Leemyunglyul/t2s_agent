@@ -7,7 +7,7 @@ logger = logging.getLogger("langgraph_agent")
 
 client = genai.Client(
     vertexai=True,
-    project="project-2d6bc9e4-f1ce-4891-a50",  # 예: "my-awesome-project-123456"
+    project="project-9bda5f3a-eeae-4c70-b8a",  # 예: "my-awesome-project-123456"
     location="us-central1"            # 리전 설정 (us-central1 추천)
 )
 

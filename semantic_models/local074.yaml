@@ -9,26 +9,26 @@ synonyms:
 - nl_term: month
   db_target: strftime('%Y-%m-01', txn_date)
   type: column
-- nl_term: closing balance
-  db_target: monthly_closing_balance
-  type: column
-- nl_term: monthly cumulative bank balance
-  db_target: monthly_closing_balance
-  type: column
-- nl_term: running total
-  db_target: monthly_closing_balance
-  type: column
 - nl_term: monthly change
   db_target: monthly_net_change
   type: column
 - nl_term: net monthly amount
   db_target: monthly_net_change
   type: column
+- nl_term: closing balance
+  db_target: monthly_cumulative_bank_balance
+  type: column
+- nl_term: monthly cumulative bank balance
+  db_target: monthly_cumulative_bank_balance
+  type: column
+- nl_term: running total
+  db_target: monthly_cumulative_bank_balance
+  type: column
 biz_logic:
 - metric_name: Monthly Net Change
   sql_logic: SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal',
     'purchase') THEN -txn_amount ELSE 0 END)
-- metric_name: Monthly Closing Balance
+- metric_name: Monthly Cumulative Bank Balance
   sql_logic: SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER BY month)
 - metric_name: Data Scaffolding for Time Series
   sql_logic: Generate a complete grid of entities (e.g., customers) and time periods

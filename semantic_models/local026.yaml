@@ -1,0 +1,24 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: most expensive over
+  db_target: RANK() OVER (PARTITION BY match_id ORDER BY SUM(COALESCE(batsman_scored.runs_scored,
+    0) + COALESCE(extra_runs.extra_runs, 0)) DESC) = 1
+  type: condition
+- nl_term: total runs in an over
+  db_target: SUM(COALESCE(batsman_scored.runs_scored, 0) + COALESCE(extra_runs.extra_runs,
+    0))
+  type: column
+biz_logic:
+- metric_name: Total Runs per Ball
+  sql_logic: COALESCE(batsman_scored.runs_scored, 0) + COALESCE(extra_runs.extra_runs,
+    0)
+- metric_name: Total Runs in an Over
+  sql_logic: SUM(COALESCE(batsman_scored.runs_scored, 0) + COALESCE(extra_runs.extra_runs,
+    0))
+- metric_name: Rank of Bowler's Most Expensive Over
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY bowler ORDER BY total_runs_conceded_in_over
+    DESC, match_id ASC)
+- metric_name: Rank of Over by Runs within a Match
+  sql_logic: RANK() OVER (PARTITION BY match_id ORDER BY SUM(COALESCE(batsman_scored.runs_scored,
+    0) + COALESCE(extra_runs.extra_runs, 0)) DESC)

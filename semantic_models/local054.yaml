@@ -12,7 +12,14 @@ synonyms:
 biz_logic:
 - metric_name: Total Sales Amount
   sql_logic: SUM(invoice_items.UnitPrice * invoice_items.Quantity)
-- metric_name: Best Selling Artist Logic
+- metric_name: Best Selling Artist ID
   sql_logic: SELECT T3.ArtistId FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId
     = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId GROUP BY T3.ArtistId
     ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1
+- metric_name: Customer Spending On Best Selling Artist's Albums
+  sql_logic: SELECT T4.CustomerId, SUM(T1.UnitPrice * T1.Quantity) FROM invoice_items
+    AS T1 JOIN tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId
+    = T3.AlbumId JOIN invoices AS T4 ON T1.InvoiceId = T4.InvoiceId WHERE T3.ArtistId
+    = (SELECT T3.ArtistId FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId
+    = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId GROUP BY T3.ArtistId
+    ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1) GROUP BY T4.CustomerId

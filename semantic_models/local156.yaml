@@ -18,6 +18,7 @@ relations:
   column_1: member_id
   table_2: bitcoin_members
   column_2: member_id
+  description: Implicit join to link transactions to member details like region.
 - table_1: bitcoin_transactions
   column_1: '["ticker", "txn_date"]'
   table_2: bitcoin_prices
@@ -31,14 +32,14 @@ synonyms:
   db_target: bitcoin_transactions.txn_type = 'BUY'
   type: condition
 biz_logic:
-- metric_name: Total Spent
-  sql_logic: SUM(bt.quantity * bp.price)
-- metric_name: Total Quantity
-  sql_logic: SUM(bt.quantity)
-- metric_name: Average Purchase Price
-  sql_logic: SUM(bt.quantity * bp.price) * 1.0 / NULLIF(SUM(bt.quantity), 0)
 - metric_name: Transaction Year
   sql_logic: CAST(SUBSTR(txn_date, 7, 4) AS INTEGER)
+- metric_name: Total Spent
+  sql_logic: SUM(quantity * price)
+- metric_name: Total Quantity
+  sql_logic: SUM(quantity)
+- metric_name: Average Purchase Price
+  sql_logic: SUM(quantity * price) * 1.0 / NULLIF(SUM(quantity), 0)
 - metric_name: Previous Year's Average Price
   sql_logic: LAG(avg_purchase_price) OVER (PARTITION BY region ORDER BY txn_year)
 - metric_name: Region Rank by Average Purchase Price

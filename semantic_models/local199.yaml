@@ -14,7 +14,7 @@ synonyms:
   db_target: staff.store_id
   type: column
 - nl_term: best performing month
-  db_target: DENSE_RANK() OVER (PARTITION BY store_id ORDER BY COUNT(rental.rental_id)
+  db_target: DENSE_RANK() OVER (PARTITION BY staff.store_id ORDER BY COUNT(rental.rental_id)
     DESC) = 1
   type: condition
 biz_logic:

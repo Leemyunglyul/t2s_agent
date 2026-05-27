@@ -20,16 +20,17 @@ relations:
     column_1: "name"
     table_2: "solution"
     column_2: "name"
+  - table_1: "model_score"
+    column_1: "name, version, step"
+    table_2: "model_score"
+    column_2: "name, version, step"
 synonyms:
   - nl_term: "status"
     db_target: "final_status"
     type: "column"
-  - nl_term: "strong model"
-    db_target: "final_status = 'strong'"
-    type: "condition"
-  - nl_term: "soft model"
-    db_target: "final_status = 'soft'"
-    type: "condition"
+  - nl_term: "strong model, soft model"
+    db_target: "final_status"
+    type: "column"
   - nl_term: "top L1 model"
     db_target: "DENSE_RANK() OVER (PARTITION BY final_status ORDER BY occurrence_count DESC) = 1"
     type: "condition"
@@ -68,33 +69,33 @@ biz_logic:
       FROM CategoryCounts
       ORDER BY
         total_count DESC
-      LIMIT 1;
+      LIMIT 1
   - metric_name: "TotalSolutionOccurrences"
     sql_logic: |
       SELECT name, COUNT(*) AS total_solution_occurrences FROM solution GROUP BY name
   - metric_name: "ProblemsWhereStackingCountExceedsSolutionCount"
     sql_logic: |
       WITH StackingOutperformanceCounts AS (
-          SELECT
-              name,
-              COUNT(*) AS outperformance_count
-          FROM (
-              SELECT name, step
-              FROM model_score
-              GROUP BY name, step
-              HAVING MAX(CASE WHEN model = 'Stack' THEN test_score END) > MAX(CASE WHEN model != 'Stack' THEN test_score END)
-          ) AS strong_steps
-          GROUP BY name
+        SELECT
+          name,
+          COUNT(*) AS outperformance_count
+        FROM (
+          SELECT name, step
+          FROM model_score
+          GROUP BY name, step
+          HAVING MAX(CASE WHEN model = 'Stack' THEN test_score END) > MAX(CASE WHEN model != 'Stack' THEN test_score END)
+        ) AS strong_steps
+        GROUP BY name
       ),
       TotalSolutionOccurrences AS (
-          SELECT
-              name,
-              COUNT(*) AS total_solution_occurrences
-          FROM solution
-          GROUP BY name
+        SELECT
+          name,
+          COUNT(*) AS total_solution_occurrences
+        FROM solution
+        GROUP BY name
       )
       SELECT
-          soc.name
+        soc.name
       FROM StackingOutperformanceCounts AS soc
       INNER JOIN TotalSolutionOccurrences AS tso ON soc.name = tso.name
       WHERE soc.outperformance_count > tso.total_solution_occurrences

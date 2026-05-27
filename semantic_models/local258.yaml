@@ -41,16 +41,16 @@ biz_logic:
 - metric_name: Bowler Wicket Logic
   sql_logic: CASE WHEN wicket_taken.kind_out IS NOT NULL AND wicket_taken.kind_out
     NOT IN ('run out', 'retired hurt', 'obstructing the field') THEN 1 ELSE 0 END
-- metric_name: Career Bowling Economy Rate
-  sql_logic: CASE WHEN SUM(legal_balls_bowled) = 0 THEN 0.0 ELSE CAST(SUM(runs_conceded)
-    AS REAL) / (SUM(legal_balls_bowled) / 6.0) END
-- metric_name: Career Bowling Strike Rate
-  sql_logic: CASE WHEN SUM(wickets_taken) = 0 THEN NULL ELSE CAST(SUM(legal_balls_bowled)
-    AS REAL) / SUM(wickets_taken) END
-- metric_name: Best Bowling Performance Ranking
-  sql_logic: ROW_NUMBER() OVER (PARTITION BY bowler_id ORDER BY wickets_taken_match
-    DESC, runs_conceded_match ASC)
-- metric_name: Best Bowling Performance Format
-  sql_logic: printf('%d-%d', wickets_taken_match, runs_conceded_match)
 - metric_name: Runs Conceded From Bat (per ball)
   sql_logic: COALESCE(batsman_scored.runs_scored, 0)
+- metric_name: Career Bowling Economy Rate
+  sql_logic: CASE WHEN total_legal_balls_bowled = 0 THEN 0.0 ELSE CAST(total_runs_conceded
+    AS REAL) * 6 / total_legal_balls_bowled END
+- metric_name: Career Bowling Strike Rate
+  sql_logic: CASE WHEN total_wickets_taken = 0 THEN NULL ELSE CAST(total_legal_balls_bowled
+    AS REAL) / total_wickets_taken END
+- metric_name: Best Bowling Performance Ranking
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY bowler_id ORDER BY match_wickets_taken
+    DESC, match_runs_conceded ASC)
+- metric_name: Best Bowling Performance Format
+  sql_logic: printf('%d-%d', match_wickets_taken, match_runs_conceded)

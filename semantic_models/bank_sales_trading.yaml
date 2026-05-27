@@ -3,19 +3,19 @@ descriptions:
   - table: "cleaned_weekly_sales"
     column: "week_date"
     meaning: |
-      The primary date for sales analysis. Sales are often analyzed in distinct periods around a key date (e.g., June 15th), such as an 84-day or a 4-week 'before'/'after' window.
+      The primary date for sales analysis. Sales are often analyzed in distinct periods around a key date (e.g., June 15th), such as a 4-week or 84-day 'before'/'after' window.
   - table: "cleaned_weekly_sales"
     column: "(derived) period"
     meaning: |
-      A derived categorical column to label sales weeks relative to an event. 'Before' represents the 4-week period leading up to the event week, and 'After' represents the 4-week period following it.
+      A derived categorical column to label sales weeks relative to an event, such as the week of June 15th. 'Before' represents the 4-week period leading up to the event week (`week_number BETWEEN mid_june_week - 4 AND mid_june_week - 1`), and 'After' represents the 4-week period following it (`week_number BETWEEN mid_june_week + 1 AND mid_june_week + 4`).
   - table: "customer_transactions"
     column: "txn_type"
     meaning: |
-      Defines the transaction's effect on balance. 'deposit' is a credit (adds to balance). 'withdrawal' and 'purchase' are debits (subtract from balance). Other types may be treated as neutral (0 change) or as debits depending on the specific analysis.
+      Defines the transaction's effect on balance. 'deposit' is a credit (adds to balance). 'withdrawal' and 'purchase' are debits (subtract from balance). Depending on the analysis, other transaction types may be treated as neutral (0 change) or grouped with debits.
   - table: "shopping_cart_events"
     column: "event_type"
     meaning: |
-      Defines the user action: 1 for a product view, 2 for an 'add to cart' event, and 3 for a purchase event.
+      Defines the user action: 1 for a product view, 2 for an 'add to cart' event, and 3 for a purchase event. A visit with an event_type of 3 is considered a 'purchase visit'.
   - table: "shopping_cart_page_hierarchy"
     column: "page_id"
     meaning: |
@@ -88,36 +88,6 @@ synonyms:
   - nl_term: "mid-June week"
     db_target: "(calendar_year || '-06-15') BETWEEN week_date AND date(week_date, '+6 days')"
     type: "condition"
-  - nl_term: "highest negative impact"
-    db_target: "ORDER BY avg_percentage_change ASC LIMIT 1"
-    type: "condition"
-  - nl_term: "product view"
-    db_target: "shopping_cart_events.event_type = 1"
-    type: "condition"
-  - nl_term: "cart add"
-    db_target: "shopping_cart_events.event_type = 2"
-    type: "condition"
-  - nl_term: "purchase event"
-    db_target: "shopping_cart_events.event_type = 3"
-    type: "condition"
-  - nl_term: "top 10"
-    db_target: "DENSE_RANK() OVER (ORDER BY composition DESC) <= 10"
-    type: "condition"
-  - nl_term: "bottom 10"
-    db_target: "DENSE_RANK() OVER (ORDER BY composition ASC) <= 10"
-    type: "condition"
-  - nl_term: "peak"
-    db_target: "ROW_NUMBER() OVER (PARTITION BY interest_id ORDER BY composition DESC) = 1"
-    type: "condition"
-  - nl_term: "top monthly interest"
-    db_target: "DENSE_RANK() OVER (PARTITION BY SUBSTR(month_year, 4, 4) || '-' || SUBSTR(month_year, 1, 2) || '-01' ORDER BY composition * 1.0 / NULLIF(index_value, 0) DESC) = 1"
-    type: "condition"
-  - nl_term: "buy transaction"
-    db_target: "bitcoin_transactions.txn_type = 'BUY'"
-    type: "condition"
-  - nl_term: "month"
-    db_target: "strftime('%Y-%m-01', txn_date)"
-    type: "column"
   - nl_term: "percentage change"
     db_target: "percentage_change"
     type: "column"
@@ -127,15 +97,33 @@ synonyms:
   - nl_term: "after sales"
     db_target: "after_sales"
     type: "column"
-  - nl_term: "closing balance, monthly cumulative bank balance, running total"
-    db_target: "monthly_closing_balance"
+  - nl_term: "top 10"
+    db_target: "DENSE_RANK() OVER (ORDER BY composition DESC) <= 10"
+    type: "condition"
+  - nl_term: "bottom 10"
+    db_target: "DENSE_RANK() OVER (ORDER BY composition ASC) <= 10"
+    type: "condition"
+  - nl_term: "peak"
+    db_target: "ROW_NUMBER() OVER (PARTITION BY interest_id ORDER BY composition DESC, month_year ASC) = 1"
+    type: "condition"
+  - nl_term: "month"
+    db_target: "strftime('%Y-%m-01', txn_date)"
     type: "column"
   - nl_term: "monthly change, net monthly amount"
     db_target: "monthly_net_change"
     type: "column"
-  - nl_term: "previous month total balance"
-    db_target: "Total Positive Balance at Start of Month"
-    type: "biz_logic"
+  - nl_term: "closing balance, running total, monthly cumulative bank balance"
+    db_target: "monthly_cumulative_bank_balance"
+    type: "column"
+  - nl_term: "product view"
+    db_target: "shopping_cart_events.event_type = 1"
+    type: "condition"
+  - nl_term: "add to cart"
+    db_target: "shopping_cart_events.event_type = 2"
+    type: "condition"
+  - nl_term: "purchase"
+    db_target: "shopping_cart_events.event_type = 3"
+    type: "condition"
   - nl_term: "product views"
     db_target: "product_views"
     type: "column"
@@ -148,74 +136,46 @@ synonyms:
   - nl_term: "left in cart"
     db_target: "left_in_cart"
     type: "column"
+  - nl_term: "previous month total balance"
+    db_target: "Total Positive Balance at Start of Month"
+    type: "biz_logic"
+  - nl_term: "buy transaction"
+    db_target: "bitcoin_transactions.txn_type = 'BUY'"
+    type: "condition"
+  - nl_term: "highest negative impact"
+    db_target: "ORDER BY avg_percentage_change_for_type ASC LIMIT 1"
+    type: "condition"
 biz_logic:
-  - metric_name: "Time Series Scaffolding"
-    sql_logic: |
-      A technique to handle sparse time-series data. It involves creating a complete grid of entities (e.g., customers) and time periods (e.g., months), often via a CROSS JOIN or a recursive CTE for dates. Actual data is then LEFT JOINed onto this grid, and COALESCE is used to replace NULLs with a default value (e.g., 0). This ensures calculations like averages and running totals are accurate over the complete set of entities.
-  - metric_name: "Unpivot Sales Attributes"
-    sql_logic: |
-      A technique to transform columns (e.g., region, platform, age_band) into rows with an 'attribute_type' and 'attribute_value', typically using UNION ALL.
-  - metric_name: "Net Transaction Amount"
+  - metric_name: "Net Transaction Amount (Row-level)"
     sql_logic: |
       CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount ELSE 0 END
+  - metric_name: "Daily Net Transaction Amount"
+    sql_logic: |
+      SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount ELSE 0 END)
   - metric_name: "Monthly Net Change"
     sql_logic: |
       SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount ELSE 0 END)
-  - metric_name: "Monthly Closing Balance"
+  - metric_name: "Daily Cumulative Balance"
+    sql_logic: |
+      SUM(daily_net_change) OVER (PARTITION BY customer_id ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+  - metric_name: "Monthly Cumulative Bank Balance"
     sql_logic: |
       SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER BY month)
-  - metric_name: "Adjusted Daily Balance (non-negative)"
-    sql_logic: |
-      MAX(0, daily_balance)
   - metric_name: "Customer Balance at Start of Month"
     sql_logic: |
       COALESCE(SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER BY month ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0)
-  - metric_name: "avg_monthly_balance_all_customers"
+  - metric_name: "Total Positive Balance at Start of Month"
     sql_logic: |
-      AVG(monthly_balance) -- This metric is accurate only when calculated on scaffolded data where all customers are represented for every month, with non-transacting months having a balance of 0.
-  - metric_name: "Sales Before Period (84 days)"
+      SUM(MAX(0, balance_at_month_start))
+  - metric_name: "Time Series Scaffolding Pattern"
     sql_logic: |
-      SUM(CASE WHEN week_date >= DATE('2020-06-15', '-84 days') AND week_date < '2020-06-15' THEN sales ELSE 0 END)
-  - metric_name: "Sales After Period (84 days)"
+      A technique to handle sparse time-series data. Create a complete grid of entities (e.g., customers) and time periods (e.g., months) using a CROSS JOIN. Then, LEFT JOIN the actual data onto this grid, using COALESCE to replace NULLs with a default value (e.g., 0) for periods with no activity. This ensures calculations like averages and running totals are performed over the complete set of entities and time periods.
+  - metric_name: "Time Series Generation (Recursive)"
     sql_logic: |
-      SUM(CASE WHEN week_date >= '2020-06-15' AND week_date < DATE('2020-06-15', '+84 days') THEN sales ELSE 0 END)
-  - metric_name: "before_sales_total (4 weeks)"
+      WITH RECURSIVE all_months AS (SELECT STRFTIME('%Y-%m-01', MIN(txn_date)) AS month FROM customer_transactions UNION ALL SELECT STRFTIME('%Y-%m-01', DATE(month, '+1 month')) FROM all_months WHERE month < (SELECT STRFTIME('%Y-%m-01', MAX(txn_date)) FROM customer_transactions)) SELECT month FROM all_months
+  - metric_name: "Per-Customer Date Series Generation (Recursive)"
     sql_logic: |
-      SUM(CASE WHEN period = 'Before' THEN sales ELSE 0 END)
-  - metric_name: "after_sales_total (4 weeks)"
+      WITH RECURSIVE DateSeriesPerCustomer(customer_id, date, max_txn_date) AS (SELECT customer_id, MIN(txn_date), MAX(txn_date) FROM customer_transactions GROUP BY customer_id UNION ALL SELECT customer_id, DATE(date, '+1 day'), max_txn_date FROM DateSeriesPerCustomer WHERE date < max_txn_date)
+  - metric_name: "Daily Activity with Zero-Filled Gaps"
     sql_logic: |
-      SUM(CASE WHEN period = 'After' THEN sales ELSE 0 END)
-  - metric_name: "percentage_change_after_vs_before"
-    sql_logic: |
-      (CAST(after_sales AS REAL) - before_sales) * 100.0 / NULLIF(before_sales, 0)
-  - metric_name: "Valid Product Event Filter"
-    sql_logic: |
-      page_id NOT IN (1, 2, 12, 13) AND product_id IS NOT NULL
-  - metric_name: "Times Added To Cart"
-    sql_logic: |
-      COUNT(CASE WHEN event_type = 2 THEN 1 END)
-  - metric_name: "Actual Purchases"
-    sql_logic: |
-      The count of 'add to cart' events (event_type = 2) for products within visits that also contained a purchase event (event_type = 3).
-  - metric_name: "Left In Cart"
-    sql_logic: |
-      times_added_to_cart - COALESCE(actual_purchases, 0)
-  - metric_name: "Loss Rate Category"
-    sql_logic: |
-      CASE WHEN "loss_rate_%" < (avg_loss_rate - std_dev_loss_rate) THEN 'Below 1 Std Dev' WHEN "loss_rate_%" > (avg_loss_rate + std_dev_loss_rate) THEN 'Above 1 Std Dev' ELSE 'Within 1 Std Dev' END
-  - metric_name: "Sample Standard Deviation of Loss Rate"
-    sql_logic: |
-      CASE WHEN COUNT("loss_rate_%") <= 1 THEN 0.0 ELSE SQRT(SUM(("loss_rate_%" - avg_loss_rate) * ("loss_rate_%" - avg_loss_rate)) / (COUNT("loss_rate_%") - 1.0)) END
-  - metric_name: "Parsed Volume"
-    sql_logic: |
-      CASE WHEN volume = '-' THEN 0.0 WHEN SUBSTR(volume, -1, 1) = 'K' THEN CAST(REPLACE(volume, 'K', '') AS REAL) * 1000.0 WHEN SUBSTR(volume, -1, 1) = 'M' THEN CAST(REPLACE(volume, 'M', '') AS REAL) * 1000000.0 ELSE CAST(volume AS REAL) END
-  - metric_name: "Previous Day Non-Zero Volume"
-    sql_logic: |
-      (SELECT prev_fd.numeric_volume FROM FormattedData AS prev_fd WHERE prev_fd.ticker = fd.ticker AND prev_fd.formatted_date < fd.formatted_date AND prev_fd.numeric_volume > 0 ORDER BY prev_fd.formatted_date DESC LIMIT 1)
-  - metric_name: "Average Purchase Price"
-    sql_logic: |
-      SUM(bt.quantity * bp.price) * 1.0 / NULLIF(SUM(bt.quantity), 0)
-  - metric_name: "Previous Year's Average Price"
-    sql_logic: |
-      LAG(avg_purchase_price) OVER (PARTITION BY region ORDER BY txn_year)
-  - metric_name: "Annual Percentage Change in Average Purchase Price"
+      SELECT dsc.customer_id, dsc.date, COALESCE(dnt.net_change, 0) AS daily_net_change FROM DateSeriesPerCustomer AS dsc LEFT JOIN DailyNetTransactions AS dnt ON dsc.customer_id = dnt.customer_id AND dsc.date = dnt.txn_date

@@ -14,16 +14,20 @@ biz_logic:
   sql_logic: SUM(CASE WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount
     ELSE txn_amount END)
 - metric_name: Daily Cumulative Balance
-  sql_logic: SUM(net_change) OVER (PARTITION BY customer_id ORDER BY date ROWS BETWEEN
-    UNBOUNDED PRECEDING AND CURRENT ROW)
+  sql_logic: SUM(daily_net_change) OVER (PARTITION BY customer_id ORDER BY date ROWS
+    BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
 - metric_name: Adjusted Daily Balance (non-negative)
-  sql_logic: MAX(0, daily_balance)
+  sql_logic: CASE WHEN daily_balance < 0 THEN 0 ELSE daily_balance END
 - metric_name: Customer Monthly Max Balance
   sql_logic: MAX(adjusted_balance)
 - metric_name: Total Monthly Max Balance
   sql_logic: SUM(monthly_max_balance)
-- metric_name: Date Series Generation (Recursive)
-  sql_logic: WITH All_Dates AS (SELECT initial_date UNION ALL SELECT DATE(date, '+1
-    day') FROM All_Dates WHERE date < end_date)
-- metric_name: Daily Change with Zero-Fill
-  sql_logic: COALESCE(net_amount, 0)
+- metric_name: Per-Customer Date Series Generation (Recursive)
+  sql_logic: WITH RECURSIVE DateSeriesPerCustomer(customer_id, date, max_txn_date)
+    AS (SELECT customer_id, MIN(txn_date), MAX(txn_date) FROM customer_transactions
+    GROUP BY customer_id UNION ALL SELECT customer_id, DATE(date, '+1 day'), max_txn_date
+    FROM DateSeriesPerCustomer WHERE date < max_txn_date)
+- metric_name: Daily Activity with Zero-Filled Gaps
+  sql_logic: SELECT dsc.customer_id, dsc.date, COALESCE(dnt.net_change, 0) AS daily_net_change
+    FROM DateSeriesPerCustomer AS dsc LEFT JOIN DailyNetTransactions AS dnt ON dsc.customer_id
+    = dnt.customer_id AND dsc.date = dnt.txn_date

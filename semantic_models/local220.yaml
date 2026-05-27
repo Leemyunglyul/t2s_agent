@@ -1,10 +1,10 @@
 descriptions:
 - table: Match
-  column: home_player_1, ..., home_player_11
+  column: home_player_1 to home_player_11
   meaning: The columns from home_player_1 to home_player_11 contain the player_api_id
     for each of the 11 players on the home team.
 - table: Match
-  column: away_player_1, ..., away_player_11
+  column: away_player_1 to away_player_11
   meaning: The columns from away_player_1 to away_player_11 contain the player_api_id
     for each of the 11 players on the away team.
 - table: Match
@@ -15,18 +15,19 @@ descriptions:
 relations: []
 synonyms:
 - nl_term: player with most wins
-  db_target: DENSE_RANK() OVER (ORDER BY wins_count DESC) AS win_rank WHERE win_rank
-    = 1
+  db_target: DENSE_RANK() OVER (ORDER BY wins_count DESC) = 1
   type: condition
 - nl_term: player with most losses
-  db_target: DENSE_RANK() OVER (ORDER BY losses_count DESC) AS loss_rank WHERE loss_rank
-    = 1
+  db_target: DENSE_RANK() OVER (ORDER BY losses_count DESC) = 1
   type: condition
 - nl_term: win count
   db_target: wins_count
   type: column
 - nl_term: loss count
   db_target: losses_count
+  type: column
+- nl_term: player
+  db_target: Player.player_name
   type: column
 biz_logic:
 - metric_name: Player Win Count
@@ -47,3 +48,7 @@ biz_logic:
   sql_logic: DENSE_RANK() OVER (ORDER BY wins_count DESC)
 - metric_name: Rank Players by Losses
   sql_logic: DENSE_RANK() OVER (ORDER BY losses_count DESC)
+- metric_name: Combine Top Winners and Losers
+  sql_logic: A UNION ALL is used to combine the results for players with the most
+    wins (win_rank = 1) and players with the most losses (loss_rank = 1) into a single
+    result set, adding a 'category' column to differentiate them.

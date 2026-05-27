@@ -1,29 +1,30 @@
 descriptions:
 - table: shopping_cart_events
   column: event_type
-  meaning: 1 represents a product view event.
+  meaning: Value 1 represents a product view event.
 - table: shopping_cart_events
   column: event_type
-  meaning: 2 represents an 'add to cart' event.
+  meaning: Value 2 represents an 'add to cart' event.
 - table: shopping_cart_events
   column: event_type
-  meaning: 3 represents a purchase event, indicating a visit where a purchase occurred.
+  meaning: Value 3 represents a purchase event, which flags a visit as a 'purchase
+    visit'.
 - table: shopping_cart_page_hierarchy
   column: page_id
-  meaning: Page IDs 1, 2, 12, and 13 are excluded from product analysis as they represent
-    non-product pages.
+  meaning: Page IDs 1, 2, 12, and 13 are considered non-product pages and are excluded
+    from product-level analysis.
 - table: shopping_cart_page_hierarchy
   column: product_id
-  meaning: A non-null value indicates the page is a product-specific page.
+  meaning: A non-null value indicates that the page is a product-specific page.
 relations: []
 synonyms:
 - nl_term: product view
   db_target: shopping_cart_events.event_type = 1
   type: condition
-- nl_term: cart add
+- nl_term: add to cart
   db_target: shopping_cart_events.event_type = 2
   type: condition
-- nl_term: purchase event
+- nl_term: purchase
   db_target: shopping_cart_events.event_type = 3
   type: condition
 - nl_term: product views
@@ -42,14 +43,16 @@ biz_logic:
 - metric_name: Purchase Visits
   sql_logic: SELECT DISTINCT visit_id FROM shopping_cart_events WHERE event_type =
     3
-- metric_name: Product Views
-  sql_logic: COUNT(CASE WHEN event_type = 1 THEN 1 END)
-- metric_name: Times Added To Cart
-  sql_logic: COUNT(CASE WHEN event_type = 2 THEN 1 END)
-- metric_name: Actual Purchases
-  sql_logic: The count of 'add to cart' events (event_type = 2) for products within
-    visits that also contained a purchase event (event_type = 3).
-- metric_name: Left In Cart
-  sql_logic: times_added_to_cart - COALESCE(actual_purchases, 0)
-- metric_name: Valid Product Event Filter
+- metric_name: Valid Product Page Filter
   sql_logic: page_id NOT IN (1, 2, 12, 13) AND product_id IS NOT NULL
+- metric_name: Product Views
+  sql_logic: SUM(CASE WHEN event_type = 1 THEN 1 ELSE 0 END)
+- metric_name: Times Added To Cart
+  sql_logic: SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END)
+- metric_name: Actual Purchases
+  sql_logic: SUM(CASE WHEN event_type = 2 AND visit_id IN (SELECT DISTINCT visit_id
+    FROM shopping_cart_events WHERE event_type = 3) THEN 1 ELSE 0 END)
+- metric_name: Left In Cart
+  sql_logic: SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) - COALESCE(SUM(CASE WHEN
+    event_type = 2 AND visit_id IN (SELECT DISTINCT visit_id FROM shopping_cart_events
+    WHERE event_type = 3) THEN 1 ELSE 0 END), 0)

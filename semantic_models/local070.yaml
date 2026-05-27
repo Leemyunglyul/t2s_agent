@@ -20,18 +20,25 @@ synonyms:
 - nl_term: title case city name
   db_target: UPPER(SUBSTR(city_name, 1, 1)) || LOWER(SUBSTR(city_name, 2))
   type: column
+- nl_term: shortest and longest streaks
+  db_target: streak_length = (SELECT MIN(streak_length) FROM streaks) OR streak_length
+    = (SELECT MAX(streak_length) FROM streaks)
+  type: condition
 biz_logic:
 - metric_name: Consecutive Day Streak Grouping
   sql_logic: DATE(insert_date, '-' || ROW_NUMBER() OVER (ORDER BY insert_date) ||
     ' days')
 - metric_name: Daily Record Deduplication
   sql_logic: ROW_NUMBER() OVER (PARTITION BY insert_date ORDER BY city_id)
-- metric_name: Min/Max Streak Length Aggregation
-  sql_logic: MIN(streak_length), MAX(streak_length)
-- metric_name: Streak Length
-  sql_logic: COUNT(DISTINCT insert_date)
-- metric_name: Streak Type Categorization
-  sql_logic: CASE WHEN streak_length = min_len THEN 'shortest' WHEN streak_length
-    = max_len THEN 'longest' END
 - metric_name: Title Case Formatting
   sql_logic: UPPER(SUBSTR(string_value, 1, 1)) || LOWER(SUBSTR(string_value, 2))
+- metric_name: Streak Length
+  sql_logic: COUNT(*)
+- metric_name: Streak Start Date
+  sql_logic: MIN(insert_date)
+- metric_name: Streak End Date
+  sql_logic: MAX(insert_date)
+- metric_name: Overall Minimum Streak Length
+  sql_logic: MIN(streak_length)
+- metric_name: Overall Maximum Streak Length
+  sql_logic: MAX(streak_length)

@@ -7,8 +7,8 @@ relations: []
 synonyms: []
 biz_logic:
 - metric_name: Total Weighted Style Score
-  sql_logic: SUM(CASE WHEN mp.PreferenceSeq = 1 THEN 3 WHEN mp.PreferenceSeq = 2 THEN
-    2 WHEN mp.PreferenceSeq = 3 THEN 1 ELSE 0 END)
+  sql_logic: SUM(CASE WHEN PreferenceSeq = 1 THEN 3 WHEN PreferenceSeq = 2 THEN 2
+    WHEN PreferenceSeq = 3 THEN 1 ELSE 0 END)
 - metric_name: Overall Average Weighted Score
   sql_logic: AVG(TotalWeightedScore) FROM (SELECT SUM(CASE WHEN PreferenceSeq = 1
     THEN 3 WHEN PreferenceSeq = 2 THEN 2 WHEN PreferenceSeq = 3 THEN 1 ELSE 0 END)

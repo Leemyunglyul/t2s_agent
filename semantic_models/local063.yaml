@@ -12,11 +12,11 @@ biz_logic:
     ELSE 0 END), 0) >= 1.20 AND SUM(CASE WHEN calendar_quarter_id = 1772 THEN total_city_sales
     ELSE 0 END) > 0
 - metric_name: Top 20 Percent Products by Sales
-  sql_logic: DENSE_RANK() OVER (ORDER BY total_product_sales_overall DESC) <= COUNT(prod_id)
-    OVER () * 0.2
-- metric_name: Product Quarterly Sales Share
-  sql_logic: SUM(fs.amount_sold) * 1.0 / NULLIF(SUM(SUM(fs.amount_sold)) OVER (PARTITION
-    BY fs.calendar_quarter_id), 0)
+  sql_logic: DENSE_RANK() OVER (ORDER BY total_product_sales_overall DESC) <= (COUNT(*)
+    OVER ()) * 0.2
+- metric_name: Product Quarterly Share
+  sql_logic: product_quarterly_sales * 1.0 / SUM(product_quarterly_sales) OVER (PARTITION
+    BY calendar_quarter_id)
 - metric_name: Percentage Point Change in Share
-  sql_logic: ABS(SUM(CASE WHEN calendar_quarter_id = 1776 THEN product_share ELSE
-    0 END) - SUM(CASE WHEN calendar_quarter_id = 1772 THEN product_share ELSE 0 END))
+  sql_logic: ABS(SUM(CASE WHEN calendar_quarter_id = 1776 THEN share ELSE 0 END) -
+    SUM(CASE WHEN calendar_quarter_id = 1772 THEN share ELSE 0 END))

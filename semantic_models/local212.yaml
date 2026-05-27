@@ -16,3 +16,5 @@ biz_logic:
     = o.order_id WHERE del.driver_id IS NOT NULL GROUP BY del.driver_id, o.order_created_year,
     o.order_created_month, o.order_created_day) SELECT driver_id, AVG(daily_delivery_count)
     AS average_daily_deliveries FROM CTE_DailyDeliveries GROUP BY driver_id
+- metric_name: Driver Rank by Average Daily Deliveries
+  sql_logic: DENSE_RANK() OVER (ORDER BY average_daily_deliveries DESC)

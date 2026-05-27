@@ -30,6 +30,12 @@ biz_logic:
 - metric_name: Highest Partnership Ranking per Match
   sql_logic: DENSE_RANK() OVER (PARTITION BY match_id ORDER BY total_partnership_score
     DESC) AS partnership_rank
-- metric_name: Dominant Partner Ordering
+- metric_name: Order Partnership by Individual Contribution
   sql_logic: CASE WHEN player_a_score > player_b_score THEN player_a_id WHEN player_b_score
-    > player_a_score THEN player_b_id ELSE player_b_id END AS player_1_id
+    > player_a_score THEN player_b_id ELSE player_b_id END AS player_1_id, CASE WHEN
+    player_a_score > player_b_score THEN player_b_id WHEN player_b_score > player_a_score
+    THEN player_a_id ELSE player_a_id END AS player_2_id, CASE WHEN player_a_score
+    > player_b_score THEN player_a_score WHEN player_b_score > player_a_score THEN
+    player_b_score ELSE player_b_score END AS player_1_score, CASE WHEN player_a_score
+    > player_b_score THEN player_b_score WHEN player_b_score > player_a_score THEN
+    player_a_score ELSE player_a_score END AS player_2_score

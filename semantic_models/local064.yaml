@@ -9,25 +9,36 @@ biz_logic:
 - metric_name: net_transaction_amount
   sql_logic: CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal'
     THEN -txn_amount ELSE 0 END
-- metric_name: customer_monthly_balance
+- metric_name: customer_monthly_net_transactions
   sql_logic: SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type = 'withdrawal'
     THEN -txn_amount ELSE 0 END)
-- metric_name: monthly_positive_customer_count
-  sql_logic: COUNT(CASE WHEN monthly_balance > 0 THEN 1 END)
-- metric_name: avg_monthly_balance_all_customers
-  sql_logic: AVG(monthly_balance) -- This metric is accurate only when calculated
-    on scaffolded data where all customers are represented for every month, with non-transacting
-    months having a balance of 0.
-- metric_name: rank_month_by_highest_positive_customers
-  sql_logic: DENSE_RANK() OVER (ORDER BY positive_customer_count DESC, month ASC)
-- metric_name: rank_month_by_lowest_positive_customers
-  sql_logic: DENSE_RANK() OVER (ORDER BY positive_customer_count ASC, month ASC)
-- metric_name: difference_in_avg_balances_between_extremes
-  sql_logic: ABS(MAX(CASE WHEN rn_highest = 1 THEN avg_month_end_balance END) - MAX(CASE
-    WHEN rn_lowest = 1 THEN avg_month_end_balance END))
+- metric_name: total_unique_customers
+  sql_logic: COUNT(DISTINCT customer_id) FROM customer_transactions
+- metric_name: recursive_month_series_generation
+  sql_logic: WITH RECURSIVE months(month_str) AS (SELECT 'START_YYYY-MM' UNION ALL
+    SELECT STRFTIME('%Y-%m', DATE(month_str || '-01', '+1 month')) FROM months WHERE
+    month_str < 'END_YYYY-MM') SELECT month_str FROM months
 - metric_name: time_series_scaffolding
   sql_logic: A technique to handle sparse time-series data. Create a complete grid
     of entities (e.g., customers) and time periods (e.g., months) using a CROSS JOIN.
     Then, LEFT JOIN the actual data onto this grid, using COALESCE to replace NULLs
     with a default value (e.g., 0) for periods with no activity. This ensures calculations
     like averages are performed over the complete set of entities.
+- metric_name: month_end_balance
+  sql_logic: COALESCE(SUM(net_amount), 0) after joining transaction data to a complete
+    customer-month scaffold. Represents a customer's balance for a given month, including
+    months with no activity.
+- metric_name: monthly_positive_customer_count
+  sql_logic: COUNT(CASE WHEN month_end_balance > 0 THEN 1 END)
+- metric_name: total_monthly_balance
+  sql_logic: SUM(month_end_balance)
+- metric_name: average_monthly_balance_per_total_customer
+  sql_logic: (SUM(month_end_balance) * 1.0) / (SELECT COUNT(DISTINCT customer_id)
+    FROM customer_transactions)
+- metric_name: rank_month_by_highest_positive_customers
+  sql_logic: ROW_NUMBER() OVER (ORDER BY positive_customer_count DESC, month_str ASC)
+- metric_name: rank_month_by_lowest_positive_customers
+  sql_logic: ROW_NUMBER() OVER (ORDER BY positive_customer_count ASC, month_str ASC)
+- metric_name: balance_difference_between_extreme_months
+  sql_logic: ABS( (average_monthly_balance_per_total_customer for highest ranked month)
+    - (average_monthly_balance_per_total_customer for lowest ranked month) )

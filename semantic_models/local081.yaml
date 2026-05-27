@@ -10,7 +10,14 @@ descriptions:
   column: rangetop
   meaning: The inclusive upper bound of total spending for a customer to be included
     in a specific group.
-relations: []
+relations:
+- table_1: order_details
+  column_1: SUM(unitprice * quantity)
+  table_2: customergroupthreshold
+  column_2: '[rangebottom, rangetop]'
+  description: A non-equi join where a customer's total spending (calculated from
+    order_details) is checked to be within a spending range defined in the customergroupthreshold
+    table.
 synonyms:
 - nl_term: total spending
   db_target: SUM(order_details.unitprice * order_details.quantity)
@@ -18,27 +25,15 @@ synonyms:
 - nl_term: spending group
   db_target: customergroupthreshold.groupname
   type: column
-- nl_term: number of customers
-  db_target: COUNT(DISTINCT customerid)
-  type: value
-- nl_term: percentage of customers
-  db_target: (ga.number_of_customers * 1.0 / tc.total_customer_count) * 100.0
-  type: value
 - nl_term: year 1998
-  db_target: STRFTIME('%Y', o.orderdate) = '1998'
+  db_target: STRFTIME('%Y', orders.orderdate) = '1998'
   type: condition
 biz_logic:
-- metric_name: Total Customer Spending
+- metric_name: Total Spending per Customer
   sql_logic: SUM(order_details.unitprice * order_details.quantity)
-- metric_name: Customer Spending Group Assignment
-  sql_logic: A customer's spending group is determined by joining on the condition
-    that their total spending (calculated as SUM(order_details.unitprice * order_details.quantity))
-    is between the 'rangebottom' and 'rangetop' values in the 'customergroupthreshold'
-    table.
-- metric_name: Percentage of Total Customers by Group
-  sql_logic: (COUNT(customers in group) * 1.0 / COUNT(DISTINCT total customers in
-    the same period)) * 100.0
-- metric_name: Number of Customers per Group
+- metric_name: Percentage of Customers in Group
+  sql_logic: (COUNT(DISTINCT customers_in_group) * 100.0) / COUNT(DISTINCT total_customers)
+- metric_name: Number of Customers in Group
   sql_logic: COUNT(DISTINCT customerid)
-- metric_name: Total Unique Customers
+- metric_name: Total Customer Count
   sql_logic: COUNT(DISTINCT customerid)

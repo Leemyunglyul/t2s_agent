@@ -27,7 +27,7 @@ relations:
 synonyms:
 - nl_term: best bowler
   db_target: ORDER BY bowling_average ASC LIMIT 1
-  type: value
+  type: condition
 - nl_term: bowling average
   db_target: bowling_average
   type: column
@@ -42,10 +42,10 @@ synonyms:
   type: column
 biz_logic:
 - metric_name: Bowling Average
-  sql_logic: CAST(total_runs_conceded AS REAL) / total_wickets
+  sql_logic: CAST(SUM(runs_conceded) AS REAL) / SUM(wickets_taken)
 - metric_name: Total Runs Conceded by Bowler
-  sql_logic: SUM(COALESCE(runs_scored, 0) + COALESCE(CASE WHEN extra_type IN ('wides',
-    'noballs') THEN extra_runs ELSE 0 END, 0))
+  sql_logic: SUM(COALESCE(bs.runs_scored, 0) + COALESCE(CASE WHEN er.extra_type IN
+    ('wides', 'noballs') THEN er.extra_runs ELSE 0 END, 0))
 - metric_name: Total Wickets Credited to Bowler
-  sql_logic: SUM(CASE WHEN kind_out IS NOT NULL AND kind_out NOT IN ('run out', 'retired
-    hurt', 'obstructing the field', 'handled the ball') THEN 1 ELSE 0 END)
+  sql_logic: SUM(CASE WHEN wt.kind_out IS NOT NULL AND wt.kind_out NOT IN ('run out',
+    'retired hurt', 'obstructing the field', 'handled the ball') THEN 1 ELSE 0 END)

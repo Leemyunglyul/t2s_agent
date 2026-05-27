@@ -3,9 +3,18 @@ descriptions:
   column: order_status
   meaning: A value of 'FINISHED' indicates a completed order suitable for analytical
     calculations.
+- table: orders
+  column: order_created_month
+  meaning: A value of 2 represents the month of February.
+- table: orders
+  column: order_created_month
+  meaning: A value of 3 represents the month of March.
 relations: []
 synonyms: []
 biz_logic:
-- metric_name: Percentage Increase in Monthly Orders
-  sql_logic: (CAST(Current_Month_Orders AS DECIMAL) - Previous_Month_Orders) * 100.0
-    / Previous_Month_Orders
+- metric_name: February Orders
+  sql_logic: SUM(CASE WHEN order_created_month = 2 THEN TotalOrders ELSE 0 END)
+- metric_name: March Orders
+  sql_logic: SUM(CASE WHEN order_created_month = 3 THEN TotalOrders ELSE 0 END)
+- metric_name: Percentage Order Increase
+  sql_logic: (CAST(March_Orders AS DECIMAL) - February_Orders) * 100.0 / February_Orders

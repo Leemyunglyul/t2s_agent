@@ -13,6 +13,6 @@ biz_logic:
   sql_logic: Bowler_Scores.WonGame = 1 AND Bowler_Scores.HandiCapScore <= 190 AND
     Tournaments.TourneyLocation IN ('Thunderbird Lanes', 'Totem Lanes', 'Bolero Lanes')
 - metric_name: Eligible Bowler
-  sql_logic: 'A bowler who has Qualifying Wins in all three specified locations. SQL
-    logic applied to a bowler''s qualifying wins: COUNT(DISTINCT TourneyLocation)
-    = 3'
+  sql_logic: 'A bowler who has Qualifying Wins in all three specified locations (''Thunderbird
+    Lanes'', ''Totem Lanes'', ''Bolero Lanes''). The SQL logic applied to a bowler''s
+    qualifying wins is: COUNT(DISTINCT TourneyLocation) = 3'

@@ -1,0 +1,19 @@
+descriptions:
+- table: promotions
+  column: promo_total_id
+  meaning: A value of 1 in promo_total_id represents the 'Total' or 'All' promotions
+    category, used for broad sales analysis without filtering for a specific promotion.
+- table: channels
+  column: channel_total_id
+  meaning: A value of 1 in channel_total_id represents the 'Total' or 'All' channels
+    category, used for broad sales analysis without filtering for a specific channel.
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Projected Sales (YoY Growth Method)
+  sql_logic: s20.monthly_sales * (s20.monthly_sales * 1.0 / NULLIF(s19.monthly_sales,
+    0))
+- metric_name: Median Calculation (Window Function Method)
+  sql_logic: SELECT AVG(value_column) FROM (SELECT value_column, ROW_NUMBER() OVER
+    (ORDER BY value_column) AS rn, COUNT(*) OVER () AS total_count FROM source_table)
+    AS Ranked WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)

@@ -21,10 +21,10 @@ synonyms:
 biz_logic:
   - metric_name: "Pivoted Entertainer Styles for Matchable Profiles"
     sql_logic: |
-      SELECT EntertainerID, COUNT(StyleID) AS StyleCount, MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) AS Style1, MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) AS Style2 FROM Entertainer_Styles GROUP BY EntertainerID HAVING COUNT(StyleID) <= 3 AND MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) IS NOT NULL
+      SELECT EntertainerID, MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) AS Style1, MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) AS Style2 FROM Entertainer_Styles GROUP BY EntertainerID HAVING COUNT(StyleID) <= 3 AND MAX(CASE WHEN StyleStrength = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN StyleStrength = 2 THEN StyleID END) IS NOT NULL
   - metric_name: "Pivoted Customer Preferences for Matchable Profiles"
     sql_logic: |
-      SELECT CustomerID, COUNT(StyleID) AS PrefCount, MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) AS Pref1, MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) AS Pref2 FROM Musical_Preferences GROUP BY CustomerID HAVING COUNT(StyleID) <= 3 AND MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) IS NOT NULL
+      SELECT CustomerID, MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) AS Pref1, MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) AS Pref2 FROM Musical_Preferences GROUP BY CustomerID HAVING COUNT(StyleID) <= 3 AND MAX(CASE WHEN PreferenceSeq = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID END) IS NOT NULL
   - metric_name: "Total Weighted Style Score"
     sql_logic: |
       SUM(CASE WHEN mp.PreferenceSeq = 1 THEN 3 WHEN mp.PreferenceSeq = 2 THEN 2 WHEN mp.PreferenceSeq = 3 THEN 1 ELSE 0 END)
@@ -34,3 +34,6 @@ biz_logic:
   - metric_name: "Absolute Difference from Average Score"
     sql_logic: |
       ABS(TotalWeightedScore - AverageTotalWeightedScore)
+  - metric_name: "Bidirectional Style Match"
+    sql_logic: |
+      (ESP.Style1 = CPP.Pref1 AND ESP.Style2 = CPP.Pref2) OR (ESP.Style1 = CPP.Pref2 AND ESP.Style2 = CPP.Pref1)

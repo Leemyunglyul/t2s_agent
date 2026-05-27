@@ -39,7 +39,7 @@ biz_logic:
 - metric_name: sales_analysis_period_definition
   sql_logic: CASE WHEN cws.week_number BETWEEN mjw.mid_june_week - 4 AND mjw.mid_june_week
     - 1 THEN 'Before' WHEN cws.week_number BETWEEN mjw.mid_june_week + 1 AND mjw.mid_june_week
-    + 4 THEN 'After' END
+    + 4 THEN 'After' ELSE NULL END
 - metric_name: mid_june_week_identification
   sql_logic: (calendar_year || '-06-15') BETWEEN week_date AND date(week_date, '+6
     days')

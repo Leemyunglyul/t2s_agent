@@ -7,7 +7,11 @@ descriptions:
     column: "rating"
     meaning: |
       A film's content rating (e.g., G, PG-13, R), used as a business category to analyze customer preferences, especially based on their first rental.
-relations: []
+relations:
+  - table_1: "payment"
+    column_1: "customer_id"
+    table_2: "rental"
+    column_2: "customer_id"
 synonyms:
   - nl_term: "total rentals"
     db_target: "COUNT(rental.rental_id)"
@@ -55,51 +59,36 @@ synonyms:
     db_target: "total_payment_amount"
     type: "column"
   - nl_term: "subsequent rentals"
-    db_target: "COUNT(payment.rental_id) - 1"
+    db_target: "COUNT(rental.rental_id) - 1"
     type: "value"
+  - nl_term: "highest paying customer"
+    db_target: "ORDER BY SUM(payment.amount) DESC"
+    type: "condition"
+  - nl_term: "largest change amount"
+    db_target: "largest_change_amount"
+    type: "column"
+  - nl_term: "had the largest change"
+    db_target: "month_over_month_diff = (SELECT MAX(month_over_month_diff) FROM ...)"
+    type: "condition"
 biz_logic:
   - metric_name: "first_purchase_date"
     sql_logic: |
-      The first payment_date for a customer, typically found using MIN(payment_date) or ROW_NUMBER() partitioned by customer_id.
-  - metric_name: "ltv_N_days"
-    sql_logic: |
-      SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+N day') THEN amount ELSE 0 END)
-  - metric_name: "pct_ltv_N_days"
-    sql_logic: |
-      (ltv_N_days * 100.0 / total_ltv)
-  - metric_name: "average_monthly_payment_volatility"
-    sql_logic: |
-      The average of the absolute differences between a customer's monthly payment amounts. Calculated via AVG(ABS(monthly_amount - LAG(monthly_amount) OVER (PARTITION BY customer_id ORDER BY payment_month))).
-  - metric_name: "customer_rank_by_payment_volatility"
-    sql_logic: |
-      DENSE_RANK() OVER (ORDER BY average_monthly_payment_volatility DESC)
-  - metric_name: "Best Rental Month per Store"
-    sql_logic: |
-      Identifies the month with the highest rental count for each store, using a DENSE_RANK() over monthly rental counts partitioned by store_id.
-  - metric_name: "Actor Rental Count"
-    sql_logic: |
-      The total number of rentals for films featuring a specific actor. Requires joining actor -> film_actor -> film -> inventory -> rental.
-  - metric_name: "Actor Rank by Rental Count"
-    sql_logic: |
-      DENSE_RANK() OVER (ORDER BY rental_count DESC)
-  - metric_name: "Percentage of Customers Renting from Top 5 Actors"
-    sql_logic: |
-      (CAST(COUNT(DISTINCT customers_renting_from_top_5) AS REAL) * 100.0) / (SELECT COUNT(DISTINCT customer_id) FROM customer)
-  - metric_name: "subsequent_rentals_per_customer"
-    sql_logic: |
-      COUNT(rental_id) - 1, calculated per customer after their first rental.
-  - metric_name: "customer_rank_by_total_payment"
-    sql_logic: |
-      DENSE_RANK() OVER (ORDER BY SUM(amount) DESC)
-  - metric_name: "payment_month"
-    sql_logic: |
-      STRFTIME('%Y-%m-01', payment_date)
-  - metric_name: "format_month_yyyy_mm"
-    sql_logic: |
-      STRFTIME('%Y-%m', payment_month)
+      The first payment_date for a customer, typically found using MIN(payment_date) or ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY payment_date ASC) and selecting the first one.
   - metric_name: "total_ltv"
     sql_logic: |
       SUM(amount) per customer
+  - metric_name: "ltv_7_days"
+    sql_logic: |
+      SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+7 day') THEN amount ELSE 0 END)
+  - metric_name: "ltv_30_days"
+    sql_logic: |
+      SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+30 day') THEN amount ELSE 0 END)
+  - metric_name: "pct_ltv_7_days"
+    sql_logic: |
+      (ltv_7_days * 100.0 / total_ltv)
+  - metric_name: "pct_ltv_30_days"
+    sql_logic: |
+      (ltv_30_days * 100.0 / total_ltv)
   - metric_name: "average_total_ltv"
     sql_logic: |
       AVG(total_ltv)
@@ -109,9 +98,54 @@ biz_logic:
   - metric_name: "average_pct_ltv_30_days"
     sql_logic: |
       AVG(pct_ltv_30_days)
+  - metric_name: "average_monthly_payment_volatility"
+    sql_logic: |
+      The average of the absolute differences between a customer's monthly payment amounts. Calculated via AVG(ABS(monthly_amount - LAG(monthly_amount) OVER (PARTITION BY customer_id ORDER BY payment_month))).
+  - metric_name: "customer_rank_by_payment_volatility"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY average_monthly_payment_volatility DESC)
+  - metric_name: "Best Rental Month per Store"
+    sql_logic: |
+      WITH MonthlyStoreRentals AS (SELECT T2.store_id, STRFTIME('%Y', T1.rental_date) AS rental_year, STRFTIME('%m', T1.rental_date) AS rental_month, COUNT(T1.rental_id) AS total_rentals FROM rental AS T1 INNER JOIN staff AS T2 ON T1.staff_id = T2.staff_id GROUP BY T2.store_id, rental_year, rental_month), RankedRentals AS (SELECT store_id, rental_year, rental_month, total_rentals, DENSE_RANK() OVER (PARTITION BY store_id ORDER BY total_rentals DESC) AS rank_num FROM MonthlyStoreRentals) SELECT store_id, rental_year, rental_month, total_rentals FROM RankedRentals WHERE rank_num = 1
+  - metric_name: "Actor Rental Count"
+    sql_logic: |
+      SELECT T1.actor_id, COUNT(T4.rental_id) FROM actor AS T1 JOIN film_actor AS T2 ON T1.actor_id = T2.actor_id JOIN inventory AS T3 ON T2.film_id = T3.film_id JOIN rental AS T4 ON T3.inventory_id = T4.inventory_id GROUP BY T1.actor_id
+  - metric_name: "Actor Rank by Rental Count"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY rental_count DESC)
+  - metric_name: "Percentage of Customers Renting from Top 5 Actors"
+    sql_logic: |
+      WITH ActorRentalCounts AS (SELECT T1.actor_id, T1.first_name, T1.last_name, COUNT(T4.rental_id) AS rental_count FROM actor AS T1 INNER JOIN film_actor AS T2 ON T1.actor_id = T2.actor_id INNER JOIN inventory AS T3 ON T2.film_id = T3.film_id INNER JOIN rental AS T4 ON T3.inventory_id = T4.inventory_id GROUP BY T1.actor_id, T1.first_name, T1.last_name), Top5Actors AS (SELECT actor_id FROM (SELECT actor_id, DENSE_RANK() OVER (ORDER BY rental_count DESC) AS actor_rank FROM ActorRentalCounts) WHERE actor_rank <= 5), CustomersRentingFromTopActors AS (SELECT DISTINCT T4.customer_id FROM Top5Actors AS T1 INNER JOIN film_actor AS T2 ON T1.actor_id = T2.actor_id INNER JOIN inventory AS T3 ON T2.film_id = T3.film_id INNER JOIN rental AS T4 ON T3.inventory_id = T4.inventory_id), TotalCustomerCount AS (SELECT COUNT(DISTINCT customer_id) AS total_customers FROM customer) SELECT CAST(COUNT(T1.customer_id) AS REAL) * 100 / T2.total_customers FROM CustomersRentingFromTopActors AS T1, TotalCustomerCount AS T2
+  - metric_name: "subsequent_rentals_per_customer"
+    sql_logic: |
+      COUNT(rental.rental_id) - 1, calculated per customer after their first rental.
   - metric_name: "average_number_of_subsequent_rentals"
     sql_logic: |
-      AVG(COUNT(payment.rental_id) - 1)
+      AVG(COUNT(rental.rental_id) - 1)
+  - metric_name: "customer_rank_by_total_payment"
+    sql_logic: |
+      DENSE_RANK() OVER (ORDER BY SUM(amount) DESC)
+  - metric_name: "payment_month"
+    sql_logic: |
+      STRFTIME('%Y-%m-01', payment_date)
+  - metric_name: "format_month_yyyy_mm"
+    sql_logic: |
+      STRFTIME('%Y-%m', payment_month)
   - metric_name: "monthly_customer_payment"
     sql_logic: |
       SELECT customer_id, STRFTIME('%Y-%m', payment_date) AS payment_month, SUM(amount) AS monthly_amount FROM payment GROUP BY customer_id, payment_month
+  - metric_name: "Monthly Store Rentals"
+    sql_logic: |
+      SELECT T2.store_id, STRFTIME('%Y', T1.rental_date) AS rental_year, STRFTIME('%m', T1.rental_date) AS rental_month, COUNT(T1.rental_id) AS total_rentals FROM rental AS T1 INNER JOIN staff AS T2 ON T1.staff_id = T2.staff_id GROUP BY T2.store_id, rental_year, rental_month
+  - metric_name: "month_over_month_payment_difference"
+    sql_logic: |
+      ABS(total_monthly_payment - LAG(total_monthly_payment, 1, 0) OVER (PARTITION BY customer_id ORDER BY payment_month))
+  - metric_name: "Total Customer Count"
+    sql_logic: |
+      SELECT COUNT(DISTINCT customer_id) FROM customer
+  - metric_name: "Customer Total Rentals"
+    sql_logic: |
+      COUNT(rental.rental_id)
+  - metric_name: "max_month_over_month_difference"
+    sql_logic: |
+      MAX(ABS(monthly_total_payment - LAG(monthly_total_payment, 1, 0) OVER (PARTITION BY customer_id ORDER BY payment_month)))

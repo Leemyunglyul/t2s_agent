@@ -31,16 +31,28 @@ synonyms:
 - nl_term: item
   db_target: packaging
   type: table
+- nl_term: top-level container
+  db_target: p.id FROM packaging AS p LEFT JOIN packaging_relations AS pr ON p.id
+    = pr.contains_id WHERE pr.contains_id IS NULL
+  type: condition
+- nl_term: base item
+  db_target: p.id FROM packaging AS p LEFT JOIN packaging_relations AS pr ON p.id
+    = pr.packaging_id WHERE pr.packaging_id IS NULL
+  type: condition
 biz_logic:
-- metric_name: Total Accumulated Base Item Quantity in Top-Level Container
-  sql_logic: WITH RECURSIVE TopLevelContainers AS (SELECT p.id FROM packaging AS p
-    LEFT JOIN packaging_relations AS pr ON p.id = pr.contains_id WHERE pr.contains_id
-    IS NULL), PackagingHierarchy AS (SELECT tlc.id AS top_level_id, tlc.id AS item_id,
-    1 AS accumulated_qty FROM TopLevelContainers AS tlc UNION ALL SELECT ph.top_level_id,
-    pr.contains_id AS item_id, ph.accumulated_qty * pr.qty AS accumulated_qty FROM
-    PackagingHierarchy AS ph INNER JOIN packaging_relations AS pr ON ph.item_id =
-    pr.packaging_id), BaseItems AS (SELECT p.id FROM packaging AS p LEFT JOIN packaging_relations
-    AS pr ON p.id = pr.packaging_id WHERE pr.packaging_id IS NULL), AccumulatedQuantities
-    AS (SELECT ph.top_level_id, ph.item_id, SUM(ph.accumulated_qty) AS total_accumulated_qty
-    FROM PackagingHierarchy AS ph INNER JOIN BaseItems AS bi ON ph.item_id = bi.id
-    GROUP BY ph.top_level_id, ph.item_id)
+- metric_name: Total Accumulated Base Item Quantity per Top-Level Container
+  sql_logic: "WITH RECURSIVE TopLevelContainers AS (\n    SELECT p.id\n    FROM packaging\
+    \ AS p\n    LEFT JOIN packaging_relations AS pr ON p.id = pr.contains_id\n   \
+    \ WHERE pr.contains_id IS NULL\n),\nBaseItems AS (\n    SELECT p.id\n    FROM\
+    \ packaging AS p\n    LEFT JOIN packaging_relations AS pr ON p.id = pr.packaging_id\n\
+    \    WHERE pr.packaging_id IS NULL\n),\nPackagingHierarchy AS (\n    SELECT\n\
+    \        tlc.id AS top_level_id,\n        tlc.id AS current_item_id,\n       \
+    \ 1 AS accumulated_qty\n    FROM TopLevelContainers AS tlc\n\n    UNION ALL\n\n\
+    \    SELECT\n        ph.top_level_id,\n        pr.contains_id AS current_item_id,\n\
+    \        ph.accumulated_qty * pr.qty AS accumulated_qty\n    FROM PackagingHierarchy\
+    \ AS ph\n    INNER JOIN packaging_relations AS pr ON ph.current_item_id = pr.packaging_id\n\
+    ),\nAccumulatedBaseItemQuantities AS (\n    SELECT\n        ph.top_level_id,\n\
+    \        ph.current_item_id AS base_item_id,\n        SUM(ph.accumulated_qty)\
+    \ AS total_accumulated_qty\n    FROM PackagingHierarchy AS ph\n    INNER JOIN\
+    \ BaseItems AS bi ON ph.current_item_id = bi.id\n    GROUP BY ph.top_level_id,\
+    \ ph.current_item_id\n)"

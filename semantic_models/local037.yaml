@@ -6,9 +6,6 @@ descriptions:
 relations: []
 synonyms: []
 biz_logic:
-- metric_name: payments_count_for_most_common_type
-  sql_logic: The count of payments for the most frequently used payment type within
-    a given product category. It is calculated by counting payments per type for each
-    category, and then using the window function `ROW_NUMBER() OVER (PARTITION BY
-    product_category_name ORDER BY payments_count DESC)` to identify the top payment
-    type where the rank is 1.
+- metric_name: rank_of_payment_type_within_category
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY product_category_name ORDER BY COUNT(*)
+    DESC)

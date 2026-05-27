@@ -1,0 +1,33 @@
+descriptions:
+- table: sales
+  column: promo_id
+  meaning: The value 999 is used to identify sales that are not associated with a
+    specific promotion.
+- table: times
+  column: calendar_quarter_id
+  meaning: The value 1772 corresponds to the fourth quarter of the year 2019 (Q4 2019).
+- table: times
+  column: calendar_quarter_id
+  meaning: The value 1776 corresponds to the fourth quarter of the year 2020 (Q4 2020).
+relations: []
+synonyms:
+- nl_term: no promotion sales
+  db_target: sales.promo_id = 999
+  type: condition
+biz_logic:
+- metric_name: Growing City
+  sql_logic: 'A city where total sales in Q4 2020 are at least 20% greater than total
+    sales in Q4 2019. The SQL logic is: SUM(CASE WHEN calendar_quarter_id = 1776 THEN
+    total_city_sales ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN calendar_quarter_id
+    = 1772 THEN total_city_sales ELSE 0 END), 0) >= 1.20'
+- metric_name: Top 20% Products by Sales
+  sql_logic: 'Products that rank in the top 20% based on their total sales, calculated
+    using DENSE_RANK. The SQL logic is: DENSE_RANK() OVER (ORDER BY total_product_sales_overall
+    DESC) <= total_product_count * 0.2'
+- metric_name: Product Quarterly Market Share
+  sql_logic: 'The product''s total sales in a quarter divided by the total sales of
+    all products in that same quarter. The SQL logic is: product_quarterly_sales *
+    1.0 / NULLIF(total_quarterly_sales, 0)'
+- metric_name: Market Share Difference
+  sql_logic: 'The absolute change in a product''s market share between two periods.
+    The SQL logic is: (share_q4_2020 - share_q4_2019)'

@@ -20,4 +20,8 @@ biz_logic:
     FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year,
     T2.constructor_id) GROUP BY year
 - metric_name: Yearly Dominance Score
-  sql_logic: max_driver_points + max_constructor_points
+  sql_logic: (SELECT MAX(total_driver_points) FROM (SELECT SUM(T2.points) AS total_driver_points
+    FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id WHERE T1.year =
+    races.year GROUP BY T2.driver_id)) + (SELECT MAX(total_constructor_points) FROM
+    (SELECT SUM(T2.points) AS total_constructor_points FROM races AS T1 JOIN results
+    AS T2 ON T1.race_id = T2.race_id WHERE T1.year = races.year GROUP BY T2.constructor_id))

@@ -15,9 +15,6 @@ synonyms:
 - nl_term: country
   db_target: player.country_name
   type: column
-- nl_term: player
-  db_target: player
-  type: table
 - nl_term: runs
   db_target: batsman_scored.runs_scored
   type: column
@@ -43,9 +40,11 @@ biz_logic:
     AND bbb.over_id = bs.over_id AND bbb.ball_id = bs.ball_id AND bbb.innings_no =
     bs.innings_no GROUP BY bbb.striker
 - metric_name: Player Total Matches
-  sql_logic: SELECT pm.player_id, COUNT(DISTINCT pm.match_id) AS total_matches FROM
-    player_match AS pm GROUP BY pm.player_id
+  sql_logic: SELECT player_id, COUNT(DISTINCT match_id) AS total_matches FROM player_match
+    GROUP BY player_id
 - metric_name: Player Batting Average
-  sql_logic: CAST([Player Total Runs] AS REAL) / [Player Total Matches]
+  sql_logic: CAST([Player Total Runs] AS REAL) / NULLIF([Player Total Matches], 0)
 - metric_name: Country Average Batting Average
   sql_logic: AVG([Player Batting Average]) GROUP BY player.country_name
+- metric_name: Country Ranking by Batting Average
+  sql_logic: DENSE_RANK() OVER (ORDER BY [Country Average Batting Average] DESC)

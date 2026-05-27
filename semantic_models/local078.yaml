@@ -8,8 +8,8 @@ synonyms:
   db_target: DENSE_RANK() OVER (ORDER BY composition ASC) <= 10
   type: condition
 - nl_term: peak
-  db_target: ROW_NUMBER() OVER (PARTITION BY interest_id ORDER BY composition DESC)
-    = 1
+  db_target: ROW_NUMBER() OVER (PARTITION BY interest_id ORDER BY composition DESC,
+    month_year ASC) = 1
   type: condition
 biz_logic:
 - metric_name: Top Rank by Composition
@@ -17,4 +17,5 @@ biz_logic:
 - metric_name: Bottom Rank by Composition
   sql_logic: DENSE_RANK() OVER (ORDER BY composition ASC)
 - metric_name: Peak Composition Ranker
-  sql_logic: ROW_NUMBER() OVER (PARTITION BY interest_id ORDER BY composition DESC)
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY interest_id ORDER BY composition DESC,
+    month_year ASC)

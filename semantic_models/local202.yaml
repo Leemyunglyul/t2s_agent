@@ -21,13 +21,13 @@ synonyms:
     = 1 THEN 1 ELSE 0 END)
   type: condition
 biz_logic:
-- metric_name: total_alien_population
+- metric_name: total_population
   sql_logic: COUNT(id)
-- metric_name: friendly_aliens_count
+- metric_name: friendly_count
   sql_logic: SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0 END)
-- metric_name: hostile_aliens_count
+- metric_name: hostile_count
   sql_logic: SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0 END)
-- metric_name: average_alien_age
+- metric_name: avg_age
   sql_logic: AVG(age)
-- metric_name: state_rank_by_population
-  sql_logic: DENSE_RANK() OVER (ORDER BY COUNT(id) DESC)
+- metric_name: population_rank
+  sql_logic: DENSE_RANK() OVER (ORDER BY total_population DESC)

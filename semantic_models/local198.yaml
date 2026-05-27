@@ -15,3 +15,12 @@ biz_logic:
     BY <column_to_rank>) AS rn, COUNT(*) OVER () AS total_count FROM <source_table>)
     SELECT AVG(<column_to_rank>) FROM RankedData WHERE rn IN ((total_count + 1) /
     2, (total_count + 2) / 2)
+- metric_name: Median of Total Sales for Countries with more than 4 Customers
+  sql_logic: WITH CountriesWithEnoughCustomers AS (SELECT Country FROM customers GROUP
+    BY Country HAVING COUNT(DISTINCT CustomerId) > 4), TotalSalesPerQualifiedCountry
+    AS (SELECT c.Country, SUM(i.Total) AS TotalSales FROM customers AS c INNER JOIN
+    invoices AS i ON c.CustomerId = i.CustomerId WHERE c.Country IN (SELECT Country
+    FROM CountriesWithEnoughCustomers) GROUP BY c.Country), RankedSales AS (SELECT
+    TotalSales, ROW_NUMBER() OVER (ORDER BY TotalSales) AS rn, COUNT(*) OVER () AS
+    total_count FROM TotalSalesPerQualifiedCountry) SELECT AVG(TotalSales) FROM RankedSales
+    WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2);

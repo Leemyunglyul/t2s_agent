@@ -25,9 +25,6 @@ synonyms:
     WHEN '12' THEN 'December' END
   type: column
 biz_logic:
-- metric_name: DeliveredOrders
-  sql_logic: SELECT order_id, order_delivered_customer_date FROM olist_orders WHERE
-    order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
 - metric_name: Annual Order Count Pivot
   sql_logic: COUNT(CASE WHEN STRFTIME('%Y', order_delivered_customer_date) = 'YYYY'
     THEN order_id ELSE NULL END)

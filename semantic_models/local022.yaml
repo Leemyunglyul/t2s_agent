@@ -22,7 +22,7 @@ relations:
   - player_id
 synonyms:
 - nl_term: century
-  db_target: SUM(runs_scored) >= 100
+  db_target: SUM(bs.runs_scored) >= 100
   type: condition
 - nl_term: players
   db_target: player.player_name
@@ -31,15 +31,13 @@ synonyms:
   db_target: ball_by_ball.striker
   type: column
 - nl_term: their team lost the match
-  db_target: player_match.team_id = (CASE WHEN match.match_winner = match.team_1 THEN
-    match.team_2 ELSE match.team_1 END)
+  db_target: pm.team_id = lt.losing_team_id
   type: condition
 - nl_term: centurion
-  db_target: SUM(runs_scored) >= 100
+  db_target: SUM(bs.runs_scored) >= 100
   type: condition
 - nl_term: losing cause
-  db_target: player_match.team_id = (CASE WHEN match.match_winner = match.team_1 THEN
-    match.team_2 ELSE match.team_1 END)
+  db_target: pm.team_id = lt.losing_team_id
   type: condition
 biz_logic:
 - metric_name: Losing Team Identification

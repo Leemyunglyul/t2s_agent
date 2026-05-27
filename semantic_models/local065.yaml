@@ -22,12 +22,13 @@ synonyms:
   db_target: pizza_clean_runner_orders WHERE cancellation IS NULL
   type: condition
 biz_logic:
-- metric_name: Base Pizza Revenue
-  sql_logic: SUM(CASE WHEN pn.pizza_name = 'Meatlovers' THEN 12 WHEN pn.pizza_name
-    = 'Vegetarian' THEN 10 ELSE 0 END)
-- metric_name: Extras Revenue
-  sql_logic: SUM(extras_count)
+- metric_name: Pizza Price
+  sql_logic: CASE WHEN pizza_names.pizza_name = 'Meatlovers' THEN 12 WHEN pizza_names.pizza_name
+    = 'Vegetarian' THEN 10 ELSE 0 END
+- metric_name: Base Pizza Revenue per Order
+  sql_logic: SUM(pizza_price) GROUP BY order_id
+- metric_name: Extras Revenue per Order
+  sql_logic: SUM(extras_count) GROUP BY order_id
 - metric_name: Total Earnings
-  sql_logic: The sum of revenue for all successful orders. An order's revenue is the
-    sum of its base pizza revenue and its extras revenue. Successful orders are those
-    where pizza_clean_runner_orders.cancellation IS NULL.
+  sql_logic: SUM(total_base_pizza_revenue + COALESCE(total_extras_revenue, 0)) FROM
+    successful_orders

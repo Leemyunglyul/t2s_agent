@@ -1,0 +1,20 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: season
+  db_target: races.year
+  type: column
+- nl_term: point-scoring driver
+  db_target: SUM(points) > 0
+  type: condition
+- nl_term: fewest points
+  db_target: score = MIN(score) OVER (PARTITION BY season)
+  type: condition
+biz_logic:
+- metric_name: Combined Race and Sprint Points
+  sql_logic: SELECT race_id, driver_id, constructor_id, points FROM results UNION
+    ALL SELECT race_id, driver_id, constructor_id, points FROM sprint_results
+- metric_name: Driver Total Season Points
+  sql_logic: SELECT r.year, T.driver_id, SUM(T.points) AS total_season_points FROM
+    (/* Logic from 'Combined Race and Sprint Points' metric */) AS T JOIN races AS
+    r ON T.race_id = r.race_id GROUP BY r.year, T.driver_id
