@@ -427,3 +427,20 @@ order:
 | Final Score (%) | Zero-Retry Score (%) | Avg Retries | Avg Steps | Correct | Total |
 | --------------- | -------------------- | ----------- | --------- | ------- | ----- |
 | 64.34           | 51.94                | 0.67        | 4         | 83      | 129   |
+
+#### 0528: Gold Fewshot 적용, Semantic Model 시각화
+
+기존에는 한 번도 정답을 맞히지 못한 TC들에 한하여, gold fewshot을 적용했음.
+이를 에이전트에도 적용해서 테스트 하고자 하는 TC의 gold sql을 제외하고 다른 TC들의 gold fewshot을
+활용하도록 적용함. 또한, SQL을 그대로 보여주지 않고 숫자와 문자열은 마스킹 처리하여 그 구조에만 신경쓰도록 하였음.
+
+위 fewshot과 semantic model 적용을 활용한 결과, 정답률은 llm 자체의 한계로 개선되지 않고 제자리를 보였으나
+한 번이상 정답을 맞춘 문항을 총 135개 TC 중 98개로 늘릴 수 있었음. 이 과정에서 몇몇 문제들에 한해
+각 시도마다 정답과 오답이 번갈아 출력되는 문제가 발견되었음.
+
+이 부분을 보완하면 잠재적으로 약 72.5%의 정답률까지 끌어올릴 수 있을 것으로 보임.
+
+![Semantic Model 시각화](semantic view.png)
+
+질의, SQL, DDL을 활용해서 도메인이 비슷한 DB/Table끼리 묶고 질의 의도, 유형으로 분리한 최소 기능 단위 semantic을 구성하여
+semantic model을 생성 후 streamlit을 활용해 시각화하였음.
