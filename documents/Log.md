@@ -440,7 +440,7 @@ order:
 
 이 부분을 보완하면 잠재적으로 약 72.5%의 정답률까지 끌어올릴 수 있을 것으로 보임.
 
-![Semantic Model 시각화](semantic view.png)
+![Semantic Model 시각화](semantic_view.png)
 
 질의, SQL, DDL을 활용해서 도메인이 비슷한 DB/Table끼리 묶고 질의 의도, 유형으로 분리한 최소 기능 단위 semantic을 구성하여
 semantic model을 생성 후 streamlit을 활용해 시각화하였음.
