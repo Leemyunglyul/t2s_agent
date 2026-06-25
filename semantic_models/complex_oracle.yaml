@@ -19,6 +19,10 @@ descriptions:
     column: "calendar_quarter_id"
     meaning: |
       Identifier for the calendar quarter. The value 1772 corresponds to Q4 2019, and 1776 corresponds to Q4 2020.
+  - table: "currency"
+    column: "to_us"
+    meaning: |
+      The conversion rate of the local currency to US Dollars for a given country, year, and month.
 relations:
   - table_1: "sales"
     column_1: "[prod_id, time_id, promo_id, channel_id]"
@@ -85,7 +89,7 @@ biz_logic:
       s20.monthly_sales * (s20.monthly_sales * 1.0 / NULLIF(s19.monthly_sales, 0))
   - metric_name: "Projected Sales in USD"
     sql_logic: |
-      projected_2021_sales * cu.to_us
+      projected_monthly_sales * to_us
   - metric_name: "Average Projected Monthly Sales in USD"
     sql_logic: |
       AVG(projected_usd_sales)
@@ -98,3 +102,6 @@ biz_logic:
   - metric_name: "Median Calculation (Window Function Method)"
     sql_logic: |
       SELECT AVG(value_column) FROM (SELECT value_column, ROW_NUMBER() OVER (ORDER BY value_column) AS rn, COUNT(*) OVER () AS total_count FROM source_table) AS Ranked WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
+  - metric_name: "customer_profit_distribution_bucket"
+    sql_logic: |
+      CASE WHEN MAX(total_profit) = MIN(total_profit) THEN 1 WHEN total_profit = MAX(total_profit) THEN 10 ELSE CAST((total_profit - MIN(total_profit)) * 10 / (MAX(total_profit) - MIN(total_profit)) AS INTEGER) + 1 END

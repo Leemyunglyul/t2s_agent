@@ -9,10 +9,11 @@ descriptions:
 - table: pizza_clean_customer_orders
   column: exclusions
   meaning: A comma-separated string of topping_ids to be removed from the base pizza
-    recipe.
+    recipe. The value 'None' or an empty string indicates no exclusions.
 - table: pizza_clean_customer_orders
   column: extras
-  meaning: A comma-separated string of topping_ids to be added to the pizza.
+  meaning: A comma-separated string of topping_ids to be added to the pizza. The value
+    'None' or an empty string indicates no extras.
 relations:
 - table_1: pizza_recipes
   column_1: toppings
@@ -43,16 +44,22 @@ biz_logic:
 - metric_name: Delivered Order Definition
   sql_logic: An order is considered delivered if the 'cancellation' column in the
     'pizza_clean_runner_orders' table is NULL.
-- metric_name: Net Topping Quantity Calculation
-  sql_logic: 'The net quantity of a topping on a pizza is calculated by summing quantities:
-    +1 for each base topping (from pizza_recipes.toppings), +1 for each extra topping
-    (from pizza_clean_customer_orders.extras), and -1 for each excluded topping (from
-    pizza_clean_customer_orders.exclusions).'
-- metric_name: Unnest Comma-Separated IDs (Recursive Pattern)
-  sql_logic: WITH RECURSIVE Split(item, rest_of_string) AS (SELECT TRIM(SUBSTR(csv_column,
-    1, INSTR(csv_column || ',', ',') - 1)), SUBSTR(csv_column, INSTR(csv_column ||
-    ',', ',') + 1) FROM source_table WHERE csv_column IS NOT NULL AND csv_column !=
-    '' UNION ALL SELECT TRIM(SUBSTR(rest_of_string, 1, INSTR(rest_of_string || ',',
-    ',') - 1)), SUBSTR(rest_of_string, INSTR(rest_of_string || ',', ',') + 1) FROM
-    Split WHERE rest_of_string != '') SELECT item FROM Split WHERE item IS NOT NULL
-    AND item != ''
+- metric_name: Cleaning Topping Modification Data
+  sql_logic: 'To handle empty or ''None'' values in the ''extras'' and ''exclusions''
+    columns, use the expression: NULLIF(NULLIF(TRIM(column_name), ''None''), '''').'
+- metric_name: Unnesting Comma-Separated IDs (SQLite Recursive CTE)
+  sql_logic: WITH RECURSIVE Unnested(order_id, topping_id, remaining_toppings) AS
+    (SELECT order_id, CAST(TRIM(SUBSTR(column, 1, INSTR(column || ',', ',') - 1))
+    AS INTEGER), SUBSTR(column || ',', INSTR(column || ',', ',') + 1) FROM source_table
+    WHERE column IS NOT NULL AND column != '' UNION ALL SELECT order_id, CAST(TRIM(SUBSTR(remaining_toppings,
+    1, INSTR(remaining_toppings, ',') - 1)) AS INTEGER), SUBSTR(remaining_toppings,
+    INSTR(remaining_toppings, ',') + 1) FROM Unnested WHERE remaining_toppings !=
+    '' AND TRIM(SUBSTR(remaining_toppings, 1, INSTR(remaining_toppings, ',') - 1))
+    != '') SELECT order_id, topping_id FROM Unnested
+- metric_name: Total Topping Usage Calculation
+  sql_logic: 'To calculate the total usage of each topping across all delivered orders:
+    1. Unnest base toppings, extras, and exclusions for each order. 2. Assign a quantity
+    modifier: +1 for base/extra toppings, -1 for exclusions. 3. Sum these modifiers
+    for each topping within an order to get a ''net_quantity''. 4. Filter for toppings
+    where ''net_quantity'' > 0. 5. Sum the ''net_quantity'' for each topping across
+    all orders.'

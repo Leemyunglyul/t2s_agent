@@ -1,4 +1,7 @@
-descriptions: []
+descriptions:
+- table: ball_by_ball
+  column: bowler
+  meaning: ID of the player who is bowling. Refers to player.player_id.
 relations: []
 synonyms:
 - nl_term: most expensive over

@@ -16,7 +16,13 @@ descriptions:
 - table: shopping_cart_page_hierarchy
   column: product_id
   meaning: A non-null value indicates that the page is a product-specific page.
-relations: []
+relations:
+- table_1: shopping_cart_events
+  column_1: visit_id
+  table_2: shopping_cart_events
+  column_2: visit_id
+  condition: A JOIN condition where a visit_id is checked for the presence of an event
+    with event_type = 3 to determine if the entire visit resulted in a purchase.
 synonyms:
 - nl_term: product view
   db_target: shopping_cart_events.event_type = 1
@@ -53,6 +59,5 @@ biz_logic:
   sql_logic: SUM(CASE WHEN event_type = 2 AND visit_id IN (SELECT DISTINCT visit_id
     FROM shopping_cart_events WHERE event_type = 3) THEN 1 ELSE 0 END)
 - metric_name: Left In Cart
-  sql_logic: SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) - COALESCE(SUM(CASE WHEN
-    event_type = 2 AND visit_id IN (SELECT DISTINCT visit_id FROM shopping_cart_events
-    WHERE event_type = 3) THEN 1 ELSE 0 END), 0)
+  sql_logic: SUM(CASE WHEN event_type = 2 AND visit_id NOT IN (SELECT DISTINCT visit_id
+    FROM shopping_cart_events WHERE event_type = 3) THEN 1 ELSE 0 END)

@@ -12,9 +12,10 @@ descriptions:
 relations: []
 synonyms: []
 biz_logic:
-- metric_name: February Orders
-  sql_logic: SUM(CASE WHEN order_created_month = 2 THEN TotalOrders ELSE 0 END)
-- metric_name: March Orders
-  sql_logic: SUM(CASE WHEN order_created_month = 3 THEN TotalOrders ELSE 0 END)
-- metric_name: Percentage Order Increase
-  sql_logic: (CAST(March_Orders AS DECIMAL) - February_Orders) * 100.0 / February_Orders
+- metric_name: February_Orders_Count
+  sql_logic: SUM(CASE WHEN o.order_created_month = 2 THEN 1 ELSE 0 END)
+- metric_name: March_Orders_Count
+  sql_logic: SUM(CASE WHEN o.order_created_month = 3 THEN 1 ELSE 0 END)
+- metric_name: Percentage_Increase
+  sql_logic: (CAST(March_Orders_Count AS DECIMAL) - February_Orders_Count) * 100.0
+    / February_Orders_Count

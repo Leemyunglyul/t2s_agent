@@ -60,3 +60,6 @@ biz_logic:
   - metric_name: "Employee Rank by Late Order Percentage"
     sql_logic: |
       DENSE_RANK() OVER (ORDER BY CAST(SUM(CASE WHEN shippeddate >= requireddate THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(orderid) DESC)
+  - metric_name: "Customer Group Percentage (1998 Spenders)"
+    sql_logic: |
+      CAST(COUNT(CustomerID) AS REAL) * 100 / (SELECT COUNT(DISTINCT CustomerID) FROM Orders WHERE STRFTIME('%Y', OrderDate) = '1998')

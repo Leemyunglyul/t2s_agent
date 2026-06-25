@@ -16,7 +16,7 @@ synonyms:
     = 1
   type: condition
 biz_logic:
-- metric_name: First Legislator Term
+- metric_name: First Legislator Term Row Number
   sql_logic: ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC)
 - metric_name: Term Spanning Year-End
   sql_logic: term_end >= DATE(strftime('%Y', term_start) || '-12-31') AND term_start

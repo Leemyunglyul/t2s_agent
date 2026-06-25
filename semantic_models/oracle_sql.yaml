@@ -50,6 +50,38 @@ biz_logic:
   - metric_name: "Product Display Order by Pick Start"
     sql_logic: |
       ORDER BY MIN(picking_list.created)
-  - metric_name: "Average Leaf Items per Top-Level Package"
+  - metric_name: "Average Total Leaf Quantity"
     sql_logic: |
-      AVG(total_leaf_quantity)
+      AVG(COALESCE(total_qty, 1.0))
+  - metric_name: "Total Accumulated Item Quantity in Packaging Hierarchy"
+    sql_logic: |
+      WITH RECURSIVE TopLevelContainers AS (
+        SELECT id
+        FROM packaging
+        WHERE id NOT IN (SELECT contains_id FROM packaging_relations)
+      ),
+      PackagingHierarchy AS (
+        SELECT
+          T.id AS top_level_id,
+          T.id AS current_item_id,
+          1 AS accumulated_qty
+        FROM TopLevelContainers AS T
+        UNION ALL
+        SELECT
+          ph.top_level_id,
+          pr.contains_id AS current_item_id,
+          ph.accumulated_qty * pr.qty AS accumulated_qty
+        FROM PackagingHierarchy AS ph
+        JOIN packaging_relations AS pr
+          ON ph.current_item_id = pr.packaging_id
+      ),
+      TotalQuantities AS (
+        SELECT
+          top_level_id,
+          current_item_id,
+          SUM(accumulated_qty) AS total_accumulated_qty
+        FROM PackagingHierarchy
+        GROUP BY
+          top_level_id,
+          current_item_id
+      )

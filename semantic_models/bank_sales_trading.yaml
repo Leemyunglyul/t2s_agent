@@ -28,6 +28,10 @@ descriptions:
     column: "month_year"
     meaning: |
       Date stored as a 'MM/YYYY' text string. Convert to a standard date using `DATE(SUBSTR(month_year, 4, 4) || '-' || SUBSTR(month_year, 1, 2) || '-01')`.
+  - table: "interest_metrics"
+    column: "_year, _month"
+    meaning: |
+      These columns can be combined to form a standard month date using the logic: `DATE(CAST(_year AS INTEGER) || '-' || printf('%02d', CAST(_month AS INTEGER)) || '-01')`.
   - table: "bitcoin_prices"
     column: "market_date"
     meaning: |
@@ -69,6 +73,12 @@ relations:
     column_2: '["ticker", "market_date"]'
     meaning: |
       A transaction's value is determined by joining on both the asset ticker and the specific date of the transaction to find the corresponding daily price. This represents a composite key relationship.
+  - table_1: "shopping_cart_events"
+    column_1: "visit_id"
+    table_2: "shopping_cart_events"
+    column_2: "visit_id"
+    meaning: |
+      A self-join on visit_id is used to check for the presence of an event with event_type = 3 to determine if the entire visit resulted in a purchase.
 synonyms:
   - nl_term: "sales attribute"
     db_target: "region, platform, age_band, demographic, customer_type"
@@ -169,7 +179,7 @@ biz_logic:
       SUM(MAX(0, balance_at_month_start))
   - metric_name: "Time Series Scaffolding Pattern"
     sql_logic: |
-      A technique to handle sparse time-series data. Create a complete grid of entities (e.g., customers) and time periods (e.g., months) using a CROSS JOIN. Then, LEFT JOIN the actual data onto this grid, using COALESCE to replace NULLs with a default value (e.g., 0) for periods with no activity. This ensures calculations like averages and running totals are performed over the complete set of entities and time periods.
+      A technique to handle sparse time-series data. Create a complete grid of entities (e.g., customers) and time periods (e.g., months) using a CROSS JOIN between distinct entities and a generated time series. Then, LEFT JOIN the actual data onto this grid, using COALESCE(value, 0) to fill gaps. This ensures calculations like averages and running totals are performed over the complete set of entities and time periods, preventing gaps in the data.
   - metric_name: "Time Series Generation (Recursive)"
     sql_logic: |
       WITH RECURSIVE all_months AS (SELECT STRFTIME('%Y-%m-01', MIN(txn_date)) AS month FROM customer_transactions UNION ALL SELECT STRFTIME('%Y-%m-01', DATE(month, '+1 month')) FROM all_months WHERE month < (SELECT STRFTIME('%Y-%m-01', MAX(txn_date)) FROM customer_transactions)) SELECT month FROM all_months
@@ -179,3 +189,45 @@ biz_logic:
   - metric_name: "Daily Activity with Zero-Filled Gaps"
     sql_logic: |
       SELECT dsc.customer_id, dsc.date, COALESCE(dnt.net_change, 0) AS daily_net_change FROM DateSeriesPerCustomer AS dsc LEFT JOIN DailyNetTransactions AS dnt ON dsc.customer_id = dnt.customer_id AND dsc.date = dnt.txn_date
+  - metric_name: "Transaction Year"
+    sql_logic: |
+      CAST(SUBSTR(T1.txn_date, 7, 4) AS INTEGER)
+  - metric_name: "Average Purchase Price"
+    sql_logic: |
+      SUM(T1.quantity * T3.price) * 1.0 / SUM(T1.quantity)
+  - metric_name: "Previous Year's Average Price"
+    sql_logic: |
+      LAG(avg_purchase_price, 1) OVER (PARTITION BY region ORDER BY txn_year)
+  - metric_name: "Annual Percentage Change in Average Purchase Price"
+    sql_logic: |
+      CASE WHEN prev_year_avg_price IS NULL OR prev_year_avg_price = 0 THEN NULL ELSE (avg_purchase_price - prev_year_avg_price) * 100.0 / prev_year_avg_price END
+  - metric_name: "Region Rank by Average Purchase Price"
+    sql_logic: |
+      DENSE_RANK() OVER (PARTITION BY txn_year ORDER BY avg_purchase_price DESC)
+  - metric_name: "Year Rank for Region"
+    sql_logic: |
+      DENSE_RANK() OVER (PARTITION BY region ORDER BY txn_year ASC)
+  - metric_name: "Customer Monthly Net Change"
+    sql_logic: |
+      SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount ELSE 0 END)
+  - metric_name: "total_unique_customers"
+    sql_logic: |
+      COUNT(DISTINCT customer_id) FROM customer_transactions
+  - metric_name: "scaffolded_customer_monthly_balance"
+    sql_logic: |
+      COALESCE(monthly_net_transactions_per_customer, 0)
+  - metric_name: "monthly_positive_customer_count"
+    sql_logic: |
+      COUNT(CASE WHEN scaffolded_customer_monthly_balance > 0 THEN 1 END)
+  - metric_name: "total_monthly_balance"
+    sql_logic: |
+      SUM(scaffolded_customer_monthly_balance)
+  - metric_name: "avg_balance_all_customers"
+    sql_logic: |
+      (SUM(scaffolded_customer_monthly_balance) * 1.0) / (SELECT COUNT(DISTINCT customer_id) FROM customer_transactions)
+  - metric_name: "rank_month_by_highest_positive_customers"
+    sql_logic: |
+      ROW_NUMBER() OVER (ORDER BY positive_customer_count DESC, month_str ASC)
+  - metric_name: "rank_month_by_lowest_positive_customers"
+    sql_logic: |
+      ROW_NUMBER() OVER (ORDER BY positive_customer_count ASC, month_

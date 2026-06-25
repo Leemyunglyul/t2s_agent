@@ -14,20 +14,21 @@ biz_logic:
   sql_logic: SUM(CASE WHEN txn_type IN ('withdrawal', 'purchase') THEN -txn_amount
     ELSE txn_amount END)
 - metric_name: Daily Cumulative Balance
-  sql_logic: SUM(daily_net_change) OVER (PARTITION BY customer_id ORDER BY date ROWS
-    BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+  sql_logic: SUM(daily_net_change) OVER (PARTITION BY customer_id ORDER BY date)
 - metric_name: Adjusted Daily Balance (non-negative)
   sql_logic: CASE WHEN daily_balance < 0 THEN 0 ELSE daily_balance END
 - metric_name: Customer Monthly Max Balance
   sql_logic: MAX(adjusted_balance)
 - metric_name: Total Monthly Max Balance
   sql_logic: SUM(monthly_max_balance)
-- metric_name: Per-Customer Date Series Generation (Recursive)
-  sql_logic: WITH RECURSIVE DateSeriesPerCustomer(customer_id, date, max_txn_date)
-    AS (SELECT customer_id, MIN(txn_date), MAX(txn_date) FROM customer_transactions
-    GROUP BY customer_id UNION ALL SELECT customer_id, DATE(date, '+1 day'), max_txn_date
-    FROM DateSeriesPerCustomer WHERE date < max_txn_date)
 - metric_name: Daily Activity with Zero-Filled Gaps
-  sql_logic: SELECT dsc.customer_id, dsc.date, COALESCE(dnt.net_change, 0) AS daily_net_change
-    FROM DateSeriesPerCustomer AS dsc LEFT JOIN DailyNetTransactions AS dnt ON dsc.customer_id
-    = dnt.customer_id AND dsc.date = dnt.txn_date
+  sql_logic: SELECT dsc.customer_id, dsc.date, COALESCE(dnt.daily_net_change, 0) AS
+    daily_net_change FROM DateSeriesPerCustomer AS dsc LEFT JOIN DailyNetTransactions
+    AS dnt ON dsc.customer_id = dnt.customer_id AND dsc.date = dnt.date
+- metric_name: Customer Transaction Date Range
+  sql_logic: SELECT customer_id, MIN(txn_date) AS min_txn_date, MAX(txn_date) AS max_txn_date
+    FROM customer_transactions GROUP BY customer_id
+- metric_name: Per-Customer Date Series Generation (Recursive)
+  sql_logic: WITH RECURSIVE DateSeriesPerCustomer AS ( SELECT customer_id, min_txn_date
+    AS date, max_txn_date FROM CustomerDateRange UNION ALL SELECT customer_id, DATE(date,
+    '+1 day'), max_txn_date FROM DateSeriesPerCustomer WHERE date < max_txn_date )

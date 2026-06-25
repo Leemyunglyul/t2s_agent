@@ -24,16 +24,18 @@ synonyms:
   type: condition
 biz_logic:
 - metric_name: Total Runs by Player per Season
-  sql_logic: SELECT M.season_id, BB.striker AS player_id, SUM(BS.runs_scored) AS total_runs
-    FROM match AS M JOIN ball_by_ball AS BB ON M.match_id = BB.match_id JOIN batsman_scored
-    AS BS ON BB.match_id = BS.match_id AND BB.over_id = BS.over_id AND BB.ball_id
-    = BS.ball_id AND BB.innings_no = BS.innings_no GROUP BY M.season_id, BB.striker
+  sql_logic: SELECT m.season_id, bbb.striker AS player_id, SUM(bs.runs_scored) AS
+    total_runs FROM match AS m INNER JOIN ball_by_ball AS bbb ON m.match_id = bbb.match_id
+    INNER JOIN batsman_scored AS bs ON bbb.match_id = bs.match_id AND bbb.over_id
+    = bs.over_id AND bbb.ball_id = bs.ball_id AND bbb.innings_no = bs.innings_no GROUP
+    BY m.season_id, bbb.striker
 - metric_name: Total Wickets by Player per Season
-  sql_logic: SELECT M.season_id, BB.bowler AS player_id, COUNT(*) AS total_wickets
-    FROM match AS M JOIN ball_by_ball AS BB ON M.match_id = BB.match_id JOIN wicket_taken
-    AS WT ON BB.match_id = WT.match_id AND BB.over_id = WT.over_id AND BB.ball_id
-    = WT.ball_id AND BB.innings_no = WT.innings_no WHERE WT.kind_out NOT IN ('run
-    out', 'hit wicket', 'retired hurt') GROUP BY M.season_id, BB.bowler
+  sql_logic: SELECT m.season_id, bbb.bowler AS player_id, COUNT(wt.player_out) AS
+    total_wickets FROM match AS m INNER JOIN ball_by_ball AS bbb ON m.match_id = bbb.match_id
+    INNER JOIN wicket_taken AS wt ON bbb.match_id = wt.match_id AND bbb.over_id =
+    wt.over_id AND bbb.ball_id = wt.ball_id AND bbb.innings_no = wt.innings_no WHERE
+    wt.kind_out NOT IN ('run out', 'hit wicket', 'retired hurt') GROUP BY m.season_id,
+    bbb.bowler
 - metric_name: Batsman Rank by Season
   sql_logic: ROW_NUMBER() OVER (PARTITION BY season_id ORDER BY total_runs DESC, player_id
     ASC)

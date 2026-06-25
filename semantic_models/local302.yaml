@@ -37,4 +37,4 @@ biz_logic:
 - metric_name: Percentage Change in Sales
   sql_logic: (sales_after - sales_before) * 100.0 / NULLIF(sales_before, 0)
 - metric_name: Average Percentage Change by Attribute
-  sql_logic: AVG(percentage_change) GROUP BY attribute_type
+  sql_logic: AVG(percentage_change)

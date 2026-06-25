@@ -2,7 +2,7 @@ descriptions: []
 relations: []
 synonyms: []
 biz_logic:
-- metric_name: average_quantity_picked
+- metric_name: average_units_picked
   sql_logic: AVG(picking_line.qty)
 - metric_name: Product Display Order by Pick Start
   sql_logic: ORDER BY MIN(picking_list.created)

@@ -1,14 +1,19 @@
 descriptions: []
 relations: []
-synonyms: []
+synonyms:
+- nl_term: top 3 products per division
+  db_target: DENSE_RANK() OVER (PARTITION BY T2.division ORDER BY SUM(T1.sold_quantity)
+    DESC) <= 3
+  type: condition
 biz_logic:
-- metric_name: overall_average_quantity_sold_of_top_3_products_per_division
-  sql_logic: WITH sales_2021_by_product_division AS (SELECT p.division, s.product_code,
-    SUM(s.sold_quantity) AS total_quantity_sold FROM hardware_fact_sales_monthly AS
-    s INNER JOIN hardware_dim_product AS p ON s.product_code = p.product_code WHERE
-    STRFTIME('%Y', s.date) = '2021' GROUP BY p.division, s.product_code), ranked_products
-    AS (SELECT division, product_code, total_quantity_sold, DENSE_RANK() OVER (PARTITION
-    BY division ORDER BY total_quantity_sold DESC) AS product_rank FROM sales_2021_by_product_division),
-    top_3_products_per_division AS (SELECT division, total_quantity_sold FROM ranked_products
-    WHERE product_rank <= 3) SELECT division, AVG(total_quantity_sold) AS overall_average_quantity_sold
-    FROM top_3_products_per_division GROUP BY division
+- metric_name: average quantity sold of top 3 products per division
+  sql_logic: WITH sales_2021_by_product_division AS (SELECT T2.division, T1.product_code,
+    SUM(T1.sold_quantity) AS total_quantity_sold FROM hardware_fact_sales_monthly
+    AS T1 INNER JOIN hardware_dim_product AS T2 ON T1.product_code = T2.product_code
+    WHERE STRFTIME('%Y', T1.date) = '2021' GROUP BY T2.division, T1.product_code),
+    ranked_products AS (SELECT division, product_code, total_quantity_sold, DENSE_RANK()
+    OVER (PARTITION BY division ORDER BY total_quantity_sold DESC) AS product_rank
+    FROM sales_2021_by_product_division), top_3_products_per_division AS (SELECT division,
+    total_quantity_sold FROM ranked_products WHERE product_rank <= 3) SELECT division,
+    AVG(total_quantity_sold) AS overall_average_quantity_sold FROM top_3_products_per_division
+    GROUP BY division

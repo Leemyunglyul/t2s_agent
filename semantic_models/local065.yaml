@@ -11,7 +11,7 @@ descriptions:
   meaning: The price for a 'Vegetarian' pizza is 10.
 - table: pizza_get_extras
   column: extras_count
-  meaning: This column represents the total revenue from extras for an order, implying
+  meaning: This column represents the revenue from extras for a pizza item, implying
     each extra costs $1.
 relations: []
 synonyms:
@@ -22,13 +22,16 @@ synonyms:
   db_target: pizza_clean_runner_orders WHERE cancellation IS NULL
   type: condition
 biz_logic:
-- metric_name: Pizza Price
+- metric_name: Base Pizza Price
   sql_logic: CASE WHEN pizza_names.pizza_name = 'Meatlovers' THEN 12 WHEN pizza_names.pizza_name
     = 'Vegetarian' THEN 10 ELSE 0 END
-- metric_name: Base Pizza Revenue per Order
-  sql_logic: SUM(pizza_price) GROUP BY order_id
-- metric_name: Extras Revenue per Order
-  sql_logic: SUM(extras_count) GROUP BY order_id
 - metric_name: Total Earnings
-  sql_logic: SUM(total_base_pizza_revenue + COALESCE(total_extras_revenue, 0)) FROM
-    successful_orders
+  sql_logic: The total revenue from successful orders, calculated by summing base
+    pizza revenue and extras revenue. The final aggregation is SUM(COALESCE(bpr.base_pizza_revenue,
+    0) + COALESCE(er.extras_revenue, 0)) after a FULL OUTER JOIN to correctly handle
+    orders that may only have pizzas or only have extras.
+- metric_name: Base Pizza Revenue per Order
+  sql_logic: SUM(CASE WHEN pn.pizza_name = 'Meatlovers' THEN 12 WHEN pn.pizza_name
+    = 'Vegetarian' THEN 10 ELSE 0 END)
+- metric_name: Extras Revenue per Order
+  sql_logic: SUM(extras_count)

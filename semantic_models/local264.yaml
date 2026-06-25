@@ -1,8 +1,14 @@
-descriptions: []
+descriptions:
+- table: model
+  column: L1_model
+  meaning: The L1 model type, which can be either 'regression' or 'tree'.
+- table: model
+  column: step
+  meaning: The step in the modeling process, which can be 1, 2, or 3.
 relations: []
 synonyms: []
 biz_logic:
 - metric_name: Most Frequent L1 Model
-  sql_logic: "WITH CategoryCounts AS (\n  SELECT\n    L1_model,\n    COUNT(*) AS total_count\n\
-    \  FROM model\n  GROUP BY\n    L1_model\n)\nSELECT\n  L1_model,\n  total_count\n\
-    FROM CategoryCounts\nORDER BY\n  total_count DESC\nLIMIT 1;"
+  sql_logic: WITH ModelCounts AS (SELECT L1_model, COUNT(*) AS occurrence_count FROM
+    model GROUP BY L1_model) SELECT L1_model, occurrence_count FROM ModelCounts ORDER
+    BY occurrence_count DESC LIMIT 1

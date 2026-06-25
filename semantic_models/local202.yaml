@@ -30,4 +30,6 @@ biz_logic:
 - metric_name: avg_age
   sql_logic: AVG(age)
 - metric_name: population_rank
-  sql_logic: DENSE_RANK() OVER (ORDER BY total_population DESC)
+  sql_logic: DENSE_RANK() OVER (ORDER BY COUNT(id) DESC)
+- metric_name: num_states_meeting_criteria
+  sql_logic: COUNT(state)

@@ -4,24 +4,31 @@ relations:
   column_1: product_category_name
   table_2: product_category_name_translation
   column_2: product_category_name
-synonyms: []
+synonyms:
+- nl_term: toy sales
+  db_target: product_category_name_translation.product_category_name_english = 'toys'
+  type: condition
 biz_logic:
 - metric_name: five_day_simple_moving_average
   sql_logic: AVG(value_column) OVER (ORDER BY date_column ROWS BETWEEN 2 PRECEDING
     AND 2 FOLLOWING)
 - metric_name: linear_regression_slope
-  sql_logic: (N * SUM(x * y) - SUM(x) * SUM(y)) / (N * SUM(x*x) - SUM(x) * SUM(x))
+  sql_logic: (CAST(COUNT(*) AS REAL) * SUM(x * y) - SUM(x) * SUM(y)) / NULLIF(CAST(COUNT(*)
+    AS REAL) * SUM(x * x) - SUM(x) * SUM(x), 0)
 - metric_name: linear_regression_intercept
-  sql_logic: (SUM(y) - slope * SUM(x)) / N
+  sql_logic: (SUM(y) - ((CAST(COUNT(*) AS REAL) * SUM(x * y) - SUM(x) * SUM(y)) /
+    NULLIF(CAST(COUNT(*) AS REAL) * SUM(x * x) - SUM(x) * SUM(x), 0)) * SUM(x)) /
+    NULLIF(COUNT(*), 0)
 - metric_name: time_series_index_from_start_date
   sql_logic: JULIANDAY(date_column) - JULIANDAY('start_date') + 1
-- metric_name: daily_sales
-  sql_logic: SUM(order_items.price) GROUP BY DATE(orders.order_purchase_timestamp)
-- metric_name: days_since_start_date
-  sql_logic: JULIANDAY(date_column) - JULIANDAY('start_date')
 - metric_name: linear_regression_prediction
-  sql_logic: slope * (JULIANDAY(date_column) - JULIANDAY('start_date')) + intercept
+  sql_logic: slope * (JULIANDAY(date_column) - JULIANDAY('start_date') + 1) + intercept
 - metric_name: recursive_date_series_generation
   sql_logic: WITH RECURSIVE DateSeries(date_col) AS (SELECT 'start_date' UNION ALL
     SELECT DATE(date_col, '+1 day') FROM DateSeries WHERE date_col < 'end_date') SELECT
     date_col FROM DateSeries
+- metric_name: daily_sales_for_category
+  sql_logic: SUM(oi.price) FROM orders AS o JOIN order_items AS oi ON o.order_id =
+    oi.order_id JOIN products AS p ON oi.product_id = p.product_id JOIN product_category_name_translation
+    AS pcnt ON p.product_category_name = pcnt.product_category_name WHERE pcnt.product_category_name_english
+    = '[category_name]' GROUP BY DATE(o.order_purchase_timestamp)

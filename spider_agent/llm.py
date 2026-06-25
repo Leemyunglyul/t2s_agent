@@ -1,14 +1,21 @@
 import logging
+import os
 from typing import Dict, Tuple, Any
 from google import genai
 from google.genai import types
 
 logger = logging.getLogger("langgraph_agent")
 
+"""
 client = genai.Client(
     vertexai=True,
     project="project-9bda5f3a-eeae-4c70-b8a",  # 예: "my-awesome-project-123456"
     location="us-central1"            # 리전 설정 (us-central1 추천)
+)
+"""
+
+client = genai.Client(
+    api_key=os.environ.get("GOOGLE_API_KEY") 
 )
 
 def call_llm(params: Dict[str, Any]) -> Tuple[bool, str]:

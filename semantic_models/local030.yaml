@@ -10,12 +10,13 @@ synonyms:
   type: condition
 biz_logic:
 - metric_name: total_payments_per_city
-  sql_logic: SUM(payment_value)
+  sql_logic: SUM(T3.payment_value) GROUP BY T2.customer_city
 - metric_name: delivered_order_count_per_city
-  sql_logic: COUNT(DISTINCT order_id)
+  sql_logic: COUNT(DISTINCT T1.order_id) WHERE T1.order_status = 'delivered' GROUP
+    BY T2.customer_city
 - metric_name: payment_rank
   sql_logic: DENSE_RANK() OVER (ORDER BY total_payments_per_city ASC)
 - metric_name: avg_total_payments_bottom_5_cities
-  sql_logic: AVG(total_payments_per_city)
+  sql_logic: AVG(total_payments_per_city) WHERE payment_rank <= 5
 - metric_name: avg_delivered_order_count_bottom_5_cities
-  sql_logic: AVG(delivered_order_count_per_city)
+  sql_logic: AVG(delivered_order_count_per_city) WHERE payment_rank <= 5

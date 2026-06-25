@@ -18,7 +18,3 @@ biz_logic:
 - metric_name: Lowest Selling Artist Rank
   sql_logic: DENSE_RANK() OVER (ORDER BY SUM(invoice_items.UnitPrice * invoice_items.Quantity)
     ASC, artists.Name ASC)
-- metric_name: Customer Spending per Artist
-  sql_logic: SUM(invoice_items.UnitPrice * invoice_items.Quantity)
-- metric_name: Absolute Difference in Average Spending
-  sql_logic: ABS(TASA.AvgSpending - LASA.AvgSpending)

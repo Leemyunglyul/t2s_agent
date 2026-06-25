@@ -1,9 +1,4 @@
-descriptions:
-- table: web_sales_reps
-  column: derived_rank
-  meaning: A rank of 1, derived using DENSE_RANK() OVER (PARTITION BY region_id ORDER
-    BY SUM(total_amt_usd) DESC), indicates the top-performing sales representative
-    within their region. DENSE_RANK allows for ties.
+descriptions: []
 relations: []
 synonyms:
 - nl_term: region
@@ -22,17 +17,18 @@ synonyms:
   db_target: DENSE_RANK() OVER (PARTITION BY region_id ORDER BY total_rep_sales DESC)
     = 1
   type: condition
-- nl_term: top sales rep sales
-  db_target: MAX(total_rep_sales)
+- nl_term: tied top sales reps
+  db_target: GROUP_CONCAT(web_sales_reps.name)
   type: column
 biz_logic:
 - metric_name: Total Sales per Representative
-  sql_logic: SUM(wo.total_amt_usd) GROUP BY wsr.id, wsr.name, wsr.region_id
+  sql_logic: SUM(web_orders.total_amt_usd) GROUP BY web_sales_reps.id, web_sales_reps.name,
+    web_sales_reps.region_id
 - metric_name: Total Sales per Region
-  sql_logic: SUM(wo.total_amt_usd) GROUP BY wr.id, wr.name
+  sql_logic: SUM(web_orders.total_amt_usd) GROUP BY web_region.id, web_region.name
 - metric_name: Total Orders per Region
-  sql_logic: COUNT(wo.id) GROUP BY wr.id, wr.name
+  sql_logic: COUNT(web_orders.id) GROUP BY web_region.id, web_region.name
 - metric_name: Sales Rep Regional Ranking
   sql_logic: DENSE_RANK() OVER (PARTITION BY region_id ORDER BY total_rep_sales DESC)
 - metric_name: Handling Tied Top Sales Reps
-  sql_logic: GROUP_CONCAT(sales_rep_name, ', ')
+  sql_logic: GROUP_CONCAT(web_sales_reps.name)

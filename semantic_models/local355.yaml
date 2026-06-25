@@ -37,3 +37,8 @@ biz_logic:
 - metric_name: Number of Missed Races
   sql_logic: LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round) - round
     - 1
+- metric_name: Average First Missed Round
+  sql_logic: AVG(current_round + 1)
+- metric_name: Average Last Missed Round
+  sql_logic: AVG(LEAD(round, 1) OVER (PARTITION BY driver_id, year ORDER BY round)
+    - 1)

@@ -1,42 +1,45 @@
 descriptions:
 - table: olist_orders
   column: order_status
-  meaning: The value 'delivered' indicates that the order has been successfully delivered
-    to the customer.
+  meaning: The value 'delivered' indicates that the order has been delivered to the
+    customer. For accurate delivery analytics, this status should be used in conjunction
+    with a non-null 'order_delivered_customer_date'.
+- table: olist_orders
+  column: order_delivered_customer_date
+  meaning: The primary years for order delivery analysis are 2016, 2017, and 2018,
+    as indicated by frequent query patterns.
 relations: []
 synonyms:
 - nl_term: delivered orders
   db_target: order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
   type: condition
 - nl_term: delivery year
-  db_target: CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER)
+  db_target: STRFTIME('%Y', order_delivered_customer_date)
   type: column
 - nl_term: volume
   db_target: COUNT(order_id)
   type: column
 biz_logic:
 - metric_name: Annual Delivered Order Volume
-  sql_logic: SELECT CAST(STRFTIME('%Y', order_delivered_customer_date) AS INTEGER)
-    AS delivery_year, COUNT(order_id) AS annual_volume FROM olist_orders WHERE order_status
-    = 'delivered' AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_year
+  sql_logic: SELECT STRFTIME('%Y', order_delivered_customer_date) AS delivery_year,
+    COUNT(order_id) AS annual_volume FROM olist_orders WHERE order_status = 'delivered'
+    AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_year
 - metric_name: Monthly Delivered Order Volume
   sql_logic: SELECT STRFTIME('%Y-%m', order_delivered_customer_date) AS delivery_month,
     COUNT(order_id) AS monthly_volume FROM olist_orders WHERE order_status = 'delivered'
     AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_month
 - metric_name: Lowest Annual Volume Year
-  sql_logic: WITH AnnualVolumes AS (SELECT CAST(STRFTIME('%Y', order_delivered_customer_date)
-    AS INTEGER) AS delivery_year, COUNT(order_id) AS annual_volume FROM olist_orders
-    WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL
-    GROUP BY delivery_year) SELECT delivery_year FROM AnnualVolumes ORDER BY annual_volume
-    ASC LIMIT 1
-- metric_name: Peak Monthly Delivered Order Volume in Lowest Volume Year
-  sql_logic: WITH DeliveredOrdersFiltered AS (SELECT order_id, CAST(STRFTIME('%Y',
-    order_delivered_customer_date) AS INTEGER) AS delivery_year, STRFTIME('%Y-%m',
-    order_delivered_customer_date) AS delivery_month FROM olist_orders WHERE order_status
-    = 'delivered' AND order_delivered_customer_date IS NOT NULL), AnnualVolumes AS
-    (SELECT delivery_year, COUNT(order_id) AS annual_volume FROM DeliveredOrdersFiltered
-    GROUP BY delivery_year), LowestVolumeYear AS (SELECT delivery_year FROM AnnualVolumes
-    ORDER BY annual_volume ASC LIMIT 1), MonthlyVolumesInTargetYear AS (SELECT DOF.delivery_month,
-    COUNT(DOF.order_id) AS monthly_volume FROM DeliveredOrdersFiltered AS DOF INNER
-    JOIN LowestVolumeYear AS LVY ON DOF.delivery_year = LVY.delivery_year GROUP BY
-    DOF.delivery_month) SELECT MAX(monthly_volume) FROM MonthlyVolumesInTargetYear
+  sql_logic: WITH AnnualVolumes AS (SELECT STRFTIME('%Y', order_delivered_customer_date)
+    AS delivery_year, COUNT(order_id) AS annual_volume FROM olist_orders WHERE order_status
+    = 'delivered' AND order_delivered_customer_date IS NOT NULL GROUP BY delivery_year)
+    SELECT delivery_year FROM AnnualVolumes ORDER BY annual_volume ASC LIMIT 1
+- metric_name: Peak Monthly Volume in Lowest Annual Volume Year
+  sql_logic: WITH DeliveredOrders AS (SELECT order_id, STRFTIME('%Y', order_delivered_customer_date)
+    AS delivery_year, STRFTIME('%Y-%m', order_delivered_customer_date) AS delivery_month
+    FROM olist_orders WHERE order_status = 'delivered' AND order_delivered_customer_date
+    IS NOT NULL), AnnualVolumes AS (SELECT delivery_year, COUNT(order_id) AS annual_volume
+    FROM DeliveredOrders GROUP BY delivery_year), LowestVolumeYear AS (SELECT delivery_year
+    FROM AnnualVolumes ORDER BY annual_volume ASC LIMIT 1), MonthlyVolumesInTargetYear
+    AS (SELECT DOF.delivery_month, COUNT(DOF.order_id) AS monthly_volume FROM DeliveredOrders
+    AS DOF JOIN LowestVolumeYear AS LVY ON DOF.delivery_year = LVY.delivery_year GROUP
+    BY DOF.delivery_month) SELECT MAX(monthly_volume) FROM MonthlyVolumesInTargetYear

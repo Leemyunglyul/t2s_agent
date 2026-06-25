@@ -4,13 +4,13 @@ synonyms:
 - nl_term: team name
   db_target: Team.team_long_name
   type: column
-- nl_term: team with the fewest wins
-  db_target: ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC) =
-    1
-  type: condition
 - nl_term: league name
   db_target: League.name
   type: column
+- nl_term: team with the fewest wins
+  db_target: ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC, team_id
+    ASC) = 1
+  type: condition
 biz_logic:
 - metric_name: Unify Home/Away Match Results
   sql_logic: SELECT league_id, home_team_api_id AS team_id, CASE WHEN home_team_goal
@@ -20,6 +20,13 @@ biz_logic:
 - metric_name: Calculate Total Wins per Team
   sql_logic: SELECT league_id, team_id, SUM(is_win) AS total_wins FROM UnifiedMatchResults
     GROUP BY league_id, team_id
-- metric_name: Rank Teams by Wins (Ascending)
-  sql_logic: SELECT league_id, team_id, total_wins, ROW_NUMBER() OVER (PARTITION BY
-    league_id ORDER BY total_wins ASC) AS rank_num FROM TeamTotalWins
+- metric_name: List All Teams in Each League
+  sql_logic: SELECT DISTINCT league_id, home_team_api_id AS team_id FROM Match UNION
+    SELECT DISTINCT league_id, away_team_api_id AS team_id FROM Match
+- metric_name: Combine All Teams with Win Counts (Handling Zero Wins)
+  sql_logic: SELECT alt.league_id, alt.team_id, COALESCE(ttw.total_wins, 0) AS total_wins
+    FROM AllLeagueTeams AS alt LEFT JOIN TeamTotalWins AS ttw ON alt.league_id = ttw.league_id
+    AND alt.team_id = ttw.team_id
+- metric_name: Rank Teams by Fewest Wins
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC, team_id
+    ASC)

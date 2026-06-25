@@ -2,26 +2,33 @@ descriptions: []
 relations: []
 synonyms: []
 biz_logic:
-- metric_name: Total Driver Points per Year
-  sql_logic: SELECT T1.year, T2.driver_id, SUM(T2.points) AS total_driver_points FROM
+- metric_name: Driver Total Points per Year
+  sql_logic: SELECT T1.year, T2.driver_id, SUM(T2.points) AS driver_total_points FROM
     races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id
-- metric_name: Total Constructor Points per Year
-  sql_logic: SELECT T1.year, T2.constructor_id, SUM(T2.points) AS total_constructor_points
+- metric_name: Constructor Total Points per Year
+  sql_logic: SELECT T1.year, T2.constructor_id, SUM(T2.points) AS constructor_total_points
     FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year,
     T2.constructor_id
 - metric_name: Maximum Driver Points per Year
-  sql_logic: SELECT year, MAX(total_driver_points) AS max_driver_points FROM (SELECT
-    T1.year, T2.driver_id, SUM(T2.points) AS total_driver_points FROM races AS T1
-    JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id)
-    GROUP BY year
+  sql_logic: WITH DriverPointsPerYear AS (SELECT T1.year, T2.driver_id, SUM(T2.points)
+    AS driver_total_points FROM races AS T1 INNER JOIN results AS T2 ON T1.race_id
+    = T2.race_id GROUP BY T1.year, T2.driver_id) SELECT year, MAX(driver_total_points)
+    AS max_driver_points FROM DriverPointsPerYear GROUP BY year
 - metric_name: Maximum Constructor Points per Year
-  sql_logic: SELECT year, MAX(total_constructor_points) AS max_constructor_points
-    FROM (SELECT T1.year, T2.constructor_id, SUM(T2.points) AS total_constructor_points
-    FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year,
-    T2.constructor_id) GROUP BY year
-- metric_name: Yearly Dominance Score
-  sql_logic: (SELECT MAX(total_driver_points) FROM (SELECT SUM(T2.points) AS total_driver_points
-    FROM races AS T1 JOIN results AS T2 ON T1.race_id = T2.race_id WHERE T1.year =
-    races.year GROUP BY T2.driver_id)) + (SELECT MAX(total_constructor_points) FROM
-    (SELECT SUM(T2.points) AS total_constructor_points FROM races AS T1 JOIN results
-    AS T2 ON T1.race_id = T2.race_id WHERE T1.year = races.year GROUP BY T2.constructor_id))
+  sql_logic: WITH ConstructorPointsPerYear AS (SELECT T1.year, T2.constructor_id,
+    SUM(T2.points) AS constructor_total_points FROM races AS T1 INNER JOIN results
+    AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.constructor_id) SELECT year,
+    MAX(constructor_total_points) AS max_constructor_points FROM ConstructorPointsPerYear
+    GROUP BY year
+- metric_name: Combined Maximum Driver and Constructor Points per Year
+  sql_logic: WITH DriverPointsPerYear AS (SELECT T1.year, T2.driver_id, SUM(T2.points)
+    AS driver_total_points FROM races AS T1 INNER JOIN results AS T2 ON T1.race_id
+    = T2.race_id GROUP BY T1.year, T2.driver_id), MaxDriverPointsPerYear AS (SELECT
+    year, MAX(driver_total_points) AS max_driver_points FROM DriverPointsPerYear GROUP
+    BY year), ConstructorPointsPerYear AS (SELECT T1.year, T2.constructor_id, SUM(T2.points)
+    AS constructor_total_points FROM races AS T1 INNER JOIN results AS T2 ON T1.race_id
+    = T2.race_id GROUP BY T1.year, T2.constructor_id), MaxConstructorPointsPerYear
+    AS (SELECT year, MAX(constructor_total_points) AS max_constructor_points FROM
+    ConstructorPointsPerYear GROUP BY year) SELECT mdp.year, mdp.max_driver_points
+    + mcp.max_constructor_points AS combined_max_points FROM MaxDriverPointsPerYear
+    AS mdp INNER JOIN MaxConstructorPointsPerYear AS mcp ON mdp.year = mcp.year

@@ -55,14 +55,14 @@ synonyms:
   - nl_term: "city insertion"
     db_target: "cities"
     type: "table"
-  - nl_term: "consecutive day streak"
-    db_target: "DATE(insert_date, '-' || ROW_NUMBER() OVER (ORDER BY insert_date) || ' days')"
-    type: "condition"
   - nl_term: "country"
     db_target: "cities.country_code_2"
     type: "column"
   - nl_term: "data analyst"
     db_target: "job_postings_fact.job_title_short = 'Data Analyst'"
+    type: "condition"
+  - nl_term: "dual-gender cohorts"
+    db_target: "COUNT(gender) = 2"
     type: "condition"
   - nl_term: "female"
     db_target: "'''F'''"
@@ -89,7 +89,7 @@ synonyms:
     db_target: "strftime('%Y-%m', insert_date) = '2021-07'"
     type: "condition"
   - nl_term: "June 2022"
-    db_target: "insert_date BETWEEN '2022-06-01' AND '2022-06-30'"
+    db_target: "STRFTIME('%Y-%m', insert_date) = '2022-06'"
     type: "condition"
   - nl_term: "legislator"
     db_target: "legislators"
@@ -105,6 +105,9 @@ synonyms:
     type: "condition"
   - nl_term: "more friendly than hostile aliens"
     db_target: "SUM(CASE WHEN aggressive = 0 THEN 1 ELSE 0 END) > SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0 END)"
+    type: "condition"
+  - nl_term: "one city per day"
+    db_target: "ROW_NUMBER() OVER (PARTITION BY insert_date ORDER BY city_id) = 1"
     type: "condition"
   - nl_term: "represented LA"
     db_target: "legislators_terms.state = 'LA'"
@@ -136,6 +139,9 @@ synonyms:
   - nl_term: "top 10 states by population"
     db_target: "DENSE_RANK() OVER (ORDER BY COUNT(id) DESC) <= 10"
     type: "condition"
+  - nl_term: "valid cohort"
+    db_target: "COUNT(DISTINCT period_number) = 6"
+    type: "condition"
   - nl_term: "work from home, remote"
     db_target: "job_postings_fact.job_work_from_home = 1"
     type: "condition"
@@ -146,7 +152,7 @@ biz_logic:
   - metric_name: "Consecutive Date Streak Grouping Key (Date Subtraction)"
     sql_logic: |
       DATE(insert_date, '-' || ROW_NUMBER() OVER (ORDER BY insert_date) || ' days')
-  - metric_name: "Consecutive Date Streak Grouping Key (Julian)"
+  - metric_name: "Consecutive Date Streak Grouping Key (Gaps and Islands using Julian)"
     sql_logic: |
       julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER BY insert_date)
   - metric_name: "Country Cohort with 9 Active Days in Jan 2022"
@@ -160,16 +166,56 @@ biz_logic:
           insert_date
         FROM cities
         WHERE
-          insert_date BETWEEN '2022-06-01' AND '2022-06-30'
-      ), DateGroups AS (
+          STRFTIME('%Y-%m', insert_date) = '2022-06'
+      ),
+      DateGroups AS (
         SELECT
           country_code_2,
           insert_date,
-          julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER BY insert_date) AS grouping_key
+          DATE(insert_date, '-' || ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER BY insert_date) || ' days') AS grouping_key
         FROM FilteredDates
-      ), StreakCounts AS (
+      ),
+      StreakCounts AS (
         SELECT
           country_code_2,
-          COUNT(insert_date) AS streak_length
+          grouping_key,
+          COUNT(*) AS streak_length
         FROM DateGroups
         GROUP BY
+          country_code_2,
+          grouping_key
+      ),
+      CountryMaxStreaks AS (
+        SELECT
+          country_code_2,
+          MAX(streak_length) AS max_streak
+        FROM StreakCounts
+        GROUP BY
+          country_code_2
+      ),
+      RankedCountries AS (
+        SELECT
+          country_code_2,
+          DENSE_RANK() OVER (ORDER BY max_streak DESC) AS rnk
+        FROM CountryMaxStreaks
+      )
+      SELECT
+        country_code_2
+      FROM RankedCountries
+      WHERE
+        rnk = 1
+  - metric_name: "First Legislator Term Row Number"
+    sql_logic: |
+      ROW_NUMBER() OVER (PARTITION BY id_bioguide ORDER BY term_start ASC)
+  - metric_name: "Legislator Cohort Definition"
+    sql_logic: |
+      first_term_start BETWEEN '1917-01-01' AND '1999-12-31'
+  - metric_name: "Legislator First Term Start"
+    sql_logic: |
+      SELECT id_bioguide, MIN(term_start) AS first_term_start FROM legislators_terms GROUP BY id_bioguide
+  - metric_name: "Legislator Retention Check at N Years"
+    sql_logic: |
+      term_start <= DATE(STRFTIME('%Y', first_term_start, '+' || N || ' years') || '-12-31') AND term_end >= DATE(STRFTIME('%Y', first_term_start, '+' || N || ' years') || '-12-31')
+  - metric_name: "Legislator Retention Rate"
+    sql_logic: |
+      CAST(COALESCE(

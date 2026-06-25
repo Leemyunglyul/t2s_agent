@@ -9,16 +9,20 @@ relations:
   table_2: costs
   column_2: time_id
 - table_1: sales
-  column_1: channel_id
-  table_2: costs
-  column_2: channel_id
-- table_1: sales
   column_1: promo_id
   table_2: costs
   column_2: promo_id
+- table_1: sales
+  column_1: channel_id
+  table_2: costs
+  column_2: channel_id
 synonyms: []
 biz_logic:
 - metric_name: profit
   sql_logic: sales.quantity_sold * (costs.unit_price - costs.unit_cost)
 - metric_name: total_profit
   sql_logic: SUM(sales.quantity_sold * (costs.unit_price - costs.unit_cost))
+- metric_name: customer_profit_distribution_bucket
+  sql_logic: CASE WHEN MAX(total_profit) = MIN(total_profit) THEN 1 WHEN total_profit
+    = MAX(total_profit) THEN 10 ELSE CAST((total_profit - MIN(total_profit)) * 10
+    / (MAX(total_profit) - MIN(total_profit)) AS INTEGER) + 1 END

@@ -10,7 +10,8 @@ descriptions:
 relations: []
 synonyms:
 - nl_term: perfect match
-  db_target: (Style1 = Pref1 AND Style2 = Pref2) OR (Style1 = Pref2 AND Style2 = Pref1)
+  db_target: (T2.Style1 = T3.Pref1 AND T2.Style2 = T3.Pref2) OR (T2.Style1 = T3.Pref2
+    AND T2.Style2 = T3.Pref1)
   type: condition
 - nl_term: matchable entertainer profile
   db_target: COUNT(StyleID) <= 3 AND MAX(CASE WHEN StyleStrength = 1 THEN StyleID
@@ -36,4 +37,6 @@ biz_logic:
     = 1 THEN StyleID END) IS NOT NULL AND MAX(CASE WHEN PreferenceSeq = 2 THEN StyleID
     END) IS NOT NULL
 - metric_name: Bidirectional Style Match
-  sql_logic: (Style1 = Pref1 AND Style2 = Pref2) OR (Style1 = Pref2 AND Style2 = Pref1)
+  sql_logic: (PivotedEntertainers.Style1 = PivotedCustomers.Pref1 AND PivotedEntertainers.Style2
+    = PivotedCustomers.Pref2) OR (PivotedEntertainers.Style1 = PivotedCustomers.Pref2
+    AND PivotedEntertainers.Style2 = PivotedCustomers.Pref1)

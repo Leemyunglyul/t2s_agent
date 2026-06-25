@@ -17,19 +17,20 @@ synonyms:
 - nl_term: female
   db_target: '''F'''
   type: value
-- nl_term: first term start date
-  db_target: MIN(term_start)
+- nl_term: valid cohort
+  db_target: COUNT(DISTINCT period_number) = 6
+  type: condition
+- nl_term: dual-gender cohorts
+  db_target: COUNT(gender) = 2
   type: condition
 biz_logic:
 - metric_name: Legislator First Term Start Date
-  sql_logic: MIN(term_start)
-- metric_name: Legislator Retention Status at N years
-  sql_logic: MAX(CASE WHEN term_start <= DATE(STRFTIME('%Y', first_term_start, '+N
-    years') || '-12-31') AND term_end >= DATE(STRFTIME('%Y', first_term_start, '+N
-    years') || '-12-31') THEN 1 ELSE 0 END)
-- metric_name: Valid State-Gender Cohort
-  sql_logic: GROUP BY state, gender HAVING SUM(retained_at_0) > 0 AND SUM(retained_at_2)
-    > 0 AND SUM(retained_at_4) > 0 AND SUM(retained_at_6) > 0 AND SUM(retained_at_8)
-    > 0 AND SUM(retained_at_10) > 0
+  sql_logic: SELECT MIN(term_start) FROM legislators_terms GROUP BY id_bioguide
 - metric_name: State with Dual-Gender Valid Cohorts
   sql_logic: GROUP BY state HAVING COUNT(gender) = 2
+- metric_name: Legislator Retention Check at N Years
+  sql_logic: term_start <= DATE(STRFTIME('%Y', first_term_start, '+' || N || ' years')
+    || '-12-31') AND term_end >= DATE(STRFTIME('%Y', first_term_start, '+' || N ||
+    ' years') || '-12-31')
+- metric_name: Valid State-Gender Cohort
+  sql_logic: GROUP BY state, gender HAVING COUNT(DISTINCT period_number) = 6

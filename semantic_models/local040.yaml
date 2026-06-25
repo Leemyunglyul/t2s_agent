@@ -1,19 +1,19 @@
 descriptions:
 - table: trees
   column: boroname
-  meaning: NULL or empty string values are excluded from the analysis.
+  meaning: NULL or empty string values are considered invalid and excluded from analysis.
 - table: income_trees
   column: Estimate_Median_income
-  meaning: Only values greater than 0 are considered valid for this analysis.
+  meaning: Only values greater than 0 are considered valid for analysis.
 - table: income_trees
   column: Estimate_Mean_income
-  meaning: Only values greater than 0 are considered valid for this analysis.
+  meaning: Only values greater than 0 are considered valid for analysis.
 relations: []
 synonyms: []
 biz_logic:
-- metric_name: tree_count_per_borough
-  sql_logic: COUNT(tree_id) GROUP BY boroname
-- metric_name: average_mean_income_per_borough
-  sql_logic: AVG(Estimate_Mean_income) GROUP BY boroname
-- metric_name: Top 3 Boroughs by Tree Count
-  sql_logic: DENSE_RANK() OVER (ORDER BY COUNT(tree_id) DESC) <= 3
+- metric_name: borough_tree_count
+  sql_logic: COUNT(T1.tree_id)
+- metric_name: borough_avg_mean_income
+  sql_logic: AVG(T2.Estimate_Mean_income)
+- metric_name: borough_rank_by_tree_count
+  sql_logic: DENSE_RANK() OVER (ORDER BY COUNT(T1.tree_id) DESC)

@@ -12,18 +12,6 @@ relations:
   column_1: player_id
   table_2: ball_by_ball
   column_2: bowler
-- table_1: ball_by_ball
-  column_1: '[match_id, over_id, ball_id, innings_no]'
-  table_2: batsman_scored
-  column_2: '[match_id, over_id, ball_id, innings_no]'
-- table_1: ball_by_ball
-  column_1: '[match_id, over_id, ball_id, innings_no]'
-  table_2: extra_runs
-  column_2: '[match_id, over_id, ball_id, innings_no]'
-- table_1: ball_by_ball
-  column_1: '[match_id, over_id, ball_id, innings_no]'
-  table_2: wicket_taken
-  column_2: '[match_id, over_id, ball_id, innings_no]'
 synonyms:
 - nl_term: best bowler
   db_target: ORDER BY bowling_average ASC LIMIT 1
@@ -31,21 +19,18 @@ synonyms:
 - nl_term: bowling average
   db_target: bowling_average
   type: column
-- nl_term: bowler
-  db_target: ball_by_ball.bowler
-  type: column
 - nl_term: runs conceded
   db_target: total_runs_conceded
   type: column
 - nl_term: wickets taken
-  db_target: total_wickets
+  db_target: total_wickets_taken
   type: column
 biz_logic:
 - metric_name: Bowling Average
-  sql_logic: CAST(SUM(runs_conceded) AS REAL) / SUM(wickets_taken)
+  sql_logic: CAST(total_runs_conceded AS REAL) / total_wickets_taken
 - metric_name: Total Runs Conceded by Bowler
-  sql_logic: SUM(COALESCE(bs.runs_scored, 0) + COALESCE(CASE WHEN er.extra_type IN
-    ('wides', 'noballs') THEN er.extra_runs ELSE 0 END, 0))
+  sql_logic: SUM(COALESCE(T2.runs_scored, 0) + COALESCE(CASE WHEN T3.extra_type IN
+    ('wides', 'noballs') THEN T3.extra_runs ELSE 0 END, 0))
 - metric_name: Total Wickets Credited to Bowler
-  sql_logic: SUM(CASE WHEN wt.kind_out IS NOT NULL AND wt.kind_out NOT IN ('run out',
+  sql_logic: SUM(CASE WHEN T4.kind_out IS NOT NULL AND T4.kind_out NOT IN ('run out',
     'retired hurt', 'obstructing the field', 'handled the ball') THEN 1 ELSE 0 END)

@@ -19,6 +19,12 @@ synonyms:
   - nl_term: "leader"
     db_target: "WHERE column = (SELECT MAX(column) FROM ...)"
     type: "condition"
+  - nl_term: "statistic type"
+    db_target: "statistic_name"
+    type: "column"
+  - nl_term: "score"
+    db_target: "CASE WHEN T4.category_id = 1 THEN T1.total_g WHEN T4.category_id = 2 THEN T1.total_r WHEN T4.category_id = 3 THEN T1.total_h WHEN T4.category_id = 4 THEN T1.total_hr END"
+    type: "value"
 biz_logic:
   - metric_name: "Player Career Batting Totals"
     sql_logic: |
@@ -29,3 +35,6 @@ biz_logic:
   - metric_name: "All-Time Batting Leaders (Games, Runs, Hits, HR)"
     sql_logic: |
       WITH PlayerCareerTotals AS (SELECT player_id, SUM(g) AS total_g, SUM(r) AS total_r, SUM(h) AS total_h, SUM(hr) AS total_hr FROM batting GROUP BY player_id), Categories AS (SELECT 1 AS category_id UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4), MaxStats AS (SELECT MAX(total_g) AS max_g, MAX(total_r) AS max_r, MAX(total_h) AS max_h, MAX(total_hr) AS max_hr FROM PlayerCareerTotals) SELECT T3.name_given, CASE T4.category_id WHEN 1 THEN 'Games Played' WHEN 2 THEN 'Runs' WHEN 3 THEN 'Hits' WHEN 4 THEN 'Home Runs' END AS statistic_type, CASE T4.category_id WHEN 1 THEN T1.total_g WHEN 2 THEN T1.total_r WHEN 3 THEN T1.total_h WHEN 4 THEN T1.total_hr END AS score FROM PlayerCareerTotals AS T1 JOIN player AS T3 ON T1.player_id = T3.player_id CROSS JOIN MaxStats AS T2 CROSS JOIN Categories AS T4 WHERE (T4.category_id = 1 AND T1.total_g = T2.max_g) OR (T4.category_id = 2 AND T1.total_r = T2.max_r) OR (T4.category_id = 3 AND T1.total_h = T2.max_h) OR (T4.category_id = 4 AND T1.total_hr = T2.max_hr)
+  - metric_name: "Maximum Career Batting Statistics"
+    sql_logic: |
+      WITH PlayerCareerTotals AS (SELECT player_id, SUM(g) AS total_g, SUM(r) AS total_r, SUM(h) AS total_h, SUM(hr) AS total_hr FROM batting GROUP BY player_id) SELECT MAX(total_g) AS max_g, MAX(total_r) AS max_r, MAX(total_h) AS max_h, MAX(total_hr) AS max_hr FROM PlayerCareerTotals

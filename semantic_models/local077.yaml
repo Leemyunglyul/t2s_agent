@@ -4,6 +4,11 @@ descriptions:
   meaning: Date stored as a 'MM/YYYY' text string. It can be converted to a standard
     date format using `DATE(SUBSTR(month_year, 4, 4) || '-' || SUBSTR(month_year,
     1, 2) || '-01')`.
+- table: interest_metrics
+  column: _year, _month
+  meaning: 'These columns can be combined to form a standard month date using the
+    logic: DATE(CAST(_year AS INTEGER) || ''-'' || printf(''%02d'', CAST(_month AS
+    INTEGER)) || ''-01'').'
 relations:
 - table_1: interest_metrics
   column_1: interest_id

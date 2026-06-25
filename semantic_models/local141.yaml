@@ -42,15 +42,17 @@ biz_logic:
     BY BusinessEntityID, STRFTIME('%Y', QuotaDate)
 - metric_name: Sales vs Quota Difference
   sql_logic: COALESCE(total_sales, 0) - COALESCE(annual_quota, 0)
-- metric_name: Salesperson Annual Performance (Sales vs. Quota Difference)
+- metric_name: Salesperson Annual Sales vs. Quota Comparison
   sql_logic: WITH AnnualSales AS (SELECT salespersonid, STRFTIME('%Y', orderdate)
     AS sales_year, SUM(totaldue) AS total_sales FROM salesorderheader WHERE salespersonid
-    IS NOT NULL GROUP BY salespersonid, sales_year), AnnualQuotas AS (SELECT BusinessEntityID
-    AS salesperson_id, STRFTIME('%Y', QuotaDate) AS quota_year, SUM(SalesQuota) AS
-    annual_quota FROM SalesPersonQuotaHistory GROUP BY BusinessEntityID, quota_year)
-    SELECT COALESCE(ASales.salespersonid, AQuotas.salesperson_id) AS salesperson_id,
-    COALESCE(ASales.sales_year, AQuotas.quota_year) AS year, COALESCE(ASales.total_sales,
-    0) AS total_sales, COALESCE(AQuotas.annual_quota, 0) AS annual_quota, (COALESCE(ASales.total_sales,
-    0) - COALESCE(AQuotas.annual_quota, 0)) AS difference FROM AnnualSales AS ASales
-    FULL OUTER JOIN AnnualQuotas AS AQuotas ON ASales.salespersonid = AQuotas.salesperson_id
-    AND ASales.sales_year = AQuotas.quota_year ORDER BY salesperson_id, year
+    IS NOT NULL GROUP BY salespersonid, sales_year), AnnualQuotas AS (SELECT BusinessEntityID,
+    STRFTIME('%Y', QuotaDate) AS quota_year, SUM(SalesQuota) AS annual_quota FROM
+    SalesPersonQuotaHistory GROUP BY BusinessEntityID, quota_year), AllSalespersonYears
+    AS (SELECT salespersonid, sales_year AS year FROM AnnualSales UNION SELECT BusinessEntityID
+    AS salespersonid, quota_year AS year FROM AnnualQuotas) SELECT T1.salespersonid,
+    T1.year, COALESCE(T2.total_sales, 0) AS TotalSales, COALESCE(T3.annual_quota,
+    0) AS AnnualQuota, COALESCE(T2.total_sales, 0) - COALESCE(T3.annual_quota, 0)
+    AS Difference FROM AllSalespersonYears AS T1 LEFT JOIN AnnualSales AS T2 ON T1.salespersonid
+    = T2.salespersonid AND T1.year = T2.sales_year LEFT JOIN AnnualQuotas AS T3 ON
+    T1.salespersonid = T3.BusinessEntityID AND T1.year = T3.quota_year ORDER BY T1.salespersonid,
+    T1.year

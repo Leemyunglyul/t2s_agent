@@ -10,6 +10,10 @@ descriptions:
   column: customer_unique_id
   meaning: A unique identifier for a customer across all their orders. Use this to
     count distinct customers. 'customer_id' is unique per order.
+- table: olist_order_items
+  column: freight_value
+  meaning: The cost of shipping for an item, which is subtracted from the item's price
+    to calculate seller profit.
 relations: []
 synonyms:
 - nl_term: 5-star rating
@@ -18,28 +22,16 @@ synonyms:
 - nl_term: distinct customers
   db_target: olist_customers.customer_unique_id
   type: column
-- nl_term: Highest Distinct Customers
-  db_target: distinct_customers_count
-  type: metric
-- nl_term: Highest Profit
-  db_target: total_profit
-  type: metric
-- nl_term: Highest Distinct Orders
-  db_target: distinct_orders_count
-  type: metric
-- nl_term: Most 5-Star Ratings
-  db_target: five_star_ratings_count
-  type: metric
 biz_logic:
 - metric_name: total_profit
-  sql_logic: SUM(olist_order_items.price - olist_order_items.freight_value) for orders
-    where olist_orders.order_status = 'delivered'
+  sql_logic: SUM(olist_order_items.price - olist_order_items.freight_value) calculated
+    for orders with status 'delivered'.
 - metric_name: distinct_customers_count
-  sql_logic: COUNT(DISTINCT olist_customers.customer_unique_id) for orders where olist_orders.order_status
-    = 'delivered'
+  sql_logic: COUNT(DISTINCT olist_customers.customer_unique_id) calculated for orders
+    with status 'delivered'.
 - metric_name: distinct_orders_count
-  sql_logic: COUNT(DISTINCT olist_orders.order_id) WHERE olist_orders.order_status
-    = 'delivered'
+  sql_logic: COUNT(DISTINCT olist_orders.order_id) calculated for orders with status
+    'delivered'.
 - metric_name: five_star_ratings_count
-  sql_logic: COUNT(DISTINCT olist_orders.order_id) WHERE olist_order_reviews.review_score
-    = 5 AND olist_orders.order_status = 'delivered'
+  sql_logic: COUNT(DISTINCT olist_orders.order_id) for delivered orders that have
+    a review_score of 5.

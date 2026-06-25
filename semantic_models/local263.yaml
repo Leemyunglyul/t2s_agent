@@ -10,7 +10,23 @@ descriptions:
 - table: model
   column: L1_model
   meaning: The type of the Level 1 (base) model, which can be 'regression' or 'tree'.
-relations: []
+- table: model_score
+  column: (derived) step_status
+  meaning: A value of 'strong' indicates the stacked model's test score is greater
+    than the best individual model's test score for a given step.
+- table: model_score
+  column: (derived) step_status
+  meaning: A value of 'soft' indicates the stacked model's test score is equal to
+    the best individual model's test score for a given step.
+relations:
+- table_1: model_score
+  column_1: name
+  table_2: model
+  column_2: name
+- table_1: model_score
+  column_1: version
+  table_2: model
+  column_2: version
 synonyms:
 - nl_term: status
   db_target: final_status
@@ -35,6 +51,6 @@ biz_logic:
     = stack_score THEN 'soft' ELSE NULL END
 - metric_name: final_status
   sql_logic: MAX(step_status)
-- metric_name: Top L1 Model by Status Rank
+- metric_name: L1 Model Rank by Status
   sql_logic: DENSE_RANK() OVER (PARTITION BY final_status ORDER BY occurrence_count
     DESC)

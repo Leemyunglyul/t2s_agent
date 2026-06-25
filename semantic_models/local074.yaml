@@ -7,7 +7,7 @@ descriptions:
 relations: []
 synonyms:
 - nl_term: month
-  db_target: strftime('%Y-%m-01', txn_date)
+  db_target: STRFTIME('%Y-%m-01', txn_date)
   type: column
 - nl_term: monthly change
   db_target: monthly_net_change
@@ -29,7 +29,8 @@ biz_logic:
   sql_logic: SUM(CASE WHEN txn_type = 'deposit' THEN txn_amount WHEN txn_type IN ('withdrawal',
     'purchase') THEN -txn_amount ELSE 0 END)
 - metric_name: Monthly Cumulative Bank Balance
-  sql_logic: SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER BY month)
+  sql_logic: SUM(monthly_net_change) OVER (PARTITION BY customer_id ORDER BY month_start_date
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
 - metric_name: Data Scaffolding for Time Series
   sql_logic: Generate a complete grid of entities (e.g., customers) and time periods
     (e.g., months) via a CROSS JOIN between distinct entities and a generated time

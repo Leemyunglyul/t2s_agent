@@ -15,7 +15,7 @@ synonyms:
   type: column
 - nl_term: faculty with salary closest to the rank average
   db_target: DENSE_RANK() OVER (PARTITION BY FacRank ORDER BY ABS(FacSalary - AVG(FacSalary)
-    OVER (PARTITION BY FacRank)) ASC) = 1
+    OVER (PARTITION BY FacRank))) = 1
   type: condition
 biz_logic:
 - metric_name: Average Salary by Rank
@@ -24,4 +24,4 @@ biz_logic:
   sql_logic: ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank))
 - metric_name: Rank of Faculty by Salary Proximity to Rank Average
   sql_logic: DENSE_RANK() OVER (PARTITION BY FacRank ORDER BY ABS(FacSalary - AVG(FacSalary)
-    OVER (PARTITION BY FacRank)) ASC)
+    OVER (PARTITION BY FacRank)))

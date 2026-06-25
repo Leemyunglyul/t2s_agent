@@ -17,4 +17,4 @@ biz_logic:
     \    payment_type\n), MaxPaymentCountsPerCategory AS (\n  SELECT\n    product_category_name,\n\
     \    MAX(payment_count) AS max_payment_count\n  FROM CategoryPaymentCounts\n \
     \ GROUP BY\n    product_category_name\n)\nSELECT\n  AVG(max_payment_count)\nFROM\
-    \ MaxPaymentCountsPerCategory;"
+    \ MaxPaymentCountsPerCategory"

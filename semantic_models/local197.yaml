@@ -1,38 +1,31 @@
 descriptions: []
 relations: []
 synonyms:
-- nl_term: top 10 customers
-  db_target: DENSE_RANK() OVER (ORDER BY SUM(amount) DESC) <= 10
+- nl_term: had the largest change
+  db_target: ORDER BY month_over_month_diff DESC LIMIT 1
   type: condition
+- nl_term: largest change amount
+  db_target: largest_change_amount
+  type: column
 - nl_term: month of change
   db_target: month_of_change
   type: column
 - nl_term: month-over-month difference
   db_target: month_over_month_diff
   type: column
-- nl_term: highest paying customer
-  db_target: ORDER BY SUM(payment.amount) DESC
-  type: condition
-- nl_term: largest change amount
-  db_target: largest_change_amount
-  type: column
-- nl_term: had the largest change
-  db_target: month_over_month_diff = (SELECT MAX(month_over_month_diff) FROM ...)
+- nl_term: top 10 customers
+  db_target: DENSE_RANK() OVER (ORDER BY SUM(amount) DESC) <= 10
   type: condition
 biz_logic:
 - metric_name: customer_payment_rank
   sql_logic: DENSE_RANK() OVER (ORDER BY SUM(amount) DESC)
-- metric_name: month_over_month_payment_difference
-  sql_logic: ABS(monthly_total_payment - LAG(monthly_total_payment, 1, 0) OVER (PARTITION
-    BY customer_id ORDER BY payment_month))
-- metric_name: total_payment
-  sql_logic: SUM(amount)
-- metric_name: payment_month
-  sql_logic: STRFTIME('%Y-%m-01', payment_date)
-- metric_name: format_month_yyyy_mm
-  sql_logic: STRFTIME('%Y-%m', payment_month)
-- metric_name: monthly_total_payment
-  sql_logic: SUM(amount)
 - metric_name: max_month_over_month_difference
   sql_logic: MAX(ABS(monthly_total_payment - LAG(monthly_total_payment, 1, 0) OVER
     (PARTITION BY customer_id ORDER BY payment_month)))
+- metric_name: month_over_month_payment_difference
+  sql_logic: ABS(monthly_total_payment - LAG(monthly_total_payment, 1, 0) OVER (PARTITION
+    BY customer_id ORDER BY payment_month))
+- metric_name: monthly_total_payment
+  sql_logic: SUM(amount)
+- metric_name: payment_month
+  sql_logic: STRFTIME('%Y-%m', payment_date)

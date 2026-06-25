@@ -31,9 +31,10 @@ synonyms:
 biz_logic:
 - metric_name: Total Spending per Customer
   sql_logic: SUM(order_details.unitprice * order_details.quantity)
-- metric_name: Percentage of Customers in Group
-  sql_logic: (COUNT(DISTINCT customers_in_group) * 100.0) / COUNT(DISTINCT total_customers)
 - metric_name: Number of Customers in Group
   sql_logic: COUNT(DISTINCT customerid)
 - metric_name: Total Customer Count
   sql_logic: COUNT(DISTINCT customerid)
+- metric_name: Customer Group Percentage (1998 Spenders)
+  sql_logic: CAST(COUNT(CustomerID) AS REAL) * 100 / (SELECT COUNT(DISTINCT CustomerID)
+    FROM Orders WHERE STRFTIME('%Y', OrderDate) = '1998')

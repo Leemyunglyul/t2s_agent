@@ -18,39 +18,27 @@ relations:
   column_1: member_id
   table_2: bitcoin_members
   column_2: member_id
-  description: Implicit join to link transactions to member details like region.
 - table_1: bitcoin_transactions
   column_1: '["ticker", "txn_date"]'
   table_2: bitcoin_prices
   column_2: '["ticker", "market_date"]'
-  description: A transaction's value is determined by joining on both the asset ticker
-    and the specific date of the transaction to find the corresponding daily price.
-    This represents a composite key relationship where bitcoin_transactions.txn_date
-    maps to bitcoin_prices.market_date.
 synonyms:
 - nl_term: buy transaction
   db_target: bitcoin_transactions.txn_type = 'BUY'
   type: condition
 biz_logic:
 - metric_name: Transaction Year
-  sql_logic: CAST(SUBSTR(txn_date, 7, 4) AS INTEGER)
-- metric_name: Total Spent
-  sql_logic: SUM(quantity * price)
-- metric_name: Total Quantity
-  sql_logic: SUM(quantity)
+  sql_logic: CAST(SUBSTR(T1.txn_date, 7, 4) AS INTEGER)
 - metric_name: Average Purchase Price
-  sql_logic: SUM(quantity * price) * 1.0 / NULLIF(SUM(quantity), 0)
+  sql_logic: SUM(T1.quantity * T3.price) * 1.0 / SUM(T1.quantity)
 - metric_name: Previous Year's Average Price
-  sql_logic: LAG(avg_purchase_price) OVER (PARTITION BY region ORDER BY txn_year)
+  sql_logic: LAG(avg_purchase_price, 1) OVER (PARTITION BY region ORDER BY txn_year)
 - metric_name: Region Rank by Average Purchase Price
   sql_logic: DENSE_RANK() OVER (PARTITION BY txn_year ORDER BY avg_purchase_price
     DESC)
 - metric_name: Annual Percentage Change in Average Purchase Price
-  sql_logic: CASE WHEN previous_year_price IS NULL OR previous_year_price = 0 THEN
-    NULL ELSE (avg_purchase_price - previous_year_price) * 100.0 / previous_year_price
+  sql_logic: CASE WHEN prev_year_avg_price IS NULL OR prev_year_avg_price = 0 THEN
+    NULL ELSE (avg_purchase_price - prev_year_avg_price) * 100.0 / prev_year_avg_price
     END
 - metric_name: Year Rank for Region
-  sql_logic: DENSE_RANK() OVER (PARTITION BY region ORDER BY txn_year)
-  description: Used to rank years within each region to enable filtering out the first
-    year of data for accurate year-over-year comparisons (e.g., WHERE year_rank >
-    1).
+  sql_logic: DENSE_RANK() OVER (PARTITION BY region ORDER BY txn_year ASC)

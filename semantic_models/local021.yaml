@@ -5,7 +5,7 @@ relations:
   table_2: batsman_scored
   column_2: match_id, over_id, ball_id, innings_no
 synonyms:
-- nl_term: Qualifying Striker
+- nl_term: qualifying striker
   db_target: A striker who has scored more than 50 runs in at least one match.
   type: condition
 biz_logic:
@@ -14,5 +14,12 @@ biz_logic:
 - metric_name: Total Career Runs by Striker
   sql_logic: SUM(batsman_scored.runs_scored) GROUP BY ball_by_ball.striker
 - metric_name: Average Career Runs of Qualifying Strikers
-  sql_logic: The average of 'Total Career Runs by Striker' for all players who are
-    'Qualifying Strikers'.
+  sql_logic: WITH QualifyingStrikers AS (SELECT T1.striker FROM ball_by_ball AS T1
+    INNER JOIN batsman_scored AS T2 ON T1.match_id = T2.match_id AND T1.over_id =
+    T2.over_id AND T1.ball_id = T2.ball_id AND T1.innings_no = T2.innings_no GROUP
+    BY T1.striker, T1.match_id HAVING SUM(T2.runs_scored) > 50), TotalCareerRuns AS
+    (SELECT T1.striker, SUM(T2.runs_scored) AS total_runs FROM ball_by_ball AS T1
+    INNER JOIN batsman_scored AS T2 ON T1.match_id = T2.match_id AND T1.over_id =
+    T2.over_id AND T1.ball_id = T2.ball_id AND T1.innings_no = T2.innings_no GROUP
+    BY T1.striker) SELECT AVG(T1.total_runs) FROM TotalCareerRuns AS T1 INNER JOIN
+    (SELECT DISTINCT striker FROM QualifyingStrikers) AS T2 ON T1.striker = T2.striker

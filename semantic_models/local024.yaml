@@ -28,7 +28,7 @@ synonyms:
   db_target: Player Batting Average
   type: metric
 - nl_term: country average batting average
-  db_target: Country Average Batting Average
+  db_target: Country Batting Average
   type: metric
 - nl_term: highest
   db_target: ORDER BY ... DESC
@@ -43,8 +43,10 @@ biz_logic:
   sql_logic: SELECT player_id, COUNT(DISTINCT match_id) AS total_matches FROM player_match
     GROUP BY player_id
 - metric_name: Player Batting Average
-  sql_logic: CAST([Player Total Runs] AS REAL) / NULLIF([Player Total Matches], 0)
-- metric_name: Country Average Batting Average
-  sql_logic: AVG([Player Batting Average]) GROUP BY player.country_name
+  sql_logic: CAST(COALESCE([Player Total Runs], 0) AS REAL) / NULLIF([Player Total
+    Matches], 0)
+- metric_name: Country Batting Average
+  sql_logic: AVG([Player Batting Average]) WHERE [Player Batting Average] IS NOT NULL
+    GROUP BY player.country_name
 - metric_name: Country Ranking by Batting Average
-  sql_logic: DENSE_RANK() OVER (ORDER BY [Country Average Batting Average] DESC)
+  sql_logic: DENSE_RANK() OVER (ORDER BY [Country Batting Average] DESC)

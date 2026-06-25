@@ -44,7 +44,7 @@ synonyms:
     db_target: "DENSE_RANK() OVER (ORDER BY ... DESC) ... WHERE rank_num <= 10"
     type: "value"
   - nl_term: "team with the fewest wins"
-    db_target: "ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC) = 1"
+    db_target: "ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC, team_id ASC) = 1"
     type: "condition"
   - nl_term: "player with most wins"
     db_target: "DENSE_RANK() OVER (ORDER BY wins_count DESC) AS win_rank WHERE win_rank = 1"
@@ -79,7 +79,7 @@ biz_logic:
       DENSE_RANK() OVER (ORDER BY number_of_wins DESC)
   - metric_name: "Rank Teams by Wins (Ascending)"
     sql_logic: |
-      SELECT league_id, team_id, total_wins, ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC) AS rank_num FROM TeamTotalWinsPerLeague
+      SELECT league_id, team_id, total_wins, ROW_NUMBER() OVER (PARTITION BY league_id ORDER BY total_wins ASC, team_id ASC) AS rank_num FROM TeamTotalWinsPerLeague
   - metric_name: "Rank Players by Wins"
     sql_logic: |
       DENSE_RANK() OVER (ORDER BY wins_count DESC)

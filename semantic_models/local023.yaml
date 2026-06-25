@@ -51,20 +51,19 @@ biz_logic:
   sql_logic: SELECT wt.player_out AS player_id, COUNT(wt.player_out) AS total_dismissals
     FROM wicket_taken AS wt WHERE wt.player_out IS NOT NULL GROUP BY wt.player_out
 - metric_name: Matches Played by Player
-  sql_logic: SELECT pm.player_id, COUNT(DISTINCT pm.match_id) AS matches_played FROM
+  sql_logic: SELECT pm.player_id, COUNT(DISTINCT pm.match_id) AS total_matches FROM
     player_match AS pm GROUP BY pm.player_id
-- metric_name: Average Runs per Match
-  sql_logic: CAST(COALESCE(total_runs, 0) AS REAL) / COALESCE(matches_played, 1)
-- metric_name: Batting Average
-  sql_logic: CASE WHEN COALESCE(total_dismissals, 0) = 0 THEN NULL ELSE CAST(COALESCE(total_runs,
-    0) AS REAL) / COALESCE(total_dismissals, 1) END
-- metric_name: Player Statistics Aggregation
-  sql_logic: 'A pattern to create a comprehensive player profile by combining metrics
-    (e.g., total runs, matches played, dismissals) from different sources. It uses
-    FULL JOIN on player_id and COALESCE to handle players not present in all source
-    datasets, ensuring all players are included. Example: `... FROM player_total_runs
-    AS ptr FULL JOIN player_matches_played AS pmp ON ptr.player_id = pmp.player_id
-    FULL JOIN player_total_dismissals AS ptd ON COALESCE(ptr.player_id, pmp.player_id)
-    = ptd.player_id`'
 - metric_name: Player Ranking by Metric
   sql_logic: DENSE_RANK() OVER (ORDER BY <metric_value> DESC)
+- metric_name: Average Runs per Match
+  sql_logic: CAST(COALESCE(total_runs, 0) AS REAL) / total_matches -- This calculation
+    requires a pre-filter of 'total_matches > 0' to prevent division by zero.
+- metric_name: Batting Average
+  sql_logic: CASE WHEN COALESCE(total_dismissals, 0) = 0 THEN NULL ELSE CAST(COALESCE(total_runs,
+    0) AS REAL) / total_dismissals END
+- metric_name: Player Statistics Aggregation
+  sql_logic: 'A pattern to combine multiple player statistics by starting with a base
+    summary (e.g., matches played) and LEFT JOINing other summaries (e.g., runs, dismissals).
+    Example: FROM PlayerTotalMatches AS base LEFT JOIN PlayerTotalRuns ON base.player_id
+    = PlayerTotalRuns.player_id LEFT JOIN PlayerTotalDismissals ON base.player_id
+    = PlayerTotalDismissals.player_id'

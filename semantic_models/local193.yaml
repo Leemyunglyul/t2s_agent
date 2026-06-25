@@ -3,11 +3,9 @@ relations: []
 synonyms: []
 biz_logic:
 - metric_name: first_purchase_date
-  sql_logic: The first payment_date for a given customer, identified by ranking payments
-    with `ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY payment_date ASC)`
-    and selecting the first one.
+  sql_logic: MIN(payment_date)
 - metric_name: total_ltv
-  sql_logic: SUM(amount) per customer
+  sql_logic: SUM(amount)
 - metric_name: ltv_7_days
   sql_logic: SUM(CASE WHEN payment_date <= DATETIME(first_purchase_date, '+7 day')
     THEN amount ELSE 0 END)

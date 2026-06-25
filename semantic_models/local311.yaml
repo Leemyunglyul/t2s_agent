@@ -6,10 +6,8 @@ synonyms:
   type: condition
 biz_logic:
 - metric_name: Driver Season Points
-  sql_logic: 'SUM(points) from the combined results of the ''results'' and ''sprint_results''
-    tables for a given driver in a season. SQL: (SELECT race_id, driver_id, constructor_id,
-    points FROM results UNION ALL SELECT race_id, driver_id, constructor_id, points
-    FROM sprint_results)'
+  sql_logic: SUM(points) for a driver in a given year. Points are sourced from a UNION
+    of the 'results' and 'sprint_results' tables.
 - metric_name: Constructor Points Per Season
   sql_logic: SUM(points) FROM constructor_results GROUP BY year, constructor_id
 - metric_name: Constructor Combined Points

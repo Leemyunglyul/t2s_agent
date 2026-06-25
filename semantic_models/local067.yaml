@@ -15,22 +15,16 @@ synonyms:
   db_target: times.calendar_year = 2021 AND times.calendar_month_number = 12
   type: condition
 - nl_term: sale profit
-  db_target: sales.amount_sold - (costs.unit_cost * sales.quantity_sold)
+  db_target: sales.amount_sold - costs.unit_cost * sales.quantity_sold
   type: column
 - nl_term: total customer profit
-  db_target: SUM(sales.amount_sold - (costs.unit_cost * sales.quantity_sold))
+  db_target: SUM(sales.amount_sold - costs.unit_cost * sales.quantity_sold)
   type: column
 - nl_term: profit tiers
-  db_target: NTILE(10) OVER (ORDER BY SUM(sales.amount_sold - (costs.unit_cost * sales.quantity_sold))
-    ASC)
+  db_target: NTILE(10) OVER (ORDER BY SUM(sales.amount_sold - costs.unit_cost * sales.quantity_sold))
   type: column
 biz_logic:
-- metric_name: Aggregated Unit Cost
-  sql_logic: AVG(costs.unit_cost) GROUP BY costs.prod_id, costs.time_id, costs.promo_id,
-    costs.channel_id
-- metric_name: Sale Profit
-  sql_logic: sales.amount_sold - (aggregated_costs.avg_unit_cost * sales.quantity_sold)
 - metric_name: Total Customer Profit
-  sql_logic: SUM(sale_profit) GROUP BY cust_id
+  sql_logic: SUM(sales.amount_sold - costs.unit_cost * sales.quantity_sold)
 - metric_name: Customer Profit Tiers (Decile)
-  sql_logic: NTILE(10) OVER (ORDER BY total_customer_profit ASC)
+  sql_logic: NTILE(10) OVER (ORDER BY SUM(sales.amount_sold - costs.unit_cost * sales.quantity_sold))

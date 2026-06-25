@@ -11,17 +11,36 @@ synonyms:
 - nl_term: number of orders
   db_target: COUNT(DISTINCT orders.order_id)
   type: condition
+- nl_term: customer lifespan in weeks
+  db_target: CASE WHEN (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
+    < 7 THEN 1.0 ELSE (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
+    / 7.0 END
+  type: condition
+- nl_term: total payment value
+  db_target: SUM(order_payments.payment_value)
+  type: condition
+- nl_term: average payment per order
+  db_target: (SUM(order_payments.payment_value) * 1.0 / COUNT(DISTINCT orders.order_id))
+  type: condition
+- nl_term: customer rank
+  db_target: DENSE_RANK() OVER (ORDER BY (SUM(order_payments.payment_value) * 1.0
+    / COUNT(DISTINCT orders.order_id)) DESC)
+  type: condition
+- nl_term: top 3 customers
+  db_target: DENSE_RANK() OVER (ORDER BY (SUM(order_payments.payment_value) * 1.0
+    / COUNT(DISTINCT orders.order_id)) DESC) <= 3
+  type: condition
 biz_logic:
-- metric_name: avg_payment_per_order
-  sql_logic: SUM(order_payments.payment_value) / COUNT(DISTINCT orders.order_id)
 - metric_name: customer_lifespan_weeks
   sql_logic: CASE WHEN (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
     < 7 THEN 1.0 ELSE (JULIANDAY(MAX(orders.order_purchase_timestamp)) - JULIANDAY(MIN(orders.order_purchase_timestamp)))
     / 7.0 END
-- metric_name: number of orders per customer
+- metric_name: number_of_orders
   sql_logic: COUNT(DISTINCT orders.order_id)
-- metric_name: total customer payment
+- metric_name: total_payment_value
   sql_logic: SUM(order_payments.payment_value)
-- metric_name: customer_rank_by_avg_payment
-  sql_logic: DENSE_RANK() OVER (ORDER BY (SUM(order_payments.payment_value) / COUNT(DISTINCT
-    orders.order_id)) DESC)
+- metric_name: avg_payment_per_order
+  sql_logic: (SUM(order_payments.payment_value) * 1.0 / COUNT(DISTINCT orders.order_id))
+- metric_name: customer_rank
+  sql_logic: DENSE_RANK() OVER (ORDER BY (SUM(order_payments.payment_value) * 1.0
+    / COUNT(DISTINCT orders.order_id)) DESC)

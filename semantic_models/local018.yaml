@@ -1,0 +1,12 @@
+descriptions: []
+relations: []
+synonyms: []
+biz_logic:
+- metric_name: Top PCF Violation Category by Year
+  sql_logic: SELECT pcf_violation_category FROM collisions WHERE STRFTIME('%Y', collision_date)
+    = '[year]' AND pcf_violation_category IS NOT NULL GROUP BY pcf_violation_category
+    ORDER BY COUNT(case_id) DESC LIMIT 1
+- metric_name: Percentage of Total Collisions by Category and Year
+  sql_logic: (SUM(CASE WHEN STRFTIME('%Y', collision_date) = '[year]' AND pcf_violation_category
+    = '[category]' THEN 1.0 ELSE 0.0 END) / SUM(CASE WHEN STRFTIME('%Y', collision_date)
+    = '[year]' THEN 1.0 ELSE 0.0 END)) * 100

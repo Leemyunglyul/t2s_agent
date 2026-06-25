@@ -11,6 +11,10 @@ descriptions:
     column: "order_status"
     meaning: |
       Indicates the status of an order. The 'delivered' status, often used for performance analysis, requires a non-null 'order_delivered_customer_date' to confirm a successfully completed order.
+  - table: "olist_orders"
+    column: "order_delivered_customer_date"
+    meaning: |
+      The date an order was delivered to the customer. The primary years for order delivery analysis are 2016, 2017, and 2018, as indicated by frequent query patterns.
   - table: "olist_products"
     column: "product_category_name"
     meaning: |
@@ -107,7 +111,7 @@ biz_logic:
       FROM MaxPaymentCountsPerCategory
   - metric_name: "Find Furthest Pair of Cities (Heuristic)"
     sql_logic: |
-      An algorithmic approach to find a pair of distant cities. It involves: 1. Sorting all unique geolocations. 2. Using the LAG() window function to access the preceding location in the sorted list. 3. Calculating the squared Euclidean distance `(current_lat - prev_lat)^2 + (current_lng - prev_lng)^2` as a heuristic. 4. Finding the maximum distance among pairs that are in different cities.
+      An algorithmic approach to find a pair of distant cities. It involves: 1. Aggregating geolocations to unique city/state/zip points with average coordinates. 2. Sorting all unique geolocations. 3. Using the LAG() window function to access the preceding location in the sorted list. 4. Calculating the squared Euclidean distance `(current_lat - prev_lat)^2 + (current_lng - prev_lng)^2` as a heuristic. 5. Finding the maximum distance among pairs that are in different cities.
   - metric_name: "Lowest Annual Volume Year"
     sql_logic: |
       WITH AnnualVolumes AS (

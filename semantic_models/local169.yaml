@@ -26,11 +26,15 @@ synonyms:
   type: value
 biz_logic:
 - metric_name: Legislator First Term Start
-  sql_logic: SELECT id_bioguide, MIN(term_start) AS first_term_start_date FROM legislators_terms
+  sql_logic: SELECT id_bioguide, MIN(term_start) AS first_term_start FROM legislators_terms
     GROUP BY id_bioguide
 - metric_name: Legislator Cohort Definition
-  sql_logic: first_term_start_date BETWEEN '1917-01-01' AND '1999-12-31'
+  sql_logic: first_term_start BETWEEN '1917-01-01' AND '1999-12-31'
 - metric_name: Legislator Yearly Retention Check
-  sql_logic: term_start <= [check_date] AND term_end >= [check_date]
+  sql_logic: EXISTS (SELECT 1 FROM legislators_terms AS lt WHERE lt.id_bioguide =
+    [legislator_id] AND lt.term_start <= [check_date] AND lt.term_end >= [check_date])
+- metric_name: Retention Check Date
+  sql_logic: (CAST(STRFTIME('%Y', first_term_start) AS INTEGER) + period_number -
+    1) || '-12-31'
 - metric_name: Legislator Retention Rate
   sql_logic: CAST(COALESCE(retained_count, 0) AS REAL) * 1.0 / total_cohort_size

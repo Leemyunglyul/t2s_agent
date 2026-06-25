@@ -7,14 +7,24 @@ synonyms:
 - nl_term: point-scoring driver
   db_target: SUM(points) > 0
   type: condition
-- nl_term: fewest points
-  db_target: score = MIN(score) OVER (PARTITION BY season)
+- nl_term: lowest scoring driver of the season
+  db_target: The driver with the minimum total points for a season, excluding drivers
+    with zero points.
   type: condition
 biz_logic:
 - metric_name: Combined Race and Sprint Points
   sql_logic: SELECT race_id, driver_id, constructor_id, points FROM results UNION
     ALL SELECT race_id, driver_id, constructor_id, points FROM sprint_results
 - metric_name: Driver Total Season Points
-  sql_logic: SELECT r.year, T.driver_id, SUM(T.points) AS total_season_points FROM
-    (/* Logic from 'Combined Race and Sprint Points' metric */) AS T JOIN races AS
-    r ON T.race_id = r.race_id GROUP BY r.year, T.driver_id
+  sql_logic: SELECT T1.year, T2.driver_id, SUM(T2.points) AS total_points FROM races
+    AS T1 JOIN AllPoints AS T2 ON T1.race_id = T2.race_id GROUP BY T1.year, T2.driver_id
+- metric_name: Minimum Season Points (non-zero)
+  sql_logic: SELECT year, MIN(total_points) AS min_points FROM DriverSeasonPoints
+    WHERE total_points > 0 GROUP BY year
+- metric_name: Lowest Scoring Driver(s) per Season
+  sql_logic: SELECT T1.year, T1.driver_id FROM DriverSeasonPoints AS T1 JOIN MinSeasonPoints
+    AS T2 ON T1.year = T2.year AND T1.total_points = T2.min_points
+- metric_name: Constructor of Lowest Scoring Driver per Season
+  sql_logic: SELECT DISTINCT T2.year, T3.constructor_id FROM LowestScoringDrivers
+    AS T1 JOIN races AS T2 ON T1.year = T2.year JOIN AllPoints AS T3 ON T2.race_id
+    = T3.race_id AND T1.driver_id = T3.driver_id

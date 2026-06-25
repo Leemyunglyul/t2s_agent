@@ -25,8 +25,11 @@ synonyms:
 biz_logic:
 - metric_name: Skill Demand
   sql_logic: COUNT(DISTINCT job_id)
-- metric_name: Top 3 Skills by Job Count
-  sql_logic: DENSE_RANK() OVER (ORDER BY job_count DESC) <= 3
-- metric_name: Average Salary for Jobs with Top Skills
-  sql_logic: AVG(salary_year_avg) WHERE job_id IN (SELECT job_id FROM skills_job_dim
-    WHERE skill_id IN (SELECT skill_id FROM TopSkills))
+- metric_name: Top 3 Skills by Demand
+  sql_logic: DENSE_RANK() OVER (ORDER BY COUNT(DISTINCT job_id) DESC) <= 3
+- metric_name: Remote Data Analyst Jobs (Salaried)
+  sql_logic: FROM job_postings_fact WHERE job_title_short = 'Data Analyst' AND job_work_from_home
+    = 1 AND salary_year_avg IS NOT NULL
+- metric_name: Average Salary for Remote Data Analyst Jobs with Top Skills
+  sql_logic: AVG(salary_year_avg) for jobs where job_title_short = 'Data Analyst',
+    job_work_from_home = 1, and the job requires one of the top 3 skills.

@@ -7,7 +7,15 @@ descriptions:
   column: channel_total_id
   meaning: A value of 1 in channel_total_id represents the 'Total' or 'All' channels
     category, used for broad sales analysis without filtering for a specific channel.
-relations: []
+relations:
+- table_1: currency
+  column_1: month
+  table_2: times
+  column_2: calendar_month_number
+- table_1: currency
+  column_1: year
+  table_2: times
+  column_2: calendar_year
 synonyms: []
 biz_logic:
 - metric_name: Projected Sales (YoY Growth Method)
@@ -17,3 +25,5 @@ biz_logic:
   sql_logic: SELECT AVG(value_column) FROM (SELECT value_column, ROW_NUMBER() OVER
     (ORDER BY value_column) AS rn, COUNT(*) OVER () AS total_count FROM source_table)
     AS Ranked WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
+- metric_name: Projected Sales in USD
+  sql_logic: projected_sales * to_us

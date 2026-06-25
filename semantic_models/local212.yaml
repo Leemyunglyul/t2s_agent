@@ -10,11 +10,22 @@ relations:
 synonyms: []
 biz_logic:
 - metric_name: Average Daily Deliveries per Driver
-  sql_logic: WITH CTE_DailyDeliveries AS (SELECT del.driver_id, o.order_created_year,
-    o.order_created_month, o.order_created_day, COUNT(DISTINCT del.delivery_id) AS
-    daily_delivery_count FROM deliveries AS del JOIN orders AS o ON del.delivery_order_id
-    = o.order_id WHERE del.driver_id IS NOT NULL GROUP BY del.driver_id, o.order_created_year,
-    o.order_created_month, o.order_created_day) SELECT driver_id, AVG(daily_delivery_count)
+  sql_logic: WITH CTE_DailyDeliveries AS (SELECT T1.driver_id, T2.order_created_year,
+    T2.order_created_month, T2.order_created_day, COUNT(DISTINCT T1.delivery_id) AS
+    daily_delivery_count FROM deliveries AS T1 INNER JOIN orders AS T2 ON T1.delivery_order_id
+    = T2.order_id WHERE T1.driver_id IS NOT NULL GROUP BY T1.driver_id, T2.order_created_year,
+    T2.order_created_month, T2.order_created_day) SELECT driver_id, AVG(daily_delivery_count)
     AS average_daily_deliveries FROM CTE_DailyDeliveries GROUP BY driver_id
 - metric_name: Driver Rank by Average Daily Deliveries
   sql_logic: DENSE_RANK() OVER (ORDER BY average_daily_deliveries DESC)
+- metric_name: Top 5 Drivers by Average Daily Deliveries
+  sql_logic: WITH CTE_DailyDeliveries AS (SELECT T1.driver_id, T2.order_created_year,
+    T2.order_created_month, T2.order_created_day, COUNT(DISTINCT T1.delivery_id) AS
+    daily_delivery_count FROM deliveries AS T1 INNER JOIN orders AS T2 ON T1.delivery_order_id
+    = T2.order_id WHERE T1.driver_id IS NOT NULL GROUP BY T1.driver_id, T2.order_created_year,
+    T2.order_created_month, T2.order_created_day), CTE_DriverAverages AS (SELECT driver_id,
+    AVG(daily_delivery_count) AS average_daily_deliveries FROM CTE_DailyDeliveries
+    GROUP BY driver_id), CTE_RankedDrivers AS (SELECT driver_id, average_daily_deliveries,
+    DENSE_RANK() OVER (ORDER BY average_daily_deliveries DESC) AS driver_rank FROM
+    CTE_DriverAverages) SELECT driver_id, average_daily_deliveries FROM CTE_RankedDrivers
+    WHERE driver_rank <= 5

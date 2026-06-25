@@ -29,7 +29,7 @@ biz_logic:
 - metric_name: StackingOutperformancePerStep
   sql_logic: SELECT ss.name FROM StackScores AS ss INNER JOIN NonStackMaxScores AS
     nsms ON ss.name = nsms.name AND ss.version = nsms.version AND ss.step = nsms.step
-    WHERE nsms.max_non_stack_test_score < ss.stack_test_score
+    WHERE ss.stack_test_score > nsms.max_non_stack_test_score
 - metric_name: StackingOutperformanceCounts
   sql_logic: SELECT name, COUNT(*) AS stacking_outperformance_count FROM StackingOutperformancePerStep
     GROUP BY name
@@ -43,7 +43,7 @@ biz_logic:
     model_score WHERE model != 'Stack' AND step IN (1, 2, 3) GROUP BY name, version,
     step), StackingOutperformancePerStep AS (SELECT ss.name FROM StackScores AS ss
     INNER JOIN NonStackMaxScores AS nsms ON ss.name = nsms.name AND ss.version = nsms.version
-    AND ss.step = nsms.step WHERE nsms.max_non_stack_test_score < ss.stack_test_score),
+    AND ss.step = nsms.step WHERE ss.stack_test_score > nsms.max_non_stack_test_score),
     StackingOutperformanceCounts AS (SELECT name, COUNT(*) AS stacking_outperformance_count
     FROM StackingOutperformancePerStep GROUP BY name), TotalSolutionOccurrences AS
     (SELECT name, COUNT(*) AS total_solution_occurrences FROM solution GROUP BY name)

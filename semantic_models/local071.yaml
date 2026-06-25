@@ -8,22 +8,22 @@ synonyms:
   db_target: cities
   type: table
 - nl_term: June 2022
-  db_target: insert_date BETWEEN '2022-06-01' AND '2022-06-30'
-  type: value
+  db_target: STRFTIME('%Y-%m', insert_date) = '2022-06'
+  type: condition
 biz_logic:
 - metric_name: Consecutive Date Streak Identification
-  sql_logic: julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2
-    ORDER BY insert_date)
+  sql_logic: DATE(insert_date, '-' || ROW_NUMBER() OVER (PARTITION BY country_code_2
+    ORDER BY insert_date) || ' days')
 - metric_name: Country with Longest Consecutive Insertion Streak
   sql_logic: "WITH FilteredDates AS (\n  SELECT DISTINCT\n    country_code_2,\n  \
-    \  insert_date\n  FROM cities\n  WHERE\n    insert_date BETWEEN '2022-06-01' AND\
-    \ '2022-06-30'\n), DateGroups AS (\n  SELECT\n    country_code_2,\n    insert_date,\n\
-    \    julianday(insert_date) - ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER\
-    \ BY insert_date) AS grouping_key\n  FROM FilteredDates\n), StreakCounts AS (\n\
-    \  SELECT\n    country_code_2,\n    COUNT(insert_date) AS streak_length\n  FROM\
-    \ DateGroups\n  GROUP BY\n    country_code_2,\n    grouping_key\n), CountryMaxStreaks\
+    \  insert_date\n  FROM cities\n  WHERE\n    STRFTIME('%Y-%m', insert_date) = '2022-06'\n\
+    ),\nDateGroups AS (\n  SELECT\n    country_code_2,\n    insert_date,\n    DATE(insert_date,\
+    \ '-' || ROW_NUMBER() OVER (PARTITION BY country_code_2 ORDER BY insert_date)\
+    \ || ' days') AS grouping_key\n  FROM FilteredDates\n),\nStreakCounts AS (\n \
+    \ SELECT\n    country_code_2,\n    grouping_key,\n    COUNT(*) AS streak_length\n\
+    \  FROM DateGroups\n  GROUP BY\n    country_code_2,\n    grouping_key\n),\nCountryMaxStreaks\
     \ AS (\n  SELECT\n    country_code_2,\n    MAX(streak_length) AS max_streak\n\
-    \  FROM StreakCounts\n  GROUP BY\n    country_code_2\n), RankedCountries AS (\n\
+    \  FROM StreakCounts\n  GROUP BY\n    country_code_2\n),\nRankedCountries AS (\n\
     \  SELECT\n    country_code_2,\n    DENSE_RANK() OVER (ORDER BY max_streak DESC)\
     \ AS rnk\n  FROM CountryMaxStreaks\n)\nSELECT\n  country_code_2\nFROM RankedCountries\n\
     WHERE\n  rnk = 1"

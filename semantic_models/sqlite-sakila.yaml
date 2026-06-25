@@ -1,3 +1,4 @@
+```yaml
 descriptions:
   - table: "payment"
     column: "payment_date"
@@ -68,7 +69,10 @@ synonyms:
     db_target: "largest_change_amount"
     type: "column"
   - nl_term: "had the largest change"
-    db_target: "month_over_month_diff = (SELECT MAX(month_over_month_diff) FROM ...)"
+    db_target: "ORDER BY month_over_month_diff DESC LIMIT 1"
+    type: "condition"
+  - nl_term: "most volatile customer"
+    db_target: "ORDER BY average_monthly_payment_volatility DESC LIMIT 1"
     type: "condition"
 biz_logic:
   - metric_name: "first_purchase_date"
@@ -133,7 +137,7 @@ biz_logic:
       STRFTIME('%Y-%m', payment_month)
   - metric_name: "monthly_customer_payment"
     sql_logic: |
-      SELECT customer_id, STRFTIME('%Y-%m', payment_date) AS payment_month, SUM(amount) AS monthly_amount FROM payment GROUP BY customer_id, payment_month
+      SELECT customer_id, STRFTIME('%Y-%m', payment_date) AS payment_month, SUM(amount) AS total_monthly_payment FROM payment GROUP BY customer_id, payment_month
   - metric_name: "Monthly Store Rentals"
     sql_logic: |
       SELECT T2.store_id, STRFTIME('%Y', T1.rental_date) AS rental_year, STRFTIME('%m', T1.rental_date) AS rental_month, COUNT(T1.rental_id) AS total_rentals FROM rental AS T1 INNER JOIN staff AS T2 ON T1.staff_id = T2.staff_id GROUP BY T2.store_id, rental_year, rental_month
@@ -149,3 +153,4 @@ biz_logic:
   - metric_name: "max_month_over_month_difference"
     sql_logic: |
       MAX(ABS(monthly_total_payment - LAG(monthly_total_payment, 1, 0) OVER (PARTITION BY customer_id ORDER BY payment_month)))
+  - metric_name: "monthly_total_payment"

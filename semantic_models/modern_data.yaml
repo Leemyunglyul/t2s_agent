@@ -10,11 +10,11 @@ descriptions:
   - table: "pizza_clean_customer_orders"
     column: "exclusions"
     meaning: |
-      A comma-separated string of topping_ids to be removed. 'None' or empty strings are handled as no exclusions via `NULLIF(TRIM(exclusions), 'None')`.
+      A comma-separated string of topping_ids to be removed. 'None' or empty strings are handled as no exclusions via `NULLIF(TRIM(exclusions), 'None')` or `NULLIF(NULLIF(TRIM(exclusions), 'None'), '')`.
   - table: "pizza_clean_customer_orders"
     column: "extras"
     meaning: |
-      A comma-separated string of topping_ids to be added. 'None' or empty strings are handled as no extras via `NULLIF(TRIM(extras), 'None')`.
+      A comma-separated string of topping_ids to be added. 'None' or empty strings are handled as no extras via `NULLIF(TRIM(extras), 'None')` or `NULLIF(NULLIF(TRIM(extras), 'None'), '')`.
   - table: "pizza_recipes"
     column: "toppings"
     meaning: |
@@ -114,6 +114,9 @@ synonyms:
   - nl_term: "top industry"
     db_target: "SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1"
     type: "value"
+  - nl_term: "anagram"
+    db_target: "word_list"
+    type: "table"
 biz_logic:
   - metric_name: "Final Pizza Ingredients Calculation"
     sql_logic: |
@@ -125,22 +128,31 @@ biz_logic:
       5. Formatting and Aggregation: Ingredients that appear more than once (e.g., in the base recipe and as an extra) are prefixed with '2x '. The final list is aggregated into a single string using `GROUP_CONCAT`, sorted to show '2x' items first, then alphabetically.
   - metric_name: "Total Order Revenue"
     sql_logic: |
-      Total revenue is the sum of Base Pizza Revenue and Extras Revenue for all successful orders (where cancellation IS NULL). Base revenue is calculated as SUM(CASE WHEN pizza_name = 'Meatlovers' THEN 12 WHEN pizza_name = 'Vegetarian' THEN 10 END). Extras revenue is SUM(extras_count), where each extra costs $1.
+      Total revenue is the sum of Base Pizza Revenue and Extras Revenue for all successful orders (where cancellation IS NULL). Base revenue is calculated as SUM(CASE WHEN pizza_name = 'Meatlovers' THEN 12 WHEN pizza_name = 'Vegetarian' THEN 10 END). Extras revenue is SUM(extras_count), where each extra costs $1. A FULL OUTER JOIN between base revenue and extras revenue subqueries is used to correctly handle orders that may have only pizzas or only extras.
   - metric_name: "Top Industry by Company Count"
     sql_logic: |
       SELECT T1.industry FROM companies_industries AS T1 JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1
   - metric_name: "Percentage of Good Health Trees"
     sql_logic: |
       (SUM(CASE WHEN health = 'Good' THEN 1 ELSE 0 END) * 1.0 / NULLIF(COUNT(*), 0)) * 100.0
-  - metric_name: "Top 3 Boroughs by Tree Count"
+  - metric_name: "Borough Rank by Tree Count"
     sql_logic: |
-      DENSE_RANK() OVER (ORDER BY COUNT(tree_id) DESC) <= 3
-  - metric_name: "tree_count_per_borough"
+      DENSE_RANK() OVER (ORDER BY COUNT(tree_id) DESC)
+  - metric_name: "Borough Tree Count"
     sql_logic: |
       COUNT(tree_id) GROUP BY boroname
-  - metric_name: "average_mean_income_per_borough"
+  - metric_name: "Borough Average Mean Income"
     sql_logic: |
       AVG(Estimate_Mean_income) GROUP BY boroname
-  - metric_name: "average_new_unicorn_companies_per_year"
+  - metric_name: "Average New Unicorns per Year in Top Industry (2019-2021)"
     sql_logic: |
       WITH TopIndustry AS (SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1), UnicornCompaniesInTopIndustry AS (SELECT T1.company_id, STRFTIME('%Y', T2.date_joined) AS joined_year FROM companies_funding AS T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id INNER JOIN companies_industries AS T3 ON T1.company_id = T3.company_id WHERE T1.valuation >= 1000000000 AND T3.industry = (SELECT industry FROM TopIndustry) AND STRFTIME('%Y', T2.date_joined) BETWEEN '2019' AND '2021'), YearlyUnicornCounts AS (SELECT joined_year, COUNT(DISTINCT company_id) AS yearly_unicorn_count FROM UnicornCompaniesInTopIndustry GROUP BY joined_year) SELECT AVG(yearly_unicorn_count) FROM YearlyUnicornCounts
+  - metric_name: "Anagram Identification"
+    sql_logic: |
+      A canonical representation is created for each word by sorting its characters alphabetically. Words with the same canonical representation are anagrams. The SQL implementation uses a recursive CTE to split words into characters, then pivots them into sorted columns (c1, c2, ...).
+  - metric_name: "Anagram Count"
+    sql_logic: |
+      COUNT(word) - 1
+  - metric_name: "Base Pizza Price"
+    sql_logic: |
+      CASE WHEN pizza_names.pizza_name = 'Meatlovers' THEN 12 WHEN pizza_names.pizza_name = 'Vegetarian' THEN 10 ELSE 0 END

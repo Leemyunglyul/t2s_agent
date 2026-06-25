@@ -12,12 +12,7 @@ synonyms:
     IN ('G', 'PG') AND film.length <= 120 AND film.release_year BETWEEN '2000' AND
     '2010'
   type: condition
-- nl_term: top actor
-  db_target: DENSE_RANK() OVER (ORDER BY COUNT(DISTINCT film_id) DESC) = 1
-  type: condition
 biz_logic:
-- metric_name: Actor Rank by Film Count
-  sql_logic: DENSE_RANK() OVER (ORDER BY film_count DESC)
 - metric_name: Actor Film Count
   sql_logic: COUNT(DISTINCT film_id)
 - metric_name: Actor Full Name

@@ -2,14 +2,15 @@ descriptions: []
 relations: []
 synonyms:
 - nl_term: payment volatility
-  db_target: average_monthly_payment_volatility
+  db_target: customer_payment_volatility
+  type: metric
+- nl_term: most volatile customer
+  db_target: ORDER BY customer_payment_volatility DESC LIMIT 1
   type: condition
 biz_logic:
 - metric_name: monthly_customer_payment
   sql_logic: SELECT customer_id, STRFTIME('%Y-%m', payment_date) AS payment_month,
-    SUM(amount) AS monthly_amount FROM payment GROUP BY customer_id, payment_month
-- metric_name: average_monthly_payment_volatility
-  sql_logic: AVG(ABS(monthly_amount - LAG(monthly_amount) OVER (PARTITION BY customer_id
-    ORDER BY payment_month)))
-- metric_name: customer_rank_by_payment_volatility
-  sql_logic: DENSE_RANK() OVER (ORDER BY avg_monthly_change DESC)
+    SUM(amount) AS total_monthly_payment FROM payment GROUP BY customer_id, payment_month
+- metric_name: customer_payment_volatility
+  sql_logic: AVG(ABS(total_monthly_payment - LAG(total_monthly_payment, 1) OVER (PARTITION
+    BY customer_id ORDER BY payment_month)))

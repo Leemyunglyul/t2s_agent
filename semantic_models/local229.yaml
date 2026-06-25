@@ -3,11 +3,7 @@ descriptions:
   column: striker, non_striker
   meaning: The combination of the 'striker' and 'non_striker' columns for a given
     ball represents the current batting partnership.
-relations:
-- table_1: ball_by_ball
-  column_1: match_id, over_id, ball_id, innings_no
-  table_2: batsman_scored
-  column_2: match_id, over_id, ball_id, innings_no
+relations: []
 synonyms:
 - nl_term: highest scoring partnership
   db_target: The partnership with rank = 1, derived from DENSE_RANK() OVER (PARTITION
@@ -23,19 +19,23 @@ biz_logic:
     player_a_id, CASE WHEN striker > non_striker THEN striker ELSE non_striker END
     AS player_b_id
 - metric_name: Total Partnership Score
-  sql_logic: SUM(runs_scored) AS total_partnership_score
+  sql_logic: SUM(runs_scored)
 - metric_name: Individual Contribution to Partnership
-  sql_logic: SUM(CASE WHEN striker = player_a_id THEN runs_scored ELSE 0 END) AS player_a_score,
-    SUM(CASE WHEN striker = player_b_id THEN runs_scored ELSE 0 END) AS player_b_score
+  sql_logic: SUM(CASE WHEN striker = (CASE WHEN striker < non_striker THEN striker
+    ELSE non_striker END) THEN runs_scored ELSE 0 END) AS player_a_score, SUM(CASE
+    WHEN striker = (CASE WHEN striker > non_striker THEN striker ELSE non_striker
+    END) THEN runs_scored ELSE 0 END) AS player_b_score
 - metric_name: Highest Partnership Ranking per Match
   sql_logic: DENSE_RANK() OVER (PARTITION BY match_id ORDER BY total_partnership_score
-    DESC) AS partnership_rank
-- metric_name: Order Partnership by Individual Contribution
+    DESC)
+- metric_name: Ordered Partnership Player Details
   sql_logic: CASE WHEN player_a_score > player_b_score THEN player_a_id WHEN player_b_score
-    > player_a_score THEN player_b_id ELSE player_b_id END AS player_1_id, CASE WHEN
-    player_a_score > player_b_score THEN player_b_id WHEN player_b_score > player_a_score
-    THEN player_a_id ELSE player_a_id END AS player_2_id, CASE WHEN player_a_score
-    > player_b_score THEN player_a_score WHEN player_b_score > player_a_score THEN
-    player_b_score ELSE player_b_score END AS player_1_score, CASE WHEN player_a_score
-    > player_b_score THEN player_b_score WHEN player_b_score > player_a_score THEN
-    player_a_score ELSE player_a_score END AS player_2_score
+    > player_a_score THEN player_b_id WHEN player_a_id > player_b_id THEN player_a_id
+    ELSE player_b_id END AS player_1_id, CASE WHEN player_a_score > player_b_score
+    THEN player_a_score WHEN player_b_score > player_a_score THEN player_b_score WHEN
+    player_a_id > player_b_id THEN player_a_score ELSE player_b_score END AS player_1_score,
+    CASE WHEN player_a_score > player_b_score THEN player_b_id WHEN player_b_score
+    > player_a_score THEN player_a_id WHEN player_a_id > player_b_id THEN player_b_id
+    ELSE player_a_id END AS player_2_id, CASE WHEN player_a_score > player_b_score
+    THEN player_b_score WHEN player_b_score > player_a_score THEN player_a_score WHEN
+    player_a_id > player_b_id THEN player_b_score ELSE player_a_score END AS player_2_score

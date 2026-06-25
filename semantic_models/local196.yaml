@@ -7,11 +7,7 @@ descriptions:
   column: rating
   meaning: A film's content rating, used as a category to group customers by their
     first rental choice.
-relations:
-- table_1: payment
-  column_1: customer_id
-  table_2: rental
-  column_2: customer_id
+relations: []
 synonyms:
 - nl_term: rating_category
   db_target: film.rating

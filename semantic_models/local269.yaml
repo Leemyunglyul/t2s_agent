@@ -5,7 +5,7 @@ descriptions:
     packaging items. 'packaging_id' is the container, 'contains_id' is the content,
     and 'qty' is the quantity of the content within the container.
 relations:
-- table_1: packaging
+- table_1: RecursiveHierarchy
   column_1: id
   table_2: packaging_relations
   column_2: packaging_id
@@ -14,15 +14,17 @@ relations:
     to find all the items it contains.
 synonyms:
 - nl_term: leaf items
-  db_target: id NOT IN (SELECT packaging_id FROM packaging_relations)
+  db_target: SELECT id FROM packaging WHERE id NOT IN (SELECT packaging_id FROM packaging_relations)
   type: condition
 - nl_term: top-level packages
-  db_target: id NOT IN (SELECT contains_id FROM packaging_relations)
+  db_target: SELECT id FROM packaging WHERE id NOT IN (SELECT contains_id FROM packaging_relations)
   type: condition
 biz_logic:
 - metric_name: Cumulative Quantity in Hierarchy
-  sql_logic: parent.cumulative_qty * relation.qty
+  sql_logic: rh.cumulative_qty * pr.qty
 - metric_name: Total Leaf Quantity per Top-Level Package
-  sql_logic: COALESCE(SUM(cumulative_qty of leaf items), 1.0)
-- metric_name: Average Leaf Items per Top-Level Package
-  sql_logic: AVG(total_leaf_quantity)
+  sql_logic: SELECT top_level_packaging_id, SUM(cumulative_qty) AS total_qty FROM
+    ExpandedLeafQuantities GROUP BY top_level_packaging_id
+- metric_name: Average Total Leaf Quantity
+  sql_logic: AVG(COALESCE(tq.total_qty, 1.0)); The COALESCE handles top-level packages
+    that are also leaf items by assigning them a quantity of 1.

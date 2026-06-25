@@ -9,20 +9,8 @@ descriptions:
     when calculating a bowler's overs.
 relations: []
 synonyms:
-- nl_term: bowler
-  db_target: ball_by_ball.bowler
-  type: column
-- nl_term: bowling stats
-  db_target: player.player_name, total_wickets_taken, economy_rate, strike_rate, best_bowling_performance
-  type: column
 - nl_term: economy
   db_target: economy_rate
-  type: column
-- nl_term: strike rate
-  db_target: strike_rate
-  type: column
-- nl_term: best bowling
-  db_target: best_bowling_performance
   type: column
 - nl_term: wickets
   db_target: total_wickets_taken
@@ -34,6 +22,12 @@ synonyms:
 - nl_term: legal delivery
   db_target: extra_runs.extra_type NOT IN ('wides', 'noballs')
   type: condition
+- nl_term: best bowling figures
+  db_target: match_wickets || '-' || match_runs
+  type: column
+- nl_term: best bowling performance
+  db_target: ORDER BY match_wickets DESC, match_runs ASC
+  type: condition
 biz_logic:
 - metric_name: Legal Ball Logic
   sql_logic: CASE WHEN extra_runs.extra_type IN ('wides', 'noballs') THEN 0 ELSE 1
@@ -43,14 +37,14 @@ biz_logic:
     NOT IN ('run out', 'retired hurt', 'obstructing the field') THEN 1 ELSE 0 END
 - metric_name: Runs Conceded From Bat (per ball)
   sql_logic: COALESCE(batsman_scored.runs_scored, 0)
-- metric_name: Career Bowling Economy Rate
+- metric_name: Bowling Economy Rate
   sql_logic: CASE WHEN total_legal_balls_bowled = 0 THEN 0.0 ELSE CAST(total_runs_conceded
     AS REAL) * 6 / total_legal_balls_bowled END
-- metric_name: Career Bowling Strike Rate
+- metric_name: Bowling Strike Rate
   sql_logic: CASE WHEN total_wickets_taken = 0 THEN NULL ELSE CAST(total_legal_balls_bowled
     AS REAL) / total_wickets_taken END
 - metric_name: Best Bowling Performance Ranking
-  sql_logic: ROW_NUMBER() OVER (PARTITION BY bowler_id ORDER BY match_wickets_taken
-    DESC, match_runs_conceded ASC)
-- metric_name: Best Bowling Performance Format
-  sql_logic: printf('%d-%d', match_wickets_taken, match_runs_conceded)
+  sql_logic: ROW_NUMBER() OVER (PARTITION BY bowler ORDER BY match_wickets DESC, match_runs
+    ASC)
+- metric_name: Best Bowling Figures Format
+  sql_logic: match_wickets || '-' || match_runs

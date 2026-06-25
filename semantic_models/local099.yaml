@@ -37,7 +37,8 @@ synonyms:
   db_target: M_Cast.MID = M_Director.MID
   type: condition
 - nl_term: worked with a director more than any other single director
-  db_target: YC.FilmCount > OM.MaxOtherFilmCount OR OM.MaxOtherFilmCount IS NULL
+  db_target: COUNT(films with director X) > IFNULL(MAX(COUNT(films with director Y
+    where Y <> X)), 0)
   type: condition
 biz_logic:
 - metric_name: Actor-Director Film Count

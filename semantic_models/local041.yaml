@@ -9,5 +9,5 @@ synonyms:
   type: condition
 biz_logic:
 - metric_name: Percentage of Good Health Trees
-  sql_logic: (SUM(CASE WHEN health = 'Good' THEN 1 ELSE 0 END) * 1.0 / NULLIF(COUNT(*),
-    0)) * 100.0
+  sql_logic: CAST(SUM(CASE WHEN health = 'Good' THEN 1 ELSE 0 END) AS REAL) * 100
+    / COUNT(*)

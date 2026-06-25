@@ -578,10 +578,10 @@ def query_planning_node(state: AgentState) -> Dict[str, Any]:
     
     instance_id = state.get("instance_id", "")
        
-    few_shots = get_few_shot_examples(db_id, question)
+    #few_shots = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
-    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shots}\n" if (domain_rules or few_shots) else ""
-    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
+    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shots}\n" if (domain_rules or few_shots) else ""
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
     
     dynamic_planner_system = QUERY_PLANNING_SYSTEM + domain_prompt
     
@@ -633,10 +633,10 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
 
     instance_id = state.get("instance_id", "")
     
-    few_shot = get_few_shot_examples(db_id, question)
+    #few_shot = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
-    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
-    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
+    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
 
     dynamic_system_prompt = f"{SQL_WRITER_PERSONA}\n\n{SQL_GENERATION_SYSTEM}\n{domain_prompt}"
     
@@ -655,7 +655,7 @@ def sql_writer_node(state: AgentState) -> Dict[str, Any]:
     ]
 
     status, response = call_llm({
-        "model": "gemini-2.5-flash",
+        "model": "gemini-2.5-pro",
         "messages": messages,
         "max_tokens": 8192,
         "temperature": 0.0
@@ -700,10 +700,10 @@ def sql_modifier_node(state: AgentState) -> Dict[str, Any]:
     instance_id = state.get("instance_id", "")
     db_id = state.get("db_id", "")
 
-    few_shot = get_few_shot_examples(db_id, question)
+    #few_shot = get_few_shot_examples(db_id, question)
     domain_rules = load_domain_and_semantic_rules(work_dir, instance_id, db_id)
-    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
-    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
+    domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n" if (domain_rules) else ""
+    #domain_prompt = f"\n# [DOMAIN SPECIFIC RULES & HINTS]\n{domain_rules}\n{few_shot}\n" if (domain_rules or few_shot) else ""
 
     # 시스템 프롬프트에 선택된 가이드라인 동적 주입
     dynamic_system_prompt = (

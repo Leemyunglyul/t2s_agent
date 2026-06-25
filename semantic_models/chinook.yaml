@@ -4,7 +4,7 @@ synonyms:
   - nl_term: "sales"
     db_target: "SUM(invoices.Total)"
     type: "column"
-  - nl_term: "amount spent"
+  - nl_term: "amount spent, spending"
     db_target: "SUM(invoice_items.UnitPrice * invoice_items.Quantity)"
     type: "column"
   - nl_term: "top-selling artist, best selling artist"
@@ -64,4 +64,4 @@ biz_logic:
       SELECT T4.CustomerId, SUM(T1.UnitPrice * T1.Quantity) FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId JOIN invoices AS T4 ON T1.InvoiceId = T4.InvoiceId WHERE T3.ArtistId = (SELECT T3.ArtistId FROM invoice_items AS T1 JOIN tracks AS T2 ON T1.TrackId = T2.TrackId JOIN albums AS T3 ON T2.AlbumId = T3.AlbumId GROUP BY T3.ArtistId ORDER BY SUM(T1.UnitPrice * T1.Quantity) DESC LIMIT 1) GROUP BY T4.CustomerId
   - metric_name: "Median of Total Sales for Countries with more than 4 Customers"
     sql_logic: |
-      WITH CountriesWithEnoughCustomers AS (SELECT Country FROM customers GROUP BY Country HAVING COUNT(DISTINCT CustomerId) > 4), TotalSalesPerQualifiedCountry AS (SELECT c.Country, SUM(i.Total) AS TotalSales FROM customers AS c INNER JOIN invoices AS i ON c.CustomerId = i.CustomerId WHERE c.Country IN (SELECT Country FROM CountriesWithEnoughCustomers) GROUP BY c.Country), RankedSales AS (SELECT TotalSales, ROW_NUMBER() OVER (ORDER BY TotalSales) AS rn, COUNT(*) OVER () AS total_count FROM TotalSalesPerQualifiedCountry) SELECT AVG(TotalSales) FROM RankedSales WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)
+      WITH CountrySales AS (SELECT SUM(T1.Total) AS CountryTotal FROM invoices AS T1 INNER JOIN customers AS T2 ON T1.CustomerId = T2.CustomerId GROUP BY T2.Country HAVING COUNT(DISTINCT T2.CustomerId) > 4), RankedSales AS (SELECT CountryTotal, ROW_NUMBER() OVER (ORDER BY CountryTotal) AS rn, COUNT(*) OVER () AS total_count FROM CountrySales) SELECT AVG(CountryTotal) FROM RankedSales WHERE rn IN ((total_count + 1) / 2, (total_count + 2) / 2)

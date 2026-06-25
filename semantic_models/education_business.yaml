@@ -50,6 +50,12 @@ synonyms:
   - nl_term: "top sales rep sales"
     db_target: "MAX(total_rep_sales)"
     type: "column"
+  - nl_term: "tied top sales reps"
+    db_target: "GROUP_CONCAT(web_sales_reps.name)"
+    type: "column"
+  - nl_term: "top 3 products per division"
+    db_target: "DENSE_RANK() OVER (PARTITION BY T2.division ORDER BY SUM(T1.sold_quantity) DESC) <= 3"
+    type: "condition"
 biz_logic:
   - metric_name: "overall_average_quantity_sold_of_top_3_products_per_division"
     sql_logic: |
@@ -72,3 +78,9 @@ biz_logic:
   - metric_name: "Rank of Faculty by Salary Proximity to Rank Average"
     sql_logic: |
       DENSE_RANK() OVER (PARTITION BY FacRank ORDER BY ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank)) ASC)
+  - metric_name: "Average Salary by Rank"
+    sql_logic: |
+      AVG(FacSalary) OVER (PARTITION BY FacRank)
+  - metric_name: "Salary Difference from Rank Average"
+    sql_logic: |
+      ABS(FacSalary - AVG(FacSalary) OVER (PARTITION BY FacRank))

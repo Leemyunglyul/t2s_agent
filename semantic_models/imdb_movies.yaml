@@ -8,6 +8,12 @@ synonyms:
   - nl_term: "high-rated movies"
     db_target: "ratings.avg_rating > 8"
     type: "condition"
+  - nl_term: "top genres"
+    db_target: "genre IN (SELECT T2.genre FROM ratings AS T1 JOIN genre AS T2 ON T1.movie_id = T2.movie_id WHERE T1.avg_rating > 8 GROUP BY T2.genre ORDER BY COUNT(T1.movie_id) DESC LIMIT 3)"
+    type: "condition"
+  - nl_term: "movie count"
+    db_target: "COUNT(DISTINCT movie_id)"
+    type: "column"
 biz_logic:
   - metric_name: "High-Rated Movie Count by Director"
     sql_logic: |
@@ -71,3 +77,6 @@ biz_logic:
       ORDER BY
         movie_count DESC
       LIMIT 4;
+  - metric_name: "Top 3 Genres by High-Rated Movies"
+    sql_logic: |
+      WITH HighRatedMovies AS ( SELECT movie_id FROM ratings WHERE avg_rating > 8 ) SELECT T2.genre FROM HighRatedMovies AS T1 INNER JOIN genre AS T2 ON T1.movie_id = T2.movie_id GROUP BY T2.genre ORDER BY COUNT(T1.movie_id) DESC LIMIT 3

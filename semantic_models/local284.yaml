@@ -9,9 +9,9 @@ biz_logic:
     - (SELECT AVG("loss_rate_%") FROM veg_loss_rate_df)) * ("loss_rate_%" - (SELECT
     AVG("loss_rate_%") FROM veg_loss_rate_df))) / (COUNT("loss_rate_%") - 1.0)) END
 - metric_name: Loss Rate Category
-  sql_logic: CASE WHEN "loss_rate_%" < (avg_loss_rate - std_dev_loss_rate) THEN 'Below
-    1 Std Dev' WHEN "loss_rate_%" > (avg_loss_rate + std_dev_loss_rate) THEN 'Above
-    1 Std Dev' ELSE 'Within 1 Std Dev' END
+  sql_logic: CASE WHEN t1."loss_rate_%" < (t2.avg_loss_rate - t2.std_dev_loss_rate)
+    THEN 'Below 1 Std Dev' WHEN t1."loss_rate_%" > (t2.avg_loss_rate + t2.std_dev_loss_rate)
+    THEN 'Above 1 Std Dev' ELSE 'Within 1 Std Dev' END
 - metric_name: Count of Items Below 1 Std Dev of Loss Rate
   sql_logic: COUNT(CASE WHEN loss_rate_category = 'Below 1 Std Dev' THEN 1 END)
 - metric_name: Count of Items Within 1 Std Dev of Loss Rate

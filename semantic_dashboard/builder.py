@@ -7,11 +7,8 @@ import sqlite3
 import re
 import sqlparse
 from datetime import datetime
-from json_repair import repair_json # 강력한 JSON 복구 라이브러리
+from json_repair import repair_json
 
-# ==========================================
-# 💡 1. YAML 저장 시 긴 문자열을 여러 줄(|)로 예쁘게 저장하도록 Dumper 설정
-# ==========================================
 def multiline_presenter(dumper, data):
     if '\n' in data or len(data) > 60:
         return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
@@ -27,7 +24,6 @@ sys.path.append(parent_dir)
 target_path = os.path.abspath(os.path.join(current_dir, '..', 'spider_agent'))
 sys.path.append(target_path)
 
-# TODO: 실제 환경에 맞게 임포트 경로 확인
 from llm import call_llm
 
 GOLDSQL_PATH = os.path.abspath(os.path.join(current_dir, "..", "gold_sql.jsonl"))
@@ -36,9 +32,6 @@ STATE_FILE = os.path.join(current_dir, "latest_intent_state.json")
 
 os.makedirs(SEMANTIC_DIR, exist_ok=True)
 
-# ==========================================
-# 💡 2. SQL을 짧고 예쁘게 포매팅하는 함수
-# ==========================================
 def format_sql(sql_query):
     if not sql_query: return ""
     return sqlparse.format(sql_query, reindent=True, keyword_case='upper', wrap_after=80)
@@ -72,9 +65,6 @@ def get_existing_functional_groups():
     files = glob.glob(os.path.join(SEMANTIC_DIR, "*.yaml"))
     return [os.path.basename(f).replace(".yaml", "") for f in files]
 
-# ==========================================
-# 🌟 리스트 병합 및 중복 제거 헬퍼 함수들
-# ==========================================
 def merge_descriptions(existing, new):
     seen = {f"{d.get('table')}.{d.get('column')}" for d in existing}
     for d in new:
@@ -120,8 +110,7 @@ def build_functional_semantics():
         existing_groups = get_existing_functional_groups()
         
         print(f"\n⚙️ {instance_id} 분석 중 (DB: {db_id})...")
-        
-        # 💡 [프롬프트 핵심 변경]: 너무 잘게 쪼개지지 않도록 분석 의도/유형 중심으로 묶도록 지시
+    
         prompt = f"""
         You are an expert Data Architect. Analyze the Query, SQL, and DDL.
         Categorize this into a "functional_group".
@@ -201,13 +190,11 @@ def build_functional_semantics():
             safe_func_group = "".join([c if c.isalnum() else "_" for c in func_group]).strip("_")
             yaml_path = os.path.join(SEMANTIC_DIR, f"{safe_func_group}.yaml")
             
-            # 💡 [핵심] 기존 YAML 로드 시 app.py 연동을 위한 'databases' 배열 기본 할당
             yaml_content = {"databases": [], "descriptions": [], "relations": [], "synonyms": [], "biz_logic": []}
             if os.path.exists(yaml_path):
                 with open(yaml_path, 'r', encoding='utf-8') as f:
                     yaml_content = yaml.safe_load(f) or yaml_content
 
-            # 💡 [핵심] 현재 분석 중인 DB 이름을 'databases' 배열에 안전하게 추가
             if "databases" not in yaml_content:
                 yaml_content["databases"] = []
             if db_id and db_id != "unknown_db" and db_id not in yaml_content["databases"]:
@@ -225,7 +212,6 @@ def build_functional_semantics():
                     if "sql_logic" in biz:
                         biz["sql_logic"] = format_sql(biz["sql_logic"])
             
-            # YAML로 저장
             with open(yaml_path, 'w', encoding='utf-8') as f:
                 yaml.dump(yaml_content, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
                 

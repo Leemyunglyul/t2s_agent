@@ -2,11 +2,7 @@ descriptions:
 - table: Bowler_Scores
   column: WonGame
   meaning: A value of 1 indicates that the bowler won the game.
-relations:
-- table_1: Bowler_Scores
-  column_1: MatchID
-  table_2: Tourney_Matches
-  column_2: MatchID
+relations: []
 synonyms: []
 biz_logic:
 - metric_name: Qualifying Win

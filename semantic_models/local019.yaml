@@ -1,21 +1,22 @@
 descriptions:
 - table: Matches
+  column: duration
+  meaning: The duration of a match, typically stored as a text string in 'MM:SS' format.
+    The query filters for this format using `LIKE '%:%'`.
+- table: Matches
   column: title_change
   meaning: A value of 0 indicates that the match did not result in a title change.
-- table: Matches
-  column: duration
-  meaning: The duration of a match, stored as a text string in 'MM:SS' format.
 relations:
+- table_1: Matches
+  column_1: loser_id
+  table_2: Wrestlers
+  column_2: id
 - table_1: Matches
   column_1: title_id
   table_2: Belts
   column_2: id
 - table_1: Matches
   column_1: winner_id
-  table_2: Wrestlers
-  column_2: id
-- table_1: Matches
-  column_1: loser_id
   table_2: Wrestlers
   column_2: id
 synonyms:
@@ -28,8 +29,13 @@ synonyms:
 - nl_term: NXT
   db_target: Belts.name LIKE '%NXT%'
   type: condition
+- nl_term: NXT championship
+  db_target: Belts.name LIKE '%NXT%'
+  type: condition
 - nl_term: shortest match
-  db_target: ORDER BY duration_in_seconds ASC LIMIT 1
+  db_target: ORDER BY (CAST(SUBSTR(Matches.duration, 1, INSTR(Matches.duration, ':')
+    - 1) AS INTEGER) * 60) + CAST(SUBSTR(Matches.duration, INSTR(Matches.duration,
+    ':') + 1) AS INTEGER) ASC LIMIT 1
   type: condition
 - nl_term: winner
   db_target: Wrestlers.name

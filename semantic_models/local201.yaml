@@ -1,0 +1,14 @@
+descriptions: []
+relations: []
+synonyms:
+- nl_term: anagram
+  db_target: word_list
+  type: table
+biz_logic:
+- metric_name: Anagram Identification
+  sql_logic: A canonical representation is created for each word by sorting its characters
+    alphabetically. Words with the same canonical representation are anagrams. The
+    SQL implementation uses a recursive CTE to split words into characters, then pivots
+    them into sorted columns (c1, c2, ...).
+- metric_name: Anagram Count
+  sql_logic: COUNT(word) - 1

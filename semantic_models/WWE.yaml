@@ -6,7 +6,7 @@ descriptions:
   - table: "Matches"
     column: "duration"
     meaning: |
-      The duration of a match, stored as a text string in 'MM:SS' format. See the 'Duration in Seconds' metric for conversion logic.
+      The duration of a match, stored as a text string in 'MM:SS' format. Queries often filter for this format using `LIKE '%:%'`. See the 'Duration in Seconds' metric for the conversion logic to an integer.
 relations:
   - table_1: "Matches"
     column_1: "title_id"
@@ -27,7 +27,7 @@ synonyms:
   - nl_term: "non-title match"
     db_target: "Matches.title_change = 0"
     type: "condition"
-  - nl_term: "NXT"
+  - nl_term: "NXT, NXT championship"
     db_target: "Belts.name LIKE '%NXT%'"
     type: "condition"
   - nl_term: "shortest match"

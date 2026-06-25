@@ -4,11 +4,6 @@ descriptions:
   meaning: A valuation of 1,000,000,000 or more indicates the company is a 'unicorn'.
 relations: []
 synonyms:
-- nl_term: top industry
-  db_target: SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates
-    AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT
-    T1.company_id) DESC LIMIT 1
-  type: value
 - nl_term: unicorn
   db_target: valuation >= 1000000000
   type: condition
@@ -23,7 +18,7 @@ biz_logic:
   sql_logic: SELECT T1.industry FROM companies_industries AS T1 INNER JOIN companies_dates
     AS T2 ON T1.company_id = T2.company_id GROUP BY T1.industry ORDER BY COUNT(DISTINCT
     T1.company_id) DESC LIMIT 1
-- metric_name: average_new_unicorn_companies_per_year
+- metric_name: Average New Unicorns per Year in Top Industry (2019-2021)
   sql_logic: WITH TopIndustry AS (SELECT T1.industry FROM companies_industries AS
     T1 INNER JOIN companies_dates AS T2 ON T1.company_id = T2.company_id GROUP BY
     T1.industry ORDER BY COUNT(DISTINCT T1.company_id) DESC LIMIT 1), UnicornCompaniesInTopIndustry
